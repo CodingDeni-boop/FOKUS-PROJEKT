@@ -14,4 +14,6 @@ pandas=2.3.2
 numpy=2.3.3
 scikit-learn=1.7.1
 scipy=1.16.1
+opencv=4.10
+matplotlib=3.10
 
