@@ -1,2 +1,7 @@
-##OpenCv##
+import cv2 as cv
 
+img1 = cv.imread("mouse_images/img2.jpg")
+cv.imshow("Image", img1)
+cv.waitKey()
+
+print("program quit")
