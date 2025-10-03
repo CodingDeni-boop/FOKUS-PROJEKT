@@ -9,7 +9,7 @@ daniele = pd.read_csv(f'data/Empty_Cage_Daniele_{video_num}_c1_labels.csv', inde
 nataliia = pd.read_csv(f'data/Empty_Cage_Nataliia_{video_num}_c1_labels.csv', index_col=0)
 nata = pd.read_csv(f'data/Empty_Cage_Nata_{video_num}_c1_labels.csv', index_col=0)
 
-
+print(f'\n****************************************** Video {video_num} ***********************************************')
 
 ########################################################################################################################
 behavior = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
@@ -58,8 +58,6 @@ plt.savefig(f'output/timeline_{video_num}_plot.png', bbox_inches='tight', dpi=30
 
 plt.figure(figsize=(10, 8))
 agreement_matrix = np.zeros((3, 3))
-#annotators = [daniele, nataliia, nata]
-#annotator_names = ['Daniele', 'Nataliia', 'Nata']
 
 for i in range(3):
     for j in range(3):
