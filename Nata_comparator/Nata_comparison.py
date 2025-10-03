@@ -11,7 +11,7 @@ nata = pd.read_csv(f'data/Empty_Cage_Nata_{video_num}_c1_labels.csv', index_col=
 
 
 
-##################################################################################################
+########################################################################################################################
 behavior = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 annotators = [daniele, nataliia, nata]
 annotator_names = ['Daniele', 'Nataliia', 'Nata']
@@ -22,7 +22,7 @@ def calculate_behavior_agreement(df1, df2, behavior):
     agreement = np.mean((df1[behavior] == df2[behavior])) * 100
     return agreement
 
-################################################# TIMELINE PLOT ##################################################
+################################################# TIMELINE PLOT ########################################################
 plt.figure(figsize=(15, 3))
 #plt.grid(True, which='major', axis='x', linestyle='-', alpha=0.3)
 
@@ -54,7 +54,7 @@ plt.legend(bbox_to_anchor=(1.005, 1), loc='upper left')
 plt.tight_layout()
 plt.savefig(f'output/timeline_{video_num}_plot.png', bbox_inches='tight', dpi=300)
 
-################################################# OVERALL AGREEMENT HEATMAP ##################################################
+########################################### OVERALL AGREEMENT HEATMAP ##################################################
 
 plt.figure(figsize=(10, 8))
 agreement_matrix = np.zeros((3, 3))
@@ -91,7 +91,7 @@ for name, df in zip(annotator_names, annotators):
         count = df[cat].sum()
         print(f"{cat}: {count} frames")
 
-################################################# AGREEMENT HEATMAP FOR EACH BEHAVIOR ##################################################
+####################################### AGREEMENT HEATMAP FOR EACH BEHAVIOR ############################################
 
 # Behaviors (without background)
 behaviors = ['supportedrear', 'unsupportedrear', 'grooming']
