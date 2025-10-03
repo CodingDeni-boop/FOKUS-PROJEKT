@@ -16,7 +16,7 @@ print(f'\n****************************************** Video {video_num} *********
 ########################################################################################################################
 behavior = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 annotators = [daniele, nataliia, nata]
-annotator_names = ['Daniele', 'Nataliia', 'Nata']
+annotator_names = ['Daniele', 'Nataliia', 'N2ata']
 
 # Calculate agreement per behavior label
 def calculate_behavior_agreement(df1, df2, behavior):
