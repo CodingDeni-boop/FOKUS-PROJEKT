@@ -146,3 +146,5 @@ cohen_kappa_score(daniele[behavior], nata[behavior])
 print("Daniele - Nata", cohen_kappa_score(daniele[behavior], nata[behavior]))
 cohen_kappa_score(nataliia[behavior], nata[behavior])
 print("Nataliia - Nata", cohen_kappa_score(nataliia[behavior], nata[behavior]))
+
+################# Fleiss Kappa
