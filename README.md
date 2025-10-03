@@ -9,12 +9,3 @@ conda activate fokus
 
 libraries: (I am using all the latest versions, but clarity is best to avoid library conflicts)
 conda install "library"="version"
-
-pandas=2.3.2
-numpy=2.3.3
-scikit-learn=1.7.1
-scipy=1.16.1
-opencv-contrib-python==4.12.0.88 (HAD TO USE PIP... pip install opencv-contrib-python==4.12.0.88)
-matplotlib=3.10
-seaborn=0.13.2
-
