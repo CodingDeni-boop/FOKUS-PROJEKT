@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import sklearn
+from sklearn.metrics import cohen_kappa_score
 
 video_num = input("Enter Video Number: ")
 
@@ -134,3 +136,13 @@ for behavior in behaviors:
     mean_agreement = matrix[matrix != 0].mean()
     print(f"{behavior}: {mean_agreement:.1f}%")
 
+############## Cohens Kappa ##################################
+
+print("\nCohen's Kappa Score:")
+
+cohen_kappa_score(daniele[behavior], nataliia[behavior])
+print("Daniele - Nataliia",cohen_kappa_score(daniele[behavior], nataliia[behavior]))
+cohen_kappa_score(daniele[behavior], nata[behavior])
+print("Daniele - Nata", cohen_kappa_score(daniele[behavior], nata[behavior]))
+cohen_kappa_score(nataliia[behavior], nata[behavior])
+print("Nataliia - Nata", cohen_kappa_score(nataliia[behavior], nata[behavior]))
