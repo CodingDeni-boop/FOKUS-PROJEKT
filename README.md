@@ -16,4 +16,5 @@ scikit-learn=1.7.1
 scipy=1.16.1
 opencv-contrib-python==4.12.0.88 (HAD TO USE PIP... pip install opencv-contrib-python==4.12.0.88)
 matplotlib=3.10
+seaborn=0.13.2
 
