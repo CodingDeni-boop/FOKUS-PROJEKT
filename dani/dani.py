@@ -1,0 +1,1 @@
+import Nata_comparator
