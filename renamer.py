@@ -1,4 +1,4 @@
 import os
 
 for i in range(1,22):
-    os.rename(src=f"try/{i}/camera-2_0_synced.avi",dst=f"Empty_Cage_Right_Sync/{i}_Empty_Cage_Right_Sync.avi")
+    os.rename(src=f"rename_me/{i}_camera-1_0_synced.csv",dst=f"rename_me_output/{i}_Empty_Cage_Left_Sync.avi")
