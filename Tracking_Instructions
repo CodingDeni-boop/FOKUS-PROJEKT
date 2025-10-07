@@ -1,5 +1,5 @@
 Conda activate UnifiedTrackingModel
 
-Cd UnifiedPointTrackingModel
+Cd Desktiop\UnifiedPointTrackingModel
 
-Python process_videos.py “folder_path” -m “EnvironmentV5_Focus_V1” “MouseV5_Focus_V1”
+Python process_videos.py folder_path -m “focus_models\EnvironmentV5_Focus_V1” “focus_models\MouseV5_Focus_V1”
