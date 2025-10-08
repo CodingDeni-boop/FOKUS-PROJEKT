@@ -27,5 +27,8 @@ test3dcol_tri.rescale_by_known_distance("tl","br", 0.64, dims = ("x","y","z"))
 test3dcol_tri.plot(trajectories=["nose"], static=["tl", "tr", "br", "bl"], lines = [("tl", "tr")], dims=("x", "y", "z"))
 
 ### Skeleton Tracking Animation
-test3dcol_tri.save_3d_tracking_video_multi_view(out_path = "./Nata_Animation_Output", startframe = 1, endframe = 500, lines = [("nose", "neck")])
+test3dcol_tri.save_3d_tracking_video_multi_view(out_path = "./Nata_Animation_Output/vid_1_anim.gif", startframe = 1, endframe = 500, lines = [("nose", "neck"),()])
+
+#ffmpeg not recognized
+#test3dcol_tri.save_3d_tracking_video_multi_view(out_path = "./Nata_Animation_Output/vid_1_anim.mp4", startframe = 1, endframe = 500, lines = [("nose", "neck")], writer ="ffmpeg")
 
