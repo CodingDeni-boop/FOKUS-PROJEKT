@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "../FOKUS_PRIVATE",
+        "../FOKUS_PRIVATE/py3r_behaviour/src"
+    ],
+}
