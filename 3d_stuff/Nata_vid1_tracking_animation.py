@@ -26,32 +26,6 @@ test3dcol_tri.rescale_by_known_distance("tl","br", 0.64, dims = ("x","y","z"))
 
 test3dcol_tri.plot(trajectories=["nose"], static=["tl", "tr", "br", "bl"], lines = [("tl", "tr")], dims=("x", "y", "z"))
 
-
+### Skeleton Tracking Animation
 test3dcol_tri.save_3d_tracking_video_multi_view(out_path = "./Nata_Animation_Output")
 
-# Animated Skeleton video
-"""
-test3dcol_tri.generate_video(
-    video_name="vid1_tracking_animation.mp4",
-    trajectories=["nose"],
-    static=["tl", "tr", "br", "bl"],
-    lines=[("tl", "tr"), ("tr", "br"), ("br", "bl"), ("bl", "tl")],  # Draw box outline
-    skeleton_lines=[
-        ("nose", "headcentre"),
-        ("headcentre", "neck"),
-        ("neck", "bodycentre"),
-        ("bodycentre", "tailbase"),
-        ("tailbase", "tailcentre"),
-        ("tailcentre", "tailtip"),
-        # Add hip/shoulder connections
-        ("neck", "hipr"),
-        ("neck", "hipl"),
-        ("bodycentre", "hipr"),
-        ("bodycentre", "hipl")
-    ],
-    dims=("x", "y", "z"),
-    fps=30,  
-    dpi=100,
-    figsize=(10, 10)
-)
-"""
