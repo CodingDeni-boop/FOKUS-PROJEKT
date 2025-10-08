@@ -2,15 +2,21 @@ import py3r.behaviour as py3r
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
 import json
 from py3r.behaviour.tracking.tracking_mv import TrackingMV as mv
-
+from sklearn import calibration
 
 options = opt(fps=30)
 
-with open('calibration.json') as f:
-    calibration = json.load(f)
+with open('oft_tracking/Empty_Cage/collection/1_Empty_Cage_Sync/calibration.json') as f:
+   calibration = json.load(f)
 
-test = mv.from_yolo3r({"left_output":"oft_tracking/Empty_Cage/Empty_Cage_Left/1_Empty_Cage_Left_Sync.csv", "right_output":"oft_tracking/Empty_Cage/Empty_Cage_Right/1_Empty_Cage_Right_Sync.csv"},"1_Empty_Cage_multiview",
-                      options,calibration)
+#test = mv.from_yolo3r({"left_output":"oft_tracking/Empty_Cage/Empty_Cage_Left/1_Empty_Cage_Left_Sync.csv", "right_output":"oft_tracking/Empty_Cage/Empty_Cage_Right/1_Empty_Cage_Right_Sync.csv"},"1_Empty_Cage_multiview",
+       #               options,calibration)
+
+test = mv.from_yolo3r({"left_output": "oft_tracking/Empty_Cage/collection/1_Empty_Cage_Sync/left.csv",
+                        "right_output":"oft_tracking/Empty_Cage/collection/1_Empty_Cage_Sync/right.csv"},"1_Empty_Cage_multiview",
+                      options, calibration)
+
+print(calibration.keys())
 
 test3d = test.stereo_triangulate()
 
