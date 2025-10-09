@@ -6,7 +6,7 @@ from sklearn import calibration
 
 options = opt(fps=30)
 
-with open('oft_tracking/Empty_Cage/collection/1_Empty_Cage_Sync/calibration.json') as f:
+with open('oft_tracking/Empty_Cage/collection_test/video_1_3dset/calibration.json') as f:
    calibration = json.load(f)
 
 #test = mv.from_yolo3r({"left_output":"oft_tracking/Empty_Cage/Empty_Cage_Left/1_Empty_Cage_Left_Sync.csv", "right_output":"oft_tracking/Empty_Cage/Empty_Cage_Right/1_Empty_Cage_Right_Sync.csv"},"1_Empty_Cage_multiview",
@@ -33,7 +33,7 @@ test3dcol_tri.rescale_by_known_distance("tl","br", 0.64, dims = ("x","y","z"))
 test3dcol_tri.plot(trajectories=["nose"], static=["tl", "tr", "br", "bl"], lines = [("tl", "tr")], dims=("x", "y", "z"))
 
 ### Skeleton Tracking Animation
-test3dcol_tri.save_3d_tracking_video_multi_view(out_path = "./Nata_Animation_Output/vid_1_anim.gif", startframe = 1, endframe = 500, lines = [("tl","tr"),("tr","br"),("br","bl"),("bl","tl"),("nose", "neck"),("tailbase","tailcentre"),("tailcentre","tailtip")])
+test3dcol_tri.save_3d_tracking_video_multi_view(out_path = "./Nata_Animation_Output/vid_1_anim_long.gif", startframe = 1, endframe = 5000, lines = [("tl","tr"),("tr","br"),("br","bl"),("bl","tl"),("nose", "neck"),("tailbase","tailcentre"),("tailcentre","tailtip")])
 
 #ffmpeg not recognized
 #test3dcol_tri.save_3d_tracking_video_multi_view(out_path = "./Nata_Animation_Output/vid_1_anim.mp4", startframe = 1, endframe = 500, lines = [("nose", "neck")], writer ="ffmpeg")
