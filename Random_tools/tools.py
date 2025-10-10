@@ -33,7 +33,15 @@ def drop_secundary_columns(collection_folder_path_src:str,collection_folder_path
         droppedright.to_csv(collection_folder_path_dst+file+"/right.csv",index=False)
         print(file,droppedleft.shape[1],droppedright.shape[1])
 
-def make_box_corners():
-    pass
+def drop_non_mouse_columns(collection_folder_path_src:str,collection_folder_path_dst:str,threshold=0.8):
 
+    for file in os.listdir(collection_folder_path_src):
+        left = pd.read_csv(collection_folder_path_src+file+"/left.csv")
+        right = pd.read_csv(collection_folder_path_src+file+"/right.csv")
+        #I DROP EVERY COLUMN THAT HAS > threshold NA
+        droppedleft = left.iloc[:,0:47]
+        droppedright = right.iloc[:,0:47]
+        droppedleft.to_csv(collection_folder_path_dst+file+"/left.csv",index=False)
+        droppedright.to_csv(collection_folder_path_dst+file+"/right.csv",index=False)
+        print(file,droppedleft.shape[1],droppedright.shape[1])
 
