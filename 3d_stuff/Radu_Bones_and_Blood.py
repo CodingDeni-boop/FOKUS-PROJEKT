@@ -35,7 +35,7 @@ test3dcol_tri = test3dcol.stereo_triangulate()
 ## the results of this go into jack skellington, which has the frames on the lines and the bones on the columns
 
 temp = {
-    "point1": ["mouse_top.mouse_top_0.nose", "mouse_top.mouse_top_0.nose", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.bcl", "mouse_top.mouse_top_0.bcr", "mouse_top.mouse_top_0.hipl", "mouse_top.mouse_top_0.hipr"]
+    "point1": ["mouse_top.mouse_top_0.nose", "mouse_top.mouse_top_0.nose", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.bcl", "mouse_top.mouse_top_0.bcr", "mouse_top.mouse_top_0.hipl", "mouse_top.mouse_top_0.hipr"],
     "point2": ["mouse_top.mouse_top_0.earl", "mouse_top.mouse_top_0.earr", "mouse_top.mouse_top_0.earl", "mouse_top.mouse_top_0.earr", "mouse_top.mouse_top_0.bcl", "mouse_top.mouse_top_0.bcr", "mouse_top.mouse_top_0.hipl", "mouse_top.mouse_top_0.hipr", "mouse_top.mouse_top_0.tailbase", "mouse_top.mouse_top_0.tailbase"]
 }
 
