@@ -1,7 +1,11 @@
+import pandas as pd
 import py3r.behaviour as py3r
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
 import json
 from py3r.behaviour.tracking.tracking_mv import TrackingMV as mv
+from py3r.behaviour.features.features import Features
+from py3r.behaviour.features.features_collection import FeaturesCollection
+from py3r.behaviour.features.features_result i
 from sklearn import calibration
 
 options = opt(fps=30)
@@ -36,11 +40,4 @@ temp = {
 } ## whatever baller gamertags these points were given
 
 anatomy = pd.DataFrame(temp)
-
-def build_skeleton (anatomy, )
-
-jack_skellington = {}
-
-
-
 
