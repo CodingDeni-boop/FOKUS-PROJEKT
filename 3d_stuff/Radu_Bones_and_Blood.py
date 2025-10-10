@@ -3,9 +3,9 @@ import py3r.behaviour as py3r
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
 import json
 from py3r.behaviour.tracking.tracking_mv import TrackingMV as mv
-from py3r.behaviour.features.features import Features
-from py3r.behaviour.features.features_collection import FeaturesCollection
-from py3r.behaviour.features.features_result i
+from py3r.behaviour.features.features import Features as feat
+from py3r.behaviour.features.features_collection import FeaturesCollection as featscoll
+from py3r.behaviour.features.features_result import FeaturesResult as featsresult
 from sklearn import calibration
 
 options = opt(fps=30)
@@ -13,8 +13,8 @@ options = opt(fps=30)
 with open('oft_tracking/Empty_Cage/collection_test/video_1_3dset/calibration.json') as f:
    calibration = json.load(f)
 
-test = mv.from_yolo3r({"left_output": "oft_tracking/Empty_Cage/collection/1_Empty_Cage_Sync/left.csv",
-                        "right_output":"oft_tracking/Empty_Cage/collection/1_Empty_Cage_Sync/right.csv"},"1_Empty_Cage_multiview",
+test = mv.from_yolo3r({"left_output": "oft_tracking/Empty_Cage/collection_test/video_1_3dset/left_output.csv",
+                        "right_output":"oft_tracking/Empty_Cage/collection_test/video_1_3dset/right_output.csv"},"1_Empty_Cage_multiview",
                       options, calibration)
 
 test3d = test.stereo_triangulate()
@@ -35,9 +35,16 @@ test3dcol_tri = test3dcol.stereo_triangulate()
 ## the results of this go into jack skellington, which has the frames on the lines and the bones on the columns
 
 temp = {
-   "point1": []
-   "point2": []
-} ## whatever baller gamertags these points were given
+    "point1": ["mouse_top.mouse_top_0.nose", "mouse_top.mouse_top_0.nose", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.neck", "mouse_top.mouse_top_0.bcl", "mouse_top.mouse_top_0.bcr", "mouse_top.mouse_top_0.hipl", "mouse_top.mouse_top_0.hipr"]
+    "point2": ["mouse_top.mouse_top_0.earl", "mouse_top.mouse_top_0.earr", "mouse_top.mouse_top_0.earl", "mouse_top.mouse_top_0.earr", "mouse_top.mouse_top_0.bcl", "mouse_top.mouse_top_0.bcr", "mouse_top.mouse_top_0.hipl", "mouse_top.mouse_top_0.hipr", "mouse_top.mouse_top_0.tailbase", "mouse_top.mouse_top_0.tailbase"]
+}
 
-anatomy = pd.DataFrame(temp)
+bone_ends = pd.DataFrame(temp)
+
+coll = {}
+coll["skele"] = featscoll.from_tracking_collection(test3dcol_tri)
+
+##and now we work with coll["skele"].data
+
+
 
