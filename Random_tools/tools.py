@@ -33,5 +33,7 @@ def drop_secundary_columns(threshold=0.8,collection_folder_path="./oft_tracking/
         droppedright.to_csv(collection_folder_path+file+"/right.csv",index=False)
         print(file,droppedleft.shape[1],droppedright.shape[1])
 
+def make_box_corners():
+    pass
 
 
