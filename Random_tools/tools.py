@@ -19,18 +19,18 @@ def folder_for_collection(
         shutil.copy(input_path_right+f"/{i}"+name_of_file_after_number_right,folder)
         os.rename(folder+f"/{i}"+name_of_file_after_number_right,folder+"/right.csv")
 
-def drop_secundary_columns(threshold=0.8,collection_folder_path="./oft_tracking/Empty_Cage/collection/"):
+def drop_secundary_columns(collection_folder_path_src:str,collection_folder_path_dst:str,threshold=0.8):
 
-    for file in os.listdir(collection_folder_path):
-        left = pd.read_csv(collection_folder_path+file+"/left.csv")
-        right = pd.read_csv(collection_folder_path+file+"/right.csv")
+    for file in os.listdir(collection_folder_path_src):
+        left = pd.read_csv(collection_folder_path_src+file+"/left.csv")
+        right = pd.read_csv(collection_folder_path_src+file+"/right.csv")
         #I DROP EVERY COLUMN THAT HAS > threshold NA
         dropping = left.isna().sum()>left.shape[0]*threshold
         droppedleft = left.drop(columns=left.columns[dropping])
-        dropping = left.isna().sum()>left.shape[0]*threshold
-        droppedright = left.drop(columns=left.columns[dropping])
-        droppedleft.to_csv(collection_folder_path+file+"/left.csv",index=False)
-        droppedright.to_csv(collection_folder_path+file+"/right.csv",index=False)
+        dropping = right.isna().sum()>left.shape[0]*threshold
+        droppedright = right.drop(columns=right.columns[dropping])
+        droppedleft.to_csv(collection_folder_path_dst+file+"/left.csv",index=False)
+        droppedright.to_csv(collection_folder_path_dst+file+"/right.csv",index=False)
         print(file,droppedleft.shape[1],droppedright.shape[1])
 
 def make_box_corners():
