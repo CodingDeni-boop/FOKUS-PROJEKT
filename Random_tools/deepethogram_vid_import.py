@@ -13,6 +13,11 @@ df_result.to_csv("result.csv", index = False)
 # Convert columns into a single label column
 df_result["label"] = df_result.idxmax(axis=1)  # this just takes column name with max value
 
-df_result.to_csv("label_results.csv", index=False, index_label=df_result.index.name)
+df_result = pd.DataFrame(df_result["label"])
+
+print(df_result)
+
+#df_result.to_csv("label_results.csv", index=False, header = True)
+
 
 
