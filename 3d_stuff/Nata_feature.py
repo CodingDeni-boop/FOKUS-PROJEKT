@@ -3,9 +3,9 @@ import py3r.behaviour as py3r
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
 import json
 from py3r.behaviour.tracking.tracking_mv import TrackingMV as mv
-from py3r.behaviour.features.features import Features as feat
-from py3r.behaviour.features.features_collection import FeaturesCollection as featscoll
-from py3r.behaviour.features.features_result import FeaturesResult as featsresult
+from py3r.behaviour.features.features import Features
+from py3r.behaviour.features.features_collection import FeaturesCollection
+from py3r.behaviour.features.features_result import FeaturesResult
 from sklearn import calibration
 
 options = opt(fps=30)
@@ -21,23 +21,26 @@ test3d = test.stereo_triangulate()
 
 test3dcol = py3r.TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection_test/",options,py3r.TrackingMV)
 
+# only 1 video, how to do for several?????????
+
 test3dcol_tri = test3dcol.stereo_triangulate()
 
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##py3r.Tracking.rescale_by_known_distance
+################################## MY STUFF ############################################################################
 
-##test3dcol_tri.rescale_by_known_distance("tl","br", 0.64, dims = ("x","y","z"))
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+test3dcol_tri.strip_column_names()
 
-## first make a dataframe that is a table with the bones on the lines and the point pairs on the columns
-## when calculating jack skellington you will use that dataframe as a reference
-## you will call a 3d distance_between on every pair, using numbers that you pull from test3dcol_tri
-## the results of this go into jack skellington, which has the frames on the lines and the bones on the columns
+# test3dcol_tri is TrackingCollection
+features_collection = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
+# Calculate azimuth from 'nose' to 'neck' across all tracking objects
+azimuth_results = features_collection.azimuth('nose', 'neck')
+print(f"Calculated azimuth for {len(azimuth_results)} tracking objects")
 
+# Store all azimuth results
+features_collection.store(azimuth_results)
 
+# Check results
+for handle, features_obj in features_collection.features_dict.items():
+    print(f"\n{handle} now has features:")
+    print(f"  - Azimuth data shape: {features_obj.data['azimuth_from_nose_to_neck'].shape}")
 
-coll = pd.DataFrame()
-coll["nose_neck_azimuth"] = featscoll.from_tracking_collection(test3dcol_tri)
-
-print(coll["nose_neck_azimuth"].data)
