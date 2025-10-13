@@ -44,3 +44,21 @@ for handle, features_obj in features_collection.features_dict.items():
     print(f"\n{handle} now has features:")
     print(f"  - Azimuth data shape: {features_obj.data['azimuth_from_nose_to_neck'].shape}")
 
+
+###### Access dataframe for model training
+available_keys = list(features_collection.features_dict.keys())
+print(f"Available keys: {available_keys}")
+
+features_obj = features_collection.features_dict['video_1_3dset']
+
+# Feature data as a DataFrame
+feature_data = features_obj.data['azimuth_from_nose_to_neck']
+
+# Classification Model
+from sklearn.ensemble import RandomForestClassifier
+from Random_tools.deepethogram_vid_import import labels_vid1
+
+rf = RandomForestClassifier()
+X = feature_data  # features
+y = labels_vid1   # target labels
+rf.fit(X, y)

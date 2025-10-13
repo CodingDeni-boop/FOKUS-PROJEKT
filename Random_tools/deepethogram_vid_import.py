@@ -15,6 +15,8 @@ df_result["label"] = df_result.idxmax(axis=1)  # this just takes column name wit
 
 df_result = pd.DataFrame(df_result["label"])
 
+labels_vid1 = df_result
+
 print(df_result)
 
 #df_result.to_csv("label_results.csv", index=False, header = True)
