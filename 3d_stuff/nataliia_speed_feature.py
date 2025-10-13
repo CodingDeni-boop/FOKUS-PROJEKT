@@ -48,6 +48,3 @@ for recording in test3dcol_tri:
 speed_df = pd.DataFrame(speed_data)
 print(speed_df)
 print(speed_df.columns)
-
-#take specific point, f.e. nose
-nose_speed = speed_df['speed_of_nose_in_xyz']
