@@ -13,3 +13,4 @@ for file in os.listdir(collection_folder_path_src):
     right = pd.read_csv(collection_folder_path_src+file+"/right.csv")
     print(file,left.shape, right.shape)
 
+#aa
