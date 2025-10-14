@@ -36,14 +36,21 @@ fc.azimuth('headcentre', 'neck').store()
 
 
 # Extract features
+feature_dict = {}
+for file in fc.keys():
+    feature_obj = fc[file].data
+    feature_dict[file] = feature_obj
 features_obj = fc.features_dict['video_1_3dset']
 
 # Feature data as a DataFrame
+"""
 feature1 = features_obj.data['azimuth_from_nose_to_neck']
 feature2 = features_obj.data['azimuth_from_neck_to_bodycentre']
 feature3 = features_obj.data['azimuth_from_headcentre_to_neck']
+"""
 
-feature_data = pd.concat([feature1, feature2, feature3], axis=1)
+#feature_data = pd.concat([feature1, feature2, feature3], axis=1)
+feature_data = features_obj.data
 
 from sklearn.ensemble import RandomForestClassifier
 from Random_tools.deepethogram_vid_import import labels_vid1
@@ -56,14 +63,20 @@ import numpy as np
 
 
 labels_vid1 = labels_vid1.iloc[1:] # delete frame 0 row
+
+print("labels_vid1",labels_vid1)
 """
 y_cat = pd.Categorical(labels_vid1)
 print(f"Categories: {y_cat.categories}")
 """
 
+print("missing data", feature_data.isnull().sum())
+
 rf = RandomForestClassifier()
 X = feature_data  # features
 y = labels_vid1.values.ravel()   # target labels
+
+print("This is x", X)
 
 # 1. Train/Test Split
 X_train, X_test, y_train, y_test = train_test_split(
