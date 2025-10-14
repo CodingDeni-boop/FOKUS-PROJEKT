@@ -15,15 +15,17 @@ for file in fc.keys():
     feature_obj = fc[file].data
     feature_dict[file] = feature_obj
 
+''' old
+
 features_obj = fc.features_dict['video_1_3dset']
 
-"""
 labels_vid1 = labels_vid1.iloc[1:] # delete frame 0 row
-
 
 y_cat = pd.Categorical(labels_vid1)
 print(f"Categories: {y_cat.categories}")
-"""
+'''
+
+
 
 
 rf = RandomForestClassifier()
