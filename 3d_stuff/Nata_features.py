@@ -25,7 +25,7 @@ test3dcol_tri = test3dcol.stereo_triangulate()
 
 test3dcol_tri.strip_column_names()
 
-######################################### Features #################################
+######################################### Features ##################################
 
 fc = FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
