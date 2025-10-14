@@ -4,7 +4,6 @@ import shutil
 import pandas as pd
 import numpy as np
 
-tools.drop_non_mouse_columns("3d_stuff/oft_tracking/Empty_Cage/collection_before_preprocessing/","3d_stuff/oft_tracking/Empty_Cage/collection_after_preprocessing/",threshold=0.8)
 
 collection_folder_path_src = "3d_stuff/oft_tracking/Empty_Cage/collection_after_preprocessing/"
 
