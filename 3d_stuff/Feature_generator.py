@@ -46,5 +46,12 @@ coll["skele"] = featscoll.from_tracking_collection(test3dcol_tri)
 
 ##and now we work with coll["skele"].data
 
+# Generate distance features for each bone pair
+for i in range(len(bone_ends)):
+    point1 = bone_ends.iloc[i, 0]
+    point2 = bone_ends.iloc[i, 1]
+    coll["skele"].distance_between(point1, point2, dims=("x", "y", "z")).store()
 
+print("Features generated successfully")
+print(coll["skele"].data)
 

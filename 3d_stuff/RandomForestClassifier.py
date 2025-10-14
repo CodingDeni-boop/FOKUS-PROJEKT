@@ -7,7 +7,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 import numpy as np
-from Nata_features import *
+from Features import *
 
 # Extract features
 feature_dict = {}
@@ -29,10 +29,13 @@ print(f"Categories: {y_cat.categories}")
 
 
 rf = RandomForestClassifier()
-X = feature_data  # features
+
+# Convert feature_dict to DataFrame
+# Assuming feature_dict contains DataFrames, concatenate them
+X = pd.concat([feature_dict[key] for key in feature_dict.keys()], axis=0)
 y = labels_vid1.values.ravel()   # target labels
 
-
+### take seperate vidoes as test set
 # 1. Train/Test Split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y)
@@ -63,11 +66,15 @@ print("\n=== Confusion Matrix ===")
 print(confusion_matrix(y_test, y_pred))
 
 # Feature Importance
-feature_names = X.columns
-importance_df = pd.DataFrame({
-    'feature': feature_names,
-    'importance': rf.feature_importances_
-}).sort_values('importance', ascending=False)
+if hasattr(X, 'columns'):
+    feature_names = X.columns
+    importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': rf.feature_importances_
+    }).sort_values('importance', ascending=False)
 
-print("\n=== Feature Importance ===")
-print(importance_df)
+    print("\n=== Feature Importance ===")
+    print(importance_df)
+else:
+    print("\n=== Feature Importance ===")
+    print("Feature names not available")
