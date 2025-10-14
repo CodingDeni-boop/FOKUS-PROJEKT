@@ -6,7 +6,6 @@ from py3r.behaviour.tracking.tracking_mv import TrackingMV as mv
 from py3r.behaviour.features.features import Features
 from py3r.behaviour.features.features_collection import FeaturesCollection
 from py3r.behaviour.features.features_result import FeaturesResult
-from sklearn import calibration
 
 options = opt(fps=30)
 
@@ -53,14 +52,10 @@ feature3 = features_obj.data['azimuth_from_headcentre_to_neck']
 feature_data = features_obj.data
 
 from sklearn.ensemble import RandomForestClassifier
-from Random_tools.deepethogram_vid_import import labels_vid1
+from labels.deepethogram_vid_import import labels_vid1
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-import numpy as np
-
 
 labels_vid1 = labels_vid1.iloc[1:] # delete frame 0 row
 

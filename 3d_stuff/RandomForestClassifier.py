@@ -1,12 +1,9 @@
 
 from sklearn.ensemble import RandomForestClassifier
-from Random_tools.deepethogram_vid_import import labels_vid1
+from labels.deepethogram_vid_import import labels_vid1
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-import numpy as np
 from Features import *
 
 # Extract features
