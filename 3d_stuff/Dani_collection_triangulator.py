@@ -8,7 +8,6 @@ from py3r.behaviour.tracking.tracking_collection import TrackingCollection
 from py3r.behaviour.tracking.tracking_mv import TrackingMV
 from py3r.behaviour.features.features_collection import FeaturesCollection
 
-collection_folder_path_src = "oft_tracking/Empty_Cage/collection_after_preprocessing/"
 options = opt(fps=30)
 
 """
@@ -17,7 +16,7 @@ for file in os.listdir(collection_folder_path_src):
     right = pd.read_csv(collection_folder_path_src+file+"/right.csv")
     print(file,left.shape, right.shape)
 """
-tracking_collection = TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection_after_preprocessing",options,TrackingMV)
+tracking_collection = TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection",options,TrackingMV)
 triangulated_tracking_collection = tracking_collection.stereo_triangulate()
 triangulated_tracking_collection.strip_column_names()
 triangulated_tracking_collection.rescale_by_known_distance("hipl","hipr", 0.05, dims = ("x","y","z"))
