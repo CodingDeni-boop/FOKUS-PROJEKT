@@ -6,7 +6,7 @@ from sklearn import calibration
 
 options = opt(fps=30)
 
-test3dcol = py3r.TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection_test/",options,py3r.TrackingMV)
+test3dcol = py3r.TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection/",options,py3r.TrackingMV)
 
 test3dcol_tri = test3dcol.stereo_triangulate()
 
