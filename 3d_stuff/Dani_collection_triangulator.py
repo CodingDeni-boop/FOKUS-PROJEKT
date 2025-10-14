@@ -21,9 +21,9 @@ triangulated_tracking_collection = tracking_collection.stereo_triangulate()
 triangulated_tracking_collection.strip_column_names()
 triangulated_tracking_collection.rescale_by_known_distance("hipl","hipr", 0.05, dims = ("x","y","z"))
 
-
+"""
 triangulated_tracking_collection.plot(trajectories=["bodycentre"], dims=("x", "y", "z"))
-
+"""
 
 pairs_of_points = pd.DataFrame({
     "point1": ["nose", "nose", "neck", "neck", "neck", "neck", "bcl", "bcr", "hipl", "hipr"],
