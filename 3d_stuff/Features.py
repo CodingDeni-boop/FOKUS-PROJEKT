@@ -6,12 +6,12 @@ from py3r.behaviour.tracking.tracking_mv import TrackingMV as mv
 from py3r.behaviour.features.features import Features
 from py3r.behaviour.features.features_collection import FeaturesCollection
 from py3r.behaviour.features.features_result import FeaturesResult
-from py3r.behaviour.tracking.tracking_collection import TrackingCollection as Collection
-from py3r.behaviour.tracking.tracking_mv import TrackingMV as MultiView
+from py3r.behaviour.tracking.tracking_collection import TrackingCollection
+from py3r.behaviour.tracking.tracking_mv import TrackingMV
 
 options = opt(fps=30)
 
-tracking_collection = Collection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection",options,MultiView)
+tracking_collection = TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection",options, TrackingMV)
 triangulated_tracking_collection = tracking_collection.stereo_triangulate()
 triangulated_tracking_collection.strip_column_names()
 triangulated_tracking_collection.rescale_by_known_distance("hipl","hipr", 0.05, dims = ("x","y","z"))
