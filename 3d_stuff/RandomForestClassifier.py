@@ -1,6 +1,6 @@
 
 from sklearn.ensemble import RandomForestClassifier
-from labels.deepethogram_vid_import import labels_vid1
+from labels.deepethogram_vid_import import all_labels
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
