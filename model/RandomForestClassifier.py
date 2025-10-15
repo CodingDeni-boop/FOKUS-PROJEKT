@@ -1,10 +1,13 @@
 
 from sklearn.ensemble import RandomForestClassifier
-from labels.deepethogram_vid_import import all_labels
+#from labels.deepethogram_vid_import import all_labels
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
-from Features import *
+import pandas as pd
+import numpy as np
+
+
 
 
 ''' old
@@ -19,13 +22,12 @@ print(f"Categories: {y_cat.categories}")
 
 
 rf = RandomForestClassifier()
+y = pd.read_csv("../labels/labels.csv", index_col=0)
+X = pd.read_csv("../model/features.csv", index_col=0)
+X = X.iloc[:y.shape[0]]
 
-# Convert feature_dict to DataFrame
-# Assuming feature_dict contains DataFrames, concatenate them
-X = pd.concat([feature_dict[key] for key in feature_dict.keys()], axis=0)
-y = pd.read_csv("labels.csv", index_col=0)
 
-y = all_labels.values.ravel()   # target labels
+#y = all_labels.values.ravel()   # target labels
 
 ### take seperate vidoes as test set
 # 1. Train/Test Split

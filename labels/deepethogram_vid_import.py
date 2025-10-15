@@ -12,11 +12,10 @@ for folder in os.listdir("./empty_cage/"):
         vids.append(pd.read_csv("./empty_cage/"+folder+"/"+file, index_col=0))
     df_result = (vids[0] &  vids[1] & vids[2]).astype(int)
 
-    df_result["label"] = df_result.idxmax(axis=1)
-    df_result = pd.DataFrame(df_result["label"])
+    df_result["label"] = df_result.idxmax(axis=1).astype("category")
 
     # Store in dictionary
-    all_labels[f"video_{vid_num}"] = df_result
+    all_labels[f"video_{vid_num}"] = df_result[["label"]]
     vid_num += 1
 
 print(all_labels)
