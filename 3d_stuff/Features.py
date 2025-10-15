@@ -36,3 +36,14 @@ print(fc[0].data)
 # Speed
 
 #Area of Mouse
+
+# Extract Features
+
+# Extract features
+feature_dict = {}
+for file in fc.keys():
+    feature_obj = fc[file].data
+    feature_dict[file] = feature_obj
+
+combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
+print(combined_features)

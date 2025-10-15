@@ -30,7 +30,7 @@ rf = RandomForestClassifier()
 # Convert feature_dict to DataFrame
 # Assuming feature_dict contains DataFrames, concatenate them
 X = pd.concat([feature_dict[key] for key in feature_dict.keys()], axis=0)
-y = labels_vid1.values.ravel()   # target labels
+y = all_labels.values.ravel()   # target labels
 
 ### take seperate vidoes as test set
 # 1. Train/Test Split

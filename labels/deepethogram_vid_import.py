@@ -21,6 +21,8 @@ for folder in os.listdir("./empty_cage/"):
 
 print(all_labels)
 
+combined_labels = pd.concat(all_labels.values(), keys=all_labels.keys(), names=['video_id', 'frame'])
+print(combined_labels)
 
 
 """
