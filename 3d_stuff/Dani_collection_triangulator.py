@@ -35,9 +35,6 @@ print(fc[0].data)
 
 # Speed
 
-videos = []
-videos.append(file)
-
 #Area of Mouse
 
 embedding_dfs = {
