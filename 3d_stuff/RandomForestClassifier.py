@@ -6,11 +6,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
 from Features import *
 
-# Extract features
-feature_dict = {}
-for file in fc.keys():
-    feature_obj = fc[file].data
-    feature_dict[file] = feature_obj
 
 ''' old
 
@@ -23,13 +18,13 @@ print(f"Categories: {y_cat.categories}")
 '''
 
 
-
-
 rf = RandomForestClassifier()
 
 # Convert feature_dict to DataFrame
 # Assuming feature_dict contains DataFrames, concatenate them
 X = pd.concat([feature_dict[key] for key in feature_dict.keys()], axis=0)
+y = pd.read_csv("labels.csv", index_col=0)
+
 y = all_labels.values.ravel()   # target labels
 
 ### take seperate vidoes as test set

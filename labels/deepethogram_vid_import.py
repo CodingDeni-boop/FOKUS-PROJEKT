@@ -24,6 +24,10 @@ print(all_labels)
 combined_labels = pd.concat(all_labels.values(), keys=all_labels.keys(), names=['video_id', 'frame'])
 print(combined_labels)
 
+X_with_labels = combined_labels.copy()
+save_path = "labels.csv"
+X_with_labels.to_csv(save_path, index=True)
+
 
 """
 for f in video_numbers:
