@@ -13,7 +13,38 @@ options = opt(fps=30)
 tracking_collection = TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection",options, TrackingMV)
 triangulated_tracking_collection = tracking_collection.stereo_triangulate()
 triangulated_tracking_collection.strip_column_names()
-triangulated_tracking_collection.rescale_by_known_distance("hipl","hipr", 0.05, dims = ("x","y","z"))
+triangulated_tracking_collection.rescale_by_known_distance("tr","tl", 0.64, dims = ("x","y","z"))
+
+# Smoothing and interpolating
+
+triangulated_tracking_collection.smooth({
+
+    # mouse
+    "nose": {"window": 5, "type": "mean"},
+    "headcentre": {"window": 5, "type": "mean"},
+    "neck": {"window": 5, "type": "mean"},
+    "earl": {"window": 5, "type": "mean"},
+    "earr": {"window": 5, "type": "mean"},
+    "bodycentre": {"window": 5, "type": "mean"},
+    "bcl": {"window": 5, "type": "mean"},
+    "bcr": {"window": 5, "type": "mean"},
+    "hipl": {"window": 5, "type": "mean"},
+    "hipr": {"window": 5, "type": "mean"},
+    "tailbase": {"window": 5, "type": "mean"},
+    "tailcentre": {"window": 5, "type": "mean"},
+    "tailtip": {"window": 5, "type": "mean"},
+
+    # oft
+    "tr": {"window": 5, "type": "mean"},
+    "tl": {"window": 5, "type": "mean"},
+    "br": {"window": 5, "type": "mean"},
+    "bl": {"window": 5, "type": "mean"},
+    "top_tr": {"window": 5, "type": "mean"},
+    "top_tl": {"window": 5, "type": "mean"},
+    "top_br": {"window": 5, "type": "mean"},
+    "top_bl": {"window": 5, "type": "mean"}
+})
+triangulated_tracking_collection.interpolate()
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
 
@@ -56,4 +87,6 @@ for file in fc.keys():
 
 combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
 
+
 combined_features.to_csv("./../model/features.csv")
+
