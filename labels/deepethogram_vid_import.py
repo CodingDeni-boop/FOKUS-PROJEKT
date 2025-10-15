@@ -6,20 +6,27 @@ df2 = pd.read_csv("../Agreement_Comparison/data/Empty_Cage_Nataliia_1_c1_labels.
 
 data_dir = "labels/empty_cage/empty_cage_labels_"
 
-video_numbers = [1, 2, 3, 4]
+
 
 all_labels = {}
 
-print(os.getcwd())
+vids = []
+
+vid_num = 1
 
 for folder in os.listdir("./empty_cage/"):
-    for file in os.listdir(folder):
-        print(file)
+    for file in os.listdir("./empty_cage/"+folder):
+        vids.append(file)
+    df_result = (vids[0] &  vids[1] & vids[2]).astype(int)
 
+    df_result["label"] = df_result.idxmax(axis=1)
+    df_result = pd.DataFrame(df_result["label"])
 
+    # Store in dictionary
+    all_labels[f"video_{vid_num}"] = df_result
+    vid_num += 1
 
-
-
+"""
 for f in video_numbers:
     # Read both annotators' files
     df_1 = pd.read_csv(f"{data_dir}{vid_num}_c1_labels.csv", index_col=0)
@@ -38,7 +45,7 @@ for f in video_numbers:
 ## what if sb says unsupportedrear, sb supported rear
 
 
-''' old
+ old
 # Save the result to a new CSV
 df_result.to_csv("result.csv", index = False)
 
@@ -53,7 +60,7 @@ print(df_result)
 
 #df_result.to_csv("label_results.csv", index=False, header = True)
 
-'''
+"""
 
 
 
