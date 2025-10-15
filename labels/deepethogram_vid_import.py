@@ -7,12 +7,19 @@ vids = []
 
 vid_num = 1
 
+target_categories = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
+
 for folder in os.listdir("./empty_cage/"):
     for file in os.listdir("./empty_cage/"+folder):
         vids.append(pd.read_csv("./empty_cage/"+folder+"/"+file, index_col=0))
     df_result = (vids[0] &  vids[1] & vids[2]).astype(int)
 
-    df_result["label"] = df_result.idxmax(axis=1).astype("category")
+    df_result["label"] = df_result.idxmax(axis=1)
+
+    df_result["label"] = pd.Categorical(
+        df_result["label"], categories=target_categories
+    )
+    print(df_result["label"].cat.categories)
 
     # Store in dictionary
     all_labels[f"video_{vid_num}"] = df_result[["label"]]

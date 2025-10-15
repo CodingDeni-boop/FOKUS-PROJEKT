@@ -7,22 +7,8 @@ from sklearn.model_selection import cross_val_score
 import pandas as pd
 import numpy as np
 
-
-
-
-''' old
-
-features_obj = fc.features_dict['video_1_3dset']
-
-labels_vid1 = labels_vid1.iloc[1:] # delete frame 0 row
-
-y_cat = pd.Categorical(labels_vid1)
-print(f"Categories: {y_cat.categories}")
-'''
-
-
 rf = RandomForestClassifier()
-y = pd.read_csv("../labels/labels.csv", index_col=0)
+y = pd.read_csv("../labels/labels.csv", index_col=0).values
 X = pd.read_csv("../model/features.csv", index_col=0)
 X = X.iloc[:y.shape[0]]
 
