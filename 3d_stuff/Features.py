@@ -35,6 +35,15 @@ print(fc[0].data)
 
 # Speed
 
+first_F = next(iter(fc.features_dict.values()))
+cols = first_F.tracking.data.columns
+
+for col in cols:
+    if col.endswith(".x"):
+        p = col[:-2]
+        fc.speed(p, dims=("x","y","z")).store()
+
+
 #Area of Mouse
 
 # Extract Features
@@ -46,4 +55,5 @@ for file in fc.keys():
     feature_dict[file] = feature_obj
 
 combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
-print(combined_features)
+
+combined_features.to_csv("./../model/features.csv")
