@@ -8,8 +8,10 @@ import pandas as pd
 import numpy as np
 
 rf = RandomForestClassifier()
-y = pd.read_csv("../labels/labels.csv", index_col=0).values
+y = pd.read_csv("../labels/labels.csv", index_col=0)
+y = y["label"]
 X = pd.read_csv("../model/features.csv", index_col=0)
+X = X.drop(columns=["frame"])
 X = X.iloc[:y.shape[0]]
 
 
