@@ -1,13 +1,6 @@
 import pandas as pd
 import os
 
-df1 = pd.read_csv("../Agreement_Comparison/data/Empty_Cage_Daniele_1_c1_labels.csv", index_col=0)
-df2 = pd.read_csv("../Agreement_Comparison/data/Empty_Cage_Nataliia_1_c1_labels.csv", index_col=0)
-
-data_dir = "labels/empty_cage/empty_cage_labels_"
-
-
-
 all_labels = {}
 
 vids = []
@@ -27,6 +20,9 @@ for folder in os.listdir("./empty_cage/"):
     vid_num += 1
 
 print(all_labels)
+
+
+
 """
 for f in video_numbers:
     # Read both annotators' files
