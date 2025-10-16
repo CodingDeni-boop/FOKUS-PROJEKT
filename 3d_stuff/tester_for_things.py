@@ -21,17 +21,18 @@ test3dcol_tri = test3dcol.stereo_triangulate()
 test3dcol_tri.strip_column_names()
 
 # test3dcol_tri is TrackingCollection
-features_collection = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
+fc = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
 # Calculate azimuth from 'nose' to 'neck' across all tracking objects
-azimuth_results = features_collection.azimuth('nose', 'neck')
+azimuth_results = fc.azimuth('nose', 'neck')
 print(f"Calculated azimuth for {len(azimuth_results)} tracking objects")
 
 # Store all azimuth results
-features_collection.store(azimuth_results)
+fc.store(azimuth_results)
 
 #trying to get angle between two segments, defined by 4 points
 data3d = test3dcol_tri[0].data
 angular = seg_angle(data3d, 'nose', 'headcentre', 'neck', 'bodycentre')
-print(angular)
+##this works
+##question now is how do i feed it into an fc
 
