@@ -52,10 +52,6 @@ triangulated_tracking_collection.interpolate()
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
 
-# Azimuth / Angles
-fc.azimuth('nose','neck').store()
-fc.azimuth('neck', 'bodycentre').store()
-fc.azimuth('headcentre', 'neck').store()
 
 # Distance
 
@@ -66,6 +62,13 @@ pairs_of_points = pd.DataFrame({
 
 for i in range(0,pairs_of_points.shape[0]):
     fc.distance_between(pairs_of_points.iloc[i,0],pairs_of_points.iloc[i,1],dims=("x","y","z")).store()
+
+# Azimuth / Angles
+fc.azimuth('nose','neck').store()
+fc.azimuth('neck', 'bodycentre').store()
+fc.azimuth('headcentre', 'neck').store()
+
+fc.angle('nose', 'neck', 'neck', 'bodycentre').store()
 
 # Speed
 
@@ -79,8 +82,6 @@ for col in cols:
 
 
 #Area of Mouse
-
-# Extract Features
 
 # Extract features
 feature_dict = {}

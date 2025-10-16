@@ -31,8 +31,7 @@ print(f"Calculated azimuth for {len(azimuth_results)} tracking objects")
 fc.store(azimuth_results)
 
 #trying to get angle between two segments, defined by 4 points
-data3d = test3dcol_tri[0].data
-angular = seg_angle(data3d, 'nose', 'headcentre', 'neck', 'bodycentre')
-##this works
-##question now is how do i feed it into an fc
+fc.angle('nose', 'neck', 'neck', 'bodycentre').store()
+
+
 
