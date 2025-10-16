@@ -6,11 +6,12 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
 import pandas as pd
 import numpy as np
+from model_tools import video_train_test_split
 
 rf = RandomForestClassifier()
-y = pd.read_csv("../labels/labels.csv", index_col=0)
+y = pd.read_csv("labels.csv", index_col=0)
 y = y["label"]
-X = pd.read_csv("../model/features.csv", index_col=0)
+X = pd.read_csv("features.csv", index_col=0)
 X = X.drop(columns=["frame"])
 X = X.iloc[:y.shape[0]]
 
@@ -19,9 +20,10 @@ X = X.iloc[:y.shape[0]]
 
 ### take seperate vidoes as test set
 # 1. Train/Test Split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y)
+X_train, X_test, y_train, y_test = video_train_test_split(
+    X, y, test_videos=0.2)
 
+"""
 rf = RandomForestClassifier(
     n_estimators=100,
     random_state=42,
@@ -60,3 +62,5 @@ if hasattr(X, 'columns'):
 else:
     print("\n=== Feature Importance ===")
     print("Feature names not available")
+
+    """

@@ -20,30 +20,31 @@ triangulated_tracking_collection.rescale_by_known_distance("tr","tl", 0.64, dims
 triangulated_tracking_collection.smooth({
 
     # mouse
-    "nose": {"window": 5, "type": "mean"},
-    "headcentre": {"window": 5, "type": "mean"},
-    "neck": {"window": 5, "type": "mean"},
-    "earl": {"window": 5, "type": "mean"},
-    "earr": {"window": 5, "type": "mean"},
-    "bodycentre": {"window": 5, "type": "mean"},
-    "bcl": {"window": 5, "type": "mean"},
-    "bcr": {"window": 5, "type": "mean"},
-    "hipl": {"window": 5, "type": "mean"},
-    "hipr": {"window": 5, "type": "mean"},
-    "tailbase": {"window": 5, "type": "mean"},
-    "tailcentre": {"window": 5, "type": "mean"},
-    "tailtip": {"window": 5, "type": "mean"},
+    "nose": {"window": 3, "type": "mean"},
+    "headcentre": {"window": 3, "type": "mean"},
+    "neck": {"window": 3, "type": "mean"},
+    "earl": {"window": 3, "type": "mean"},
+    "earr": {"window": 3, "type": "mean"},
+    "bodycentre": {"window": 3, "type": "mean"},
+    "bcl": {"window": 3, "type": "mean"},
+    "bcr": {"window": 3, "type": "mean"},
+    "hipl": {"window": 3, "type": "mean"},
+    "hipr": {"window": 3, "type": "mean"},
+    "tailbase": {"window": 3, "type": "mean"},
+    "tailcentre": {"window": 3, "type": "mean"},
+    "tailtip": {"window": 3, "type": "mean"},
 
     # oft
-    "tr": {"window": 5, "type": "mean"},
-    "tl": {"window": 5, "type": "mean"},
-    "br": {"window": 5, "type": "mean"},
-    "bl": {"window": 5, "type": "mean"},
-    "top_tr": {"window": 5, "type": "mean"},
-    "top_tl": {"window": 5, "type": "mean"},
-    "top_br": {"window": 5, "type": "mean"},
-    "top_bl": {"window": 5, "type": "mean"}
+    "tr": {"window": 35, "type": "mean"},
+    "tl": {"window": 35, "type": "mean"},
+    "br": {"window": 35, "type": "mean"},
+    "bl": {"window": 35, "type": "mean"},
+    "top_tr": {"window": 35, "type": "mean"},
+    "top_tl": {"window": 35, "type": "mean"},
+    "top_br": {"window": 35, "type": "mean"},
+    "top_bl": {"window": 35, "type": "mean"}
 })
+
 triangulated_tracking_collection.interpolate()
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
@@ -62,7 +63,6 @@ pairs_of_points = pd.DataFrame({
 
 for i in range(0,pairs_of_points.shape[0]):
     fc.distance_between(pairs_of_points.iloc[i,0],pairs_of_points.iloc[i,1],dims=("x","y","z")).store()
-print(fc[0].data)
 
 # Speed
 
@@ -86,7 +86,7 @@ for file in fc.keys():
     feature_dict[file] = feature_obj
 
 combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
-
-
 combined_features.to_csv("./../model/features.csv")
 
+print(combined_features)
+print("file saved:")

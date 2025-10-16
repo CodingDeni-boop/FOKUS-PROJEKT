@@ -31,7 +31,7 @@ combined_labels = pd.concat(all_labels.values(), keys=all_labels.keys(), names=[
 print(combined_labels)
 
 X_with_labels = combined_labels.copy()
-save_path = "labels.csv"
+save_path = "../model/labels.csv"
 X_with_labels.to_csv(save_path, index=True)
 
 
