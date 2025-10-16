@@ -56,8 +56,8 @@ fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collectio
 # Distance
 
 pairs_of_points = pd.DataFrame({
-    "point1": ["nose", "nose", "neck", "neck", "neck", "neck", "bcl", "bcr", "hipl", "hipr"],
-    "point2": ["earl", "earr", "earl", "earr", "bcl", "bcr", "hipl", "hipr", "tailbase", "tailbase"]
+    "point1": ["nose", "nose", "neck", "neck", "neck", "neck", "bcl",  "bcr",  "hipl",     "hipr",     "nose",       "headcentre", "neck",       "bodycentre", "headcentre", "headcentre", "bodycentre", "bodycentre", "bodycentre", "bodycentre"],
+    "point2": ["earl", "earr", "earl", "earr", "bcl",  "bcr",  "hipl", "hipr", "tailbase", "tailbase", "headcentre", "neck",       "bodycentre", "tailbase",   "earl",       "earr",       "bcl",        "bcr",        "hipl",       "hipr"]
 })
 
 for i in range(0,pairs_of_points.shape[0]):
