@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import py3r.behaviour as py3r
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
 import json
@@ -7,6 +8,8 @@ from py3r.behaviour.features.features_collection import FeaturesCollection
 from py3r.behaviour.features.features_result import FeaturesResult
 from py3r.behaviour.tracking.tracking_collection import TrackingCollection
 from py3r.behaviour.tracking.tracking_mv import TrackingMV
+from 3d_tools import get_vector
+from 3d_tools import seg_angle
 
 options = opt(fps=30)
 
@@ -49,7 +52,7 @@ triangulated_tracking_collection.interpolate()
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
 
-# Azimuth
+# Azimuth / Angles
 fc.azimuth('nose','neck').store()
 fc.azimuth('neck', 'bodycentre').store()
 fc.azimuth('headcentre', 'neck').store()
