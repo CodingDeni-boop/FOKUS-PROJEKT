@@ -8,8 +8,8 @@ from py3r.behaviour.features.features_collection import FeaturesCollection
 from py3r.behaviour.features.features_result import FeaturesResult
 from py3r.behaviour.tracking.tracking_collection import TrackingCollection
 from py3r.behaviour.tracking.tracking_mv import TrackingMV
-from 3d_tools import get_vector
-from 3d_tools import seg_angle
+from tools_3d import get_vector
+from tools_3d import seg_angle
 
 options = opt(fps=30)
 
