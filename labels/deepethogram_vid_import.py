@@ -3,13 +3,15 @@ import os
 
 all_labels = {}
 
-vids = []
-
 vid_num = 1
+
+
 
 target_categories = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 
-for folder in os.listdir("./empty_cage/"):
+for folder in sorted(os.listdir("./empty_cage/")):
+    print(folder)
+    vids = []
     for file in os.listdir("./empty_cage/"+folder):
         vids.append(pd.read_csv("./empty_cage/"+folder+"/"+file, index_col=0))
     df_result = (vids[0] &  vids[1] & vids[2]).astype(int)
@@ -22,7 +24,7 @@ for folder in os.listdir("./empty_cage/"):
     print(df_result["label"].cat.categories)
 
     # Store in dictionary
-    all_labels[f"video_{vid_num}"] = df_result[["label"]]
+    all_labels[f"{vid_num}_Empty_Cage_Sync"] = df_result[["label"]]
     vid_num += 1
 
 print(all_labels)

@@ -7,23 +7,26 @@ from sklearn.model_selection import cross_val_score
 import pandas as pd
 import numpy as np
 from model_tools import video_train_test_split
+from model_tools import drop_non_analyzed_videos
+from model_tools import drop_last_frame
 
 rf = RandomForestClassifier()
-y = pd.read_csv("labels.csv", index_col=0)
-y = y["label"]
-X = pd.read_csv("features.csv", index_col=0)
-X = X.drop(columns=["frame"])
-X = X.iloc[:y.shape[0]]
+y = pd.read_csv("labels.csv", index_col=["video_id","frame"])
+#y = y["label"]
+X = pd.read_csv("features.csv", index_col=["video_id","frame"])
+#X = X.drop(columns=["frame"])
+X = drop_non_analyzed_videos(X,y)
+y = drop_last_frame(X,y)
 
-
-#y = all_labels.values.ravel()   # target labels
 
 ### take seperate vidoes as test set
 # 1. Train/Test Split
 X_train, X_test, y_train, y_test = video_train_test_split(
-    X, y, test_videos=0.2)
+    X, y, test_videos=1)
 
-"""
+y_train = y_train.values.ravel()
+y_test = y_test.values.ravel()
+
 rf = RandomForestClassifier(
     n_estimators=100,
     random_state=42,
@@ -36,7 +39,7 @@ rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 y_pred_proba = rf.predict_proba(X_test)
 
-# Evaluate
+# Evaluates
 from sklearn.metrics import classification_report, confusion_matrix
 
 print("\n=== Model Evaluation ===")
@@ -63,4 +66,3 @@ else:
     print("\n=== Feature Importance ===")
     print("Feature names not available")
 
-    """
