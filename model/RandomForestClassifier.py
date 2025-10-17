@@ -86,7 +86,7 @@ def RecursiveFS(rf, X_train, y_train, X_test, y_test):
     X_train_selected = X_train[selected_features]
     X_test_selected = X_test[selected_features]
 
-    print("Recursive Feature Elimination:/n")
+    print("Recursive Feature Elimination: ")
     evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
 
 
@@ -113,7 +113,7 @@ def RecursiveFS_CV(rf, X_train, y_train):
     X_train_selected = X_train[selected_features]
     X_test_selected = X_test[selected_features]
 
-    print("Recursive Feature Elimination with Cross Validation:/n")
+    print("Recursive Feature Elimination with Cross Validation: ")
     evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
 
     # Plot cross-validation scores
@@ -131,7 +131,7 @@ def RecursiveFS_CV(rf, X_train, y_train):
 def UnivariateFS(rf, X_train, y_train, X_test, y_test):
     from sklearn.feature_selection import SelectKBest, f_classif
     # Select top K features
-    k = 10
+    k = 20
     selector = SelectKBest(score_func=f_classif, k=k)
     selector.fit(X_train, y_train)
 
@@ -153,7 +153,7 @@ def UnivariateFS(rf, X_train, y_train, X_test, y_test):
     X_train_selected = selector.transform(X_train)
     X_test_selected = selector.transform(X_test)
 
-    print("Univariate Feature Selection:/n")
+    print("Univariate Feature Selection: ")
     evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
 
 UnivariateFS(rf, X_train, y_train, X_test, y_test)
