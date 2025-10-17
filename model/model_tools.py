@@ -16,13 +16,22 @@ def drop_last_frame(X : pd.DataFrame,y : pd.DataFrame):
     if not (X_index.equals(y_index)):
         raise ValueError("X index name doesn't match y index name")
     index = X_index
+    while X.shape[0]!=y.shape[0]:
+        for video_name in index:
+            if y.loc[video_name].shape[0] == X.loc[video_name].shape[0]:
+                print("badoo")
 
-    for video_name in index:
-        if y.loc[video_name].shape[0] > X.loc[video_name].shape[0]:
-            y = y.drop((video_name, y.loc[video_name].index[-1]))
-            print(f"dropped last frame from video: {video_name}")
+            elif y.loc[video_name].shape[0] > X.loc[video_name].shape[0]:
+                difference = y.loc[video_name].shape[0] - X.loc[video_name].shape[0]
+                y = y.drop((video_name, y.loc[video_name].index[-1]))
+                print(f"Dropped {difference} frames from y")
 
-    return y
+            elif y.loc[video_name].shape[0] < X.loc[video_name].shape[0]:
+                difference = X.loc[video_name].shape[0] - y.loc[video_name].shape[0]
+                X = X.drop((video_name, y.loc[video_name].index[-1]))
+                print(f"Dropped {difference} frames from X")
+
+    return X, y
 
 
 def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int ,random_state=None):
