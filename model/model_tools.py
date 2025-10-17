@@ -24,12 +24,12 @@ def drop_last_frame(X : pd.DataFrame,y : pd.DataFrame):
             elif y.loc[video_name].shape[0] > X.loc[video_name].shape[0]:
                 difference = y.loc[video_name].shape[0] - X.loc[video_name].shape[0]
                 y = y.drop((video_name, y.loc[video_name].index[-1]))
-                print(f"{video_name} has {difference} frames in y: dropped 1")
+                print(f"{video_name} has {difference} too many frames in y: dropped 1")
 
             elif y.loc[video_name].shape[0] < X.loc[video_name].shape[0]:
                 difference = X.loc[video_name].shape[0] - y.loc[video_name].shape[0]
                 X = X.drop((video_name, y.loc[video_name].index[-1]))
-                print(f"{video_name} has {difference} frames in X: dropped 1")
+                print(f"{video_name} has {difference} too many frames in X: dropped 1")
 
     return X, y
 
