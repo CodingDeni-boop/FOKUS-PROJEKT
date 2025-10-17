@@ -9,62 +9,51 @@ import numpy as np
 from model_tools import video_train_test_split
 from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
+from PerformanceEvaluation import evaluate_model
 
 rf = RandomForestClassifier()
 y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
-#y = y["label"]
 X = pd.read_csv("features.csv", index_col=["video_id","frame"])
-#X = X.drop(columns=["frame"])
 X = drop_non_analyzed_videos(X,y)
 X, y = drop_last_frame(X,y)
 
+# Missing Data
+print("X shape:", X.shape)
+print("X NA:", X.isnull().sum())
+print("y NA:", y.isna().sum())
 
-### take seperate vidoes as test set
-# 1. Train/Test Split
+# Train/Test Split
 X_train, X_test, y_train, y_test = video_train_test_split(
-    X, y, test_videos=2)
+    X, y, test_videos=2)   ### takes seperate vidoes as test set
 
 y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
 
 rf = RandomForestClassifier(
-    n_estimators=100,
+    n_estimators=300,
     random_state=42,
     class_weight='balanced', 
     n_jobs=-1,
     verbose=True)
 
-rf.fit(X_train, y_train)
+# Evaluate model
+evaluate_model(rf, X_train, y_train, X_test, y_test)
 
-# Predict
+######################################## FEATURE SELECTION #################################################
 
-y_pred = rf.predict(X_test)
-y_pred_proba = rf.predict_proba(X_test)
+# Univariate Feature Selection
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
 
-# Evaluates
-from sklearn.metrics import classification_report, confusion_matrix
+#Univariate FS
+UVFS_Selector = SelectKBest(score_func=f_classif, k=10) # manually found best k (based on n features of the other FS techniques)
+X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
+X_UVFS_test = UVFS_Selector.transform(X_test)
 
-print("\n=== Model Evaluation ===")
-print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-print(f"Cross-validation score: {cross_val_score(rf, X_train, y_train, cv=5).mean():.4f}")
+# Scores
+scores = UVFS_Selector.scores_  #ANOVA scores
+pvalues = UVFS_Selector.pvalues_  #p-values for each feature
 
-print("\n=== Classification Report ===")
-print(classification_report(y_test, y_pred))
 
-print("\n=== Confusion Matrix ===")
-print(confusion_matrix(y_test, y_pred))
-
-# Feature Importance
-if hasattr(X, 'columns'):
-    feature_names = X.columns
-    importance_df = pd.DataFrame({
-        'feature': feature_names,
-        'importance': rf.feature_importances_
-    }).sort_values('importance', ascending=False)
-
-    print("\n=== Feature Importance ===")
-    print(importance_df)
-else:
-    print("\n=== Feature Importance ===")
-    print("Feature names not available")
-
+UVFS_selected_features = UVFS_Selector.get_feature_names_out(input_features=X_train.columns)
+print("Selected Features (UVFS):\n", UVFS_selected_features)
