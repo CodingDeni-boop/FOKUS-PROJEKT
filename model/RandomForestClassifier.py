@@ -16,7 +16,7 @@ y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
 X = pd.read_csv("features.csv", index_col=["video_id","frame"])
 #X = X.drop(columns=["frame"])
 X = drop_non_analyzed_videos(X,y)
-y = drop_last_frame(X,y)
+X, y = drop_last_frame(X,y)
 
 
 ### take seperate vidoes as test set
