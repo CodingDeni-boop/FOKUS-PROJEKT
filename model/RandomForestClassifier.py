@@ -11,7 +11,7 @@ from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 
 rf = RandomForestClassifier()
-y = pd.read_csv("labels.csv", index_col=["video_id","frame"])
+y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
 #y = y["label"]
 X = pd.read_csv("features.csv", index_col=["video_id","frame"])
 #X = X.drop(columns=["frame"])
@@ -22,7 +22,7 @@ y = drop_last_frame(X,y)
 ### take seperate vidoes as test set
 # 1. Train/Test Split
 X_train, X_test, y_train, y_test = video_train_test_split(
-    X, y, test_videos=1)
+    X, y, test_videos=2)
 
 y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
