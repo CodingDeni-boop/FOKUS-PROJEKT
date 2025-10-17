@@ -30,7 +30,7 @@ y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
 
 rf = RandomForestClassifier(
-    n_estimators=300,
+    n_estimators=200,
     random_state=42,
     class_weight='balanced', 
     n_jobs=-1,
