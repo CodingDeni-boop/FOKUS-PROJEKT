@@ -131,7 +131,7 @@ def RecursiveFS_CV(rf, X_train, y_train):
 def UnivariateFS(rf, X_train, y_train, X_test, y_test):
     from sklearn.feature_selection import SelectKBest, f_classif
     # Select top K features
-    k = 50
+    k = 10
     selector = SelectKBest(score_func=f_classif, k=k)
     selector.fit(X_train, y_train)
 
