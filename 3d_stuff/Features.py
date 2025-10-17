@@ -90,19 +90,33 @@ for col in cols:
         p = col[:-2]
         fc.speed(p, dims=("x","y","z")).store()
 
-
 #Area of Mouse
+#Volume
 
+#
+
+
+#Embed
+embedding = {}
+for column in fc[0].data.columns:
+    embedding[column] =  [-3,-2,-1,0,1,2,3]
+fc = fc.embedding_df(embedding)
+
+print(fc)
 
 # Extract features
 feature_dict = {}
 for file in fc.keys():
-    feature_obj = fc[file].data
+    feature_obj = fc[file]
     feature_dict[file] = feature_obj
 
 combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
+
+
 combined_features.to_csv("./../model/features.csv")
 
 print(combined_features)
 print("file saved:")
+
+
 
