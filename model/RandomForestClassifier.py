@@ -39,21 +39,25 @@ rf = RandomForestClassifier(
 # Evaluate model
 evaluate_model(rf, X_train, y_train, X_test, y_test)
 
-######################################## FEATURE SELECTION #################################################
+######################################## HYPERPARAMETER TUNING #################################################
+"""
+# n_estimators
+from sklearn.metrics import recall_score
 
-# Univariate Feature Selection
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import chi2
+n_estimators = [100, 150, 200, 250, 300, 400, 500]
+best_recall = 0
+best_n_estimators = None
 
-#Univariate FS
-UVFS_Selector = SelectKBest(score_func=f_classif, k=10) # manually found best k (based on n features of the other FS techniques)
-X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
-X_UVFS_test = UVFS_Selector.transform(X_test)
+for n in n_estimators:
+    rf = RandomForestClassifier(n_estimators=n, class_weight="balanced", random_state=42)
+    rf.fit(X_train, y_train)
+    y_pred = rf.predict(X_test)
+    # Calculate recall - use 'weighted' for multi-class, or specify average='macro'/'micro'
+    recall = recall_score(y_test, y_pred, average='weighted')
+    if recall > best_recall:
+        best_recall = recall
+        best_n_estimators = n
+    print(f"n_estimators: {n}, Recall: {recall:.4f}")
 
-# Scores
-scores = UVFS_Selector.scores_  #ANOVA scores
-pvalues = UVFS_Selector.pvalues_  #p-values for each feature
-
-
-UVFS_selected_features = UVFS_Selector.get_feature_names_out(input_features=X_train.columns)
-print("Selected Features (UVFS):\n", UVFS_selected_features)
+print(f"Best n_estimators: {best_n_estimators}, Best Recall: {best_recall:.4f}")
+"""
