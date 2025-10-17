@@ -90,9 +90,7 @@ for col in cols:
         p = col[:-2]
         fc.speed(p, dims=("x","y","z")).store()
 
-
 #Area of Mouse
-
 #Volume
 
 #
@@ -105,7 +103,6 @@ for column in fc[0].data.columns:
 fc = fc.embedding_df(embedding)
 
 print(fc)
-
 
 # Extract features
 feature_dict = {}
