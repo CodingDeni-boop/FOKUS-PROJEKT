@@ -1,57 +1,14 @@
 
-from sklearn.ensemble import RandomForestClassifier
-#from labels.deepethogram_vid_import import all_labels
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_val_score
-import pandas as pd
-import numpy as np
-from model_tools import video_train_test_split
-from model_tools import drop_non_analyzed_videos
-from model_tools import drop_last_frame
-
-rf = RandomForestClassifier()
-y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
-#y = y["label"]
-X = pd.read_csv("features.csv", index_col=["video_id","frame"])
-#X = X.drop(columns=["frame"])
-X = drop_non_analyzed_videos(X,y)
-X, y = drop_last_frame(X,y)
-
-# Missing Data
-print("X shape:", X.shape)
-print("X NA:", X.isnull().sum())
-print("y NA:", y.isna().sum())
-
-
-### take seperate vidoes as test set
-# 1. Train/Test Split
-X_train, X_test, y_train, y_test = video_train_test_split(
-    X, y, test_videos=2)
-
-y_train = y_train.values.ravel()
-y_test = y_test.values.ravel()
-
-rf = RandomForestClassifier(
-    n_estimators=100,
-    random_state=42,
-    class_weight='balanced', 
-    n_jobs=-1,
-    verbose=True)
-
-rf.fit(X_train, y_train)
-
-# Predict
-
-y_pred = rf.predict(X_test)
-y_pred_proba = rf.predict_proba(X_test)
-
 
 ########################################## ACCURACY & CLASSIFICATION REPORT ############################################
 
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve, auc
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+def evaluate_model(model, X_train, y_train, X_test, y_test):
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
 
 print("\n=== Model Evaluation ===")
 print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
@@ -104,6 +61,3 @@ if hasattr(X, 'columns'):
 else:
     print("\n=== Feature Importance ===")
     print("Feature names not available")
-
-
-
