@@ -66,16 +66,19 @@ for i in range(0,pairs_of_points_for_lines.shape[0]):
 # Azimuth / Angles
 
 pairs_of_points_for_angles = pd.DataFrame({
-    "point1": ["bodycentre","bodycentre","bodycentre"],
-    "point2": ["neck",      "neck",       "neck"],
-    "point3": ["neck",      "neck",       "neck"],
-    "point4": ["headcentre","earl",       "earr"]
+    "point1": ["bodycentre","bodycentre","bodycentre","tailbase",   "tailbase",  "tailbase",  "tailbase",  "tailbase",  "bodycentre","bodycentre"],
+    "point2": ["neck",      "neck",       "neck",      "bodycentre","bodycentre","bodycentre","bodycentre","bodycentre","tailbase","tailbase"],
+    "point3": ["neck",      "neck",       "neck",      "bodycentre","tailbase","tailbase",    "hipl",       "hipr",     "tailbase","tailcentre"],
+    "point4": ["headcentre","earl",       "earr",      "neck",      "hipl",     "hipr",       "bcl",        "bcr",      "tailcentre","tailtip"]
 })
 
 for i in range(0,pairs_of_points_for_angles.shape[0]):
     fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
-    fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
-
+    fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
+    fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
+    fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z"))
+    fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
+    fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
 
 # Speed
 
