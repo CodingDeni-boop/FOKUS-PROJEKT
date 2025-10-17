@@ -55,21 +55,27 @@ fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collectio
 
 # Distance
 
-pairs_of_points = pd.DataFrame({
+pairs_of_points_for_lines = pd.DataFrame({
     "point1": ["nose", "nose", "neck", "neck", "neck", "neck", "bcl",  "bcr",  "hipl",     "hipr",     "nose",       "headcentre", "neck",       "bodycentre", "headcentre", "headcentre", "bodycentre", "bodycentre", "bodycentre", "bodycentre"],
     "point2": ["earl", "earr", "earl", "earr", "bcl",  "bcr",  "hipl", "hipr", "tailbase", "tailbase", "headcentre", "neck",       "bodycentre", "tailbase",   "earl",       "earr",       "bcl",        "bcr",        "hipl",       "hipr"]
 })
 
-for i in range(0,pairs_of_points.shape[0]):
-    fc.distance_between(pairs_of_points.iloc[i,0],pairs_of_points.iloc[i,1],dims=("x","y","z")).store()
+for i in range(0,pairs_of_points_for_lines.shape[0]):
+    fc.distance_between(pairs_of_points_for_lines.iloc[i,0],pairs_of_points_for_lines.iloc[i,1],dims=("x","y","z")).store()
 
 # Azimuth / Angles
-fc.azimuth('neck','nose').store()
-fc.azimuth('neck', 'bodycentre').store()
-fc.azimuth('neck', 'headcentre').store()
 
-fc.angle('neck', 'nose', 'neck', 'bodycentre', ("x", "y")).store()
-fc.angle('neck', 'nose', 'neck', 'bodycentre', ("y", "z")).store()
+pairs_of_points_for_angles = pd.DataFrame({
+    "point1": ["bodycentre","bodycentre","bodycentre"],
+    "point2": ["neck",      "neck",       "neck"],
+    "point3": ["neck",      "neck",       "neck"],
+    "point4": ["headcentre","earl",       "earr"]
+})
+
+for i in range(0,pairs_of_points_for_angles.shape[0]):
+    fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
+    fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
+
 
 # Speed
 
@@ -95,3 +101,4 @@ combined_features.to_csv("./../model/features.csv")
 
 print(combined_features)
 print("file saved:")
+
