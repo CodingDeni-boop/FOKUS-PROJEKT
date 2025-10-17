@@ -33,7 +33,6 @@ def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int 
     """
 
     rd.seed(random_state)
-
     X_index = X.index.get_level_values("video_id").unique()
     y_index = y.index.get_level_values("video_id").unique()
     if not (X_index.equals(y_index)):

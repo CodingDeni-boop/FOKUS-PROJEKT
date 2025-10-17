@@ -30,7 +30,9 @@ y_test = y_test.values.ravel()
 rf = RandomForestClassifier(
     n_estimators=100,
     random_state=42,
-    class_weight='balanced' )
+    class_weight='balanced', 
+    n_jobs=-1,
+    verbose=True)
 
 rf.fit(X_train, y_train)
 
