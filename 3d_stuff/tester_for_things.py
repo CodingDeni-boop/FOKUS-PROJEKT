@@ -24,14 +24,14 @@ test3dcol_tri.strip_column_names()
 fc = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
 # Calculate azimuth from 'nose' to 'neck' across all tracking objects
-azimuth_results = fc.azimuth('nose', 'neck')
+azimuth_results = fc.azimuth('neck', 'nose')
 print(f"Calculated azimuth for {len(azimuth_results)} tracking objects")
 
 # Store all azimuth results
 fc.store(azimuth_results)
 
 #trying to get angle between two segments, defined by 4 points
-fc.angle('nose', 'neck', 'neck', 'bodycentre').store()
-
+fc.angle('nose', 'neck', 'neck', 'bodycentre', ("x", "y")).store()
+fc.angle('nose', 'neck', 'neck', 'bodycentre', ("y", "z")).store()
 
 

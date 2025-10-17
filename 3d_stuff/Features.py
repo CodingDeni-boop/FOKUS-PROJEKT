@@ -64,11 +64,12 @@ for i in range(0,pairs_of_points.shape[0]):
     fc.distance_between(pairs_of_points.iloc[i,0],pairs_of_points.iloc[i,1],dims=("x","y","z")).store()
 
 # Azimuth / Angles
-fc.azimuth('nose','neck').store()
+fc.azimuth('neck','nose').store()
 fc.azimuth('neck', 'bodycentre').store()
-fc.azimuth('headcentre', 'neck').store()
+fc.azimuth('neck', 'headcentre').store()
 
-fc.angle('nose', 'neck', 'neck', 'bodycentre').store()
+fc.angle('neck', 'nose', 'neck', 'bodycentre', ("x", "y")).store()
+fc.angle('neck', 'nose', 'neck', 'bodycentre', ("y", "z")).store()
 
 # Speed
 
