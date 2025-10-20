@@ -1,4 +1,8 @@
 from PerformanceEvaluation import evaluate_model
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
 
 ########################################### FEATURE SELECTION #########################################################
 
@@ -86,4 +90,27 @@ def UnivariateFS(rf, X_train, y_train, X_test, y_test):
     print("Univariate Feature Selection: ")
     evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
 
+#L1 REGULARIZATION
+def L1_regularization(X_train, y_train):
+    param_grid = {
+        "C": [0.01, 0.1, 1.0],  # Regularization strength
+        "penalty": ["l1"],  # L1 regularization
+        "solver": ["liblinear"]  # Solver for logistic regression
+    }
+    LR_L1 = GridSearchCV(
+        LogisticRegression(random_state=10, class_weight='balanced'),
+        param_grid,
+        cv=5 ,
+        scoring ='f1_weighted'
+    )
 
+    # Fit GridSearchCV to training data
+    LR_L1.fit(X_train, y_train)
+
+    # Best L1 model after hyperparameter tuning
+    best_L1_model = LR_L1.best_estimator_
+
+    n_used_features = np.sum(best_L1_model.coef_ != 0)
+    print(f"Number of features used (L1): {n_used_features}")
+
+    print("Best parameters (L1):\n", LR_L1.best_params_)
