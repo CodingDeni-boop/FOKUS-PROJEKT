@@ -26,7 +26,7 @@ def RecursiveFS(rf, X_train, y_train, X_test, y_test):
 
 
 # Recursive Feature Elimination with Cross Validation
-def RecursiveFS_CV(rf, X_train, y_train):
+def RecursiveFS_CV(rf, X_train, y_train, X_test, y_test):
     from sklearn.feature_selection import RFECV
     import matplotlib.pyplot as plt
 

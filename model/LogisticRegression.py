@@ -11,7 +11,6 @@ from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
 from FeatureSelection import *
 
-rf = RandomForestClassifier()
 y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
 X = pd.read_csv("features.csv", index_col=["video_id","frame"])
 X = drop_non_analyzed_videos(X,y)
@@ -24,7 +23,7 @@ X = X.fillna(method='ffill').fillna(method='bfill')
 # If any NaN still remain (e.g., entire columns are NaN), fill with 0
 X = X.fillna(0)
 
-# Train/Test Split
+####################################### Train/Test Split ##########################################
 X_train, X_test, y_train, y_test = video_train_test_split(
     X, y, test_videos=2)   ### takes seperate vidoes as test set
 
@@ -33,6 +32,6 @@ y_test = y_test.values.ravel()
 
 lr = LogisticRegression(random_state=42, class_weight='balanced' )
 
-# Feature Selection
+########################################## Feature Selection ################################################
 
 L1_regularization(X_train, y_train)
