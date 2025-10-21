@@ -35,7 +35,7 @@ valid_y = y[valid_mask]
 ###################################### Train/Test Split #############################################
 
 X_train, X_test, y_train, y_test = video_train_test_split(
-    X, y, test_videos=2)   ### takes seperate vidoes as test set
+    valid_X, valid_y, test_videos=2)   ### takes seperate vidoes as test set
 
 y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
