@@ -9,6 +9,9 @@ from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
 from FeatureSelection import *
+import time
+
+start=time.time()
 
 y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
 X = pd.read_csv("features.csv", index_col=["video_id","frame"])
@@ -60,3 +63,5 @@ evaluate_model(lr, X_train, y_train, X_test, y_test)
 
 L2_regularization(X_train, y_train, X_test, y_test)
 
+end = time.time()
+print("Time elapsed:", end-start)

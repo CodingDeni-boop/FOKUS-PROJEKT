@@ -110,7 +110,7 @@ def L1_regularization(X_train, y_train, X_test, y_test):
     # Best L1 model after hyperparameter tuning
     best_L1_model = LR_L1.best_estimator_
 
-    n_used_features = np.sum(best_L1_model.coef_ != 0)
+    n_used_features = np.sum(best_L1_model.coef_ != 0, axis=0)
     print(f"Number of features used (L1): {n_used_features}")
 
     print("Best parameters (L1):\n", LR_L1.best_params_)

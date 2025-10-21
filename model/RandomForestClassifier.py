@@ -18,12 +18,6 @@ X = pd.read_csv("features.csv", index_col=["video_id","frame"])
 X = drop_non_analyzed_videos(X,y)
 X, y = drop_last_frame(X,y)
 
-# Missing Data
-"""
-print("X shape:", X.shape)
-print("X NA:", X.isnull().sum())
-print("y NA:", y.isna().sum())
-"""
 ###################################### Train/Test Split #############################################
 
 X_train, X_test, y_train, y_test = video_train_test_split(
@@ -32,19 +26,10 @@ X_train, X_test, y_train, y_test = video_train_test_split(
 y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
 
-######################################### MISSING DATA #################################################################
-
-# For time series data, forward fill then backward fill (also takes separate videos into account)
-X_train = X_train.groupby(level='video_id').fillna(method='ffill').fillna(method='bfill')
-X_test = X_test.groupby(level='video_id').fillna(method='ffill').fillna(method='bfill')
-
-X_train = X_train.dropna()
-X_test = X_test.dropna()
-
 ####################################### Basic Model ####################################################################
 
 rf = RandomForestClassifier(
-    n_estimators=200,
+    n_estimators=150,
     random_state=42,
     class_weight='balanced', 
     n_jobs=-1,
