@@ -114,3 +114,25 @@ def L1_regularization(X_train, y_train):
     print(f"Number of features used (L1): {n_used_features}")
 
     print("Best parameters (L1):\n", LR_L1.best_params_)
+
+# L2 REGULARIZATION
+def L2_regularization(X_train, y_train):
+    param_grid = {
+        "C": [0.01, 0.1, 1.0],  # Regularization strength
+        "penalty": ["l2"],  # L2 regularization
+        "solver": ["liblinear"]  # Solver for logistic regression
+    }
+    LR_L2 = GridSearchCV(
+        LogisticRegression(random_state=10, class_weight='balanced'),
+        param_grid,
+        cv=5,
+        scoring='f1_weighted'
+    )
+
+    LR_L2.fit(X_train, y_train)
+
+    best_L2_model = LR_L2.best_estimator_
+    n_used_features_L2 = np.sum(best_L2_model.coef_ != 0)
+    print(f"Number of features used (L2): {n_used_features_L2}")
+
+    print("Best parameters (L2):\n", LR_L2.best_params_)
