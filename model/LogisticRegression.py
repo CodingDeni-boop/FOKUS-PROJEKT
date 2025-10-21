@@ -27,10 +27,10 @@ y_test = y_test.values.ravel()
 
 # For time series data, forward fill then backward fill is most appropriate
 X_train = X_train.fillna(method='ffill').fillna(method='bfill')
-X_train = X_train.fillna(0)
+X_train = X_train.dropna()
 
 X_test = X_test.fillna(method='ffill').fillna(method='bfill')
-X_test = X_test.fillna(0)
+X_test = X_test.dropna()
 
 #######################  SCALING (after splitting!!) ###############################################################
 from sklearn.preprocessing import StandardScaler
