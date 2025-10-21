@@ -11,7 +11,7 @@ def load_and_prepare_data(features_file="features.csv",
                           missing_threshold=0.1,
                           test_videos=2):
     """
-    Load data, handle missing values, and split into train/test sets.
+    Load data, handle missing values, split into train/test sets and scale data.
     
     Parameters:
     -----------
@@ -43,7 +43,8 @@ def load_and_prepare_data(features_file="features.csv",
     print(f"   Initial X shape: {X.shape}")
     
     # Handle missing data
-    print(f"\n2. Handling missing data (threshold: {missing_threshold*100}%)...")
+    print(f"\n2. Handling missing data (column threshold: {missing_threshold*100}%)...")
+    # Drop columns with >missing_threshold% missing values
     na_percentage = X.isna().mean()
     columns_to_keep = na_percentage[na_percentage <= missing_threshold].index
     columns_dropped = na_percentage[na_percentage > missing_threshold].index
@@ -77,6 +78,7 @@ def load_and_prepare_data(features_file="features.csv",
 
     # Scaling
     from sklearn.preprocessing import StandardScaler
+    print(f"\n4. Scaling")
 
     num_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
 
