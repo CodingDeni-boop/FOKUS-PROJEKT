@@ -5,3 +5,4 @@ seaborn==0.13.2
 scikit-learn==1.5.2
 scipy==1.14.1
 ultralytics==8.1.46
+trimesh==4.8.3

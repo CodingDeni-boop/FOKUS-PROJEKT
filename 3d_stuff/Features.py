@@ -91,9 +91,12 @@ for col in cols:
         fc.speed(p, dims=("x","y","z")).store()
 
 #Area of Mouse
+
 #Volume
 
-#
+fc.volume(points = ["headcentre","nose","earl","earr"],faces = [[0,1,2],[0,2,3],[0,3,1],[1,3,2]])
+fc.volume(points = ["headcentre","nose","earl","earr"],faces = [[0,1,2],[0,2,3],[0,3,1],[1,3,2]])
+fc.volume(points = ["headcentre","nose","earl","earr"],faces = [[0,1,2],[0,2,3],[0,3,1],[1,3,2]])
 
 
 #Embed
