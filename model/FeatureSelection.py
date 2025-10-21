@@ -95,10 +95,10 @@ def L1_regularization(X_train, y_train, X_test, y_test):
     param_grid = {
         "C": [0.01, 0.1, 1.0],  # Regularization strength
         "penalty": ["l1"],  # L1 regularization
-        "solver": ["liblinear"]  # Solver for logistic regression
+        "solver": ["saga"]  # Solver for logistic regression
     }
     LR_L1 = GridSearchCV(
-        LogisticRegression(random_state=10, class_weight='balanced'),
+        LogisticRegression(random_state=10, class_weight='balanced', max_iter=10000),
         param_grid,
         cv=5 ,
         scoring ='f1_weighted'
@@ -122,10 +122,10 @@ def L2_regularization(X_train, y_train, X_test, y_test):
     param_grid = {
         "C": [0.01, 0.1, 1.0],  # Regularization strength
         "penalty": ["l2"],  # L2 regularization
-        "solver": ["liblinear"]  # Solver for logistic regression
+        "solver": ["lbfgs"]  # Solver for logistic regression
     }
     LR_L2 = GridSearchCV(
-        LogisticRegression(random_state=10, class_weight='balanced'),
+        LogisticRegression(random_state=10, class_weight='balanced', max_iter=10000),
         param_grid,
         cv=5,
         scoring='f1_weighted'

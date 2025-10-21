@@ -10,7 +10,7 @@ from model_tools import video_train_test_split
 from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
-from FeatureSelection import *
+from FeatureSelection import UnivariateFS
 
 
 y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
@@ -24,20 +24,24 @@ print("X shape:", X.shape)
 print("X NA:", X.isnull().sum())
 print("y NA:", y.isna().sum())
 """
+###################################### Train/Test Split #############################################
 
-######################################### MISSING DATA ###########################################
-
-# For time series data, forward fill then backward fill is most appropriate
-X = X.fillna(method='ffill').fillna(method='bfill')
-# If any NaN still remain (e.g., entire columns are NaN), fill with 0
-X = X.fillna(0)
-
-# Train/Test Split
 X_train, X_test, y_train, y_test = video_train_test_split(
     X, y, test_videos=2)   ### takes seperate vidoes as test set
 
 y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
+
+######################################### MISSING DATA #################################################################
+
+# For time series data, forward fill then backward fill (also takes separate videos into account)
+X_train = X_train.groupby(level='video_id').fillna(method='ffill').fillna(method='bfill')
+X_test = X_test.groupby(level='video_id').fillna(method='ffill').fillna(method='bfill')
+
+X_train = X_train.dropna()
+X_test = X_test.dropna()
+
+####################################### Basic Model ####################################################################
 
 rf = RandomForestClassifier(
     n_estimators=200,

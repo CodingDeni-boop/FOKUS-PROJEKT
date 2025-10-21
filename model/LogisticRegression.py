@@ -25,11 +25,11 @@ y_test = y_test.values.ravel()
 
 ######################################### MISSING DATA ###########################################
 
-# For time series data, forward fill then backward fill is most appropriate
-X_train = X_train.fillna(method='ffill').fillna(method='bfill')
-X_train = X_train.dropna()
+# For time series data, forward fill then backward fill (also takes separate videos into account)
+X_train = X_train.groupby(level='video_id').fillna(method='ffill').fillna(method='bfill')
+X_test = X_test.groupby(level='video_id').fillna(method='ffill').fillna(method='bfill')
 
-X_test = X_test.fillna(method='ffill').fillna(method='bfill')
+X_train = X_train.dropna()
 X_test = X_test.dropna()
 
 #######################  SCALING (after splitting!!) ###############################################################
@@ -52,5 +52,5 @@ evaluate_model(lr, X_train, y_train, X_test, y_test)
 
 ########################################## Feature Selection ################################################
 
-L2_regularization(X_train, y_train)
+L2_regularization(X_train, y_train, X_test, y_test)
 
