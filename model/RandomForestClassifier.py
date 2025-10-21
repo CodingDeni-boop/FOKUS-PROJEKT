@@ -78,4 +78,4 @@ print(f"Best n_estimators: {best_n_estimators}, Best F1 Score: {best_f1:.4f}")
 #RecursiveFS(rf, X_train, y_train)
 #RecursiveFS_CV(rf, X_train, y_train)
 
-#UnivariateFS(rf, X_train, y_train, X_test, y_test)
+UnivariateFS(rf, X_train, y_train, X_test, y_test)
