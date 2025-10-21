@@ -19,9 +19,19 @@ print("X shape", X.shape)
 
 ######################################### MISSING DATA ###########################################
 
+na_percentage = X.isna().mean()
+columns_to_keep = na_percentage[na_percentage <= 0.1].index
+columns_dropped = na_percentage[na_percentage > 0.1].index
+
+print(f"Dropped {len(columns_dropped)} columns with >10% missing values:")
+print(columns_dropped.tolist())
+X = X[columns_to_keep]
+
 valid_mask = X.notna().all(axis=1)
 valid_X = X[valid_mask]
 valid_y = y[valid_mask]
+
+print(valid_X.shape)
 
 ####################################### Train/Test Split ##########################################
 X_train, X_test, y_train, y_test = video_train_test_split(
