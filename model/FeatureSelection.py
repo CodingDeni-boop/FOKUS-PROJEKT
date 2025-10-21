@@ -118,14 +118,15 @@ def L1_regularization(X_train, y_train, X_test, y_test):
     evaluate_model(best_L1_model, X_train, y_train, X_test, y_test)
 
 # L2 REGULARIZATION
-def L2_regularization(X_train, y_train, X_test, y_test):
+def L2_regularization(model, X_train, y_train, X_test, y_test):
     param_grid = {
-        "C": [0.01, 0.1, 1.0],  # Regularization strength
+        "C": [0.01, 0.1, 1.0, 10.0],  # Regularization strength
         "penalty": ["l2"],  # L2 regularization
-        "solver": ["lbfgs"]  # Solver for logistic regression
+        "solver": ["saga"],  # Solver for logistic regression,
+        "multi_class": ["multinomial"]
     }
     LR_L2 = GridSearchCV(
-        LogisticRegression(random_state=10, class_weight='balanced', max_iter=10000),
+        model,
         param_grid,
         cv=5,
         scoring='f1_weighted'

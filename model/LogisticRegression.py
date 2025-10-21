@@ -61,7 +61,11 @@ evaluate_model(lr, X_train, y_train, X_test, y_test)
 
 ########################################## Feature Selection ################################################
 
-L2_regularization(X_train, y_train, X_test, y_test)
+# Regularization
+
+lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000)
+lr_multi = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000, multi_class='multinomial')
+L2_regularization(lr_multi, X_train, y_train, X_test, y_test)
 
 end = time.time()
 print("Time elapsed:", end-start)
