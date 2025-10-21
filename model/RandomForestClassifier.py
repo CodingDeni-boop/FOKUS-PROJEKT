@@ -10,7 +10,7 @@ from model_tools import video_train_test_split
 from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
-from FeatureSelection import UnivariateFS
+from FeatureSelection import UnivariateFS, RecursiveFS_CV
 
 
 y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
@@ -79,6 +79,6 @@ print(f"Best n_estimators: {best_n_estimators}, Best F1 Score: {best_f1:.4f}")
 # Feature Selection
 
 #RecursiveFS(rf, X_train, y_train)
-#RecursiveFS_CV(rf, X_train, y_train)
+RecursiveFS_CV(rf, X_train, y_train)
 
-UnivariateFS(rf, X_train, y_train, X_test, y_test)
+#UnivariateFS(rf, X_train, y_train, X_test, y_test)

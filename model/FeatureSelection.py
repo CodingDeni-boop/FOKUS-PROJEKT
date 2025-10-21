@@ -56,7 +56,7 @@ def RecursiveFS_CV(rf, X_train, y_train, X_test, y_test):
     plt.plot(range(1, len(rfecv.cv_results_['mean_test_score']) + 1),
              rfecv.cv_results_['mean_test_score'])
     plt.xlabel('Number of Features')
-    plt.ylabel('CV Score (Recall)')
+    plt.ylabel('CV Score (F1 Weighted)')
     plt.title('RFECV Feature Selection')
     plt.show()
 
