@@ -91,7 +91,7 @@ def UnivariateFS(rf, X_train, y_train, X_test, y_test):
     evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
 
 #L1 REGULARIZATION
-def L1_regularization(X_train, y_train):
+def L1_regularization(X_train, y_train, X_test, y_test):
     param_grid = {
         "C": [0.01, 0.1, 1.0],  # Regularization strength
         "penalty": ["l1"],  # L1 regularization
@@ -115,8 +115,10 @@ def L1_regularization(X_train, y_train):
 
     print("Best parameters (L1):\n", LR_L1.best_params_)
 
+    evaluate_model(best_L1_model, X_train, y_train, X_test, y_test)
+
 # L2 REGULARIZATION
-def L2_regularization(X_train, y_train):
+def L2_regularization(X_train, y_train, X_test, y_test):
     param_grid = {
         "C": [0.01, 0.1, 1.0],  # Regularization strength
         "penalty": ["l2"],  # L2 regularization
@@ -136,3 +138,5 @@ def L2_regularization(X_train, y_train):
     print(f"Number of features used (L2): {n_used_features_L2}")
 
     print("Best parameters (L2):\n", LR_L2.best_params_)
+
+    evaluate_model(best_L2_model, X_train, y_train, X_test, y_test)
