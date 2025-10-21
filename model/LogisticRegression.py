@@ -13,10 +13,11 @@ import time
 from sklearn.linear_model import LogisticRegression
 from Prepare_Data import load_and_prepare_data
 
+start=time.time()
+
 X_train, X_test, y_train, y_test = load_and_prepare_data()
 
 """
-start=time.time()
 
 y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
 X = pd.read_csv("features.csv", index_col=["video_id","frame"])
@@ -71,7 +72,8 @@ evaluate_model(lr, X_train, y_train, X_test, y_test)
 
 lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000)
 lr_multi = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000, multi_class='multinomial')
-L2_regularization(lr_multi, X_train, y_train, X_test, y_test)
+
+L2_regularization(lr, X_train, y_train, X_test, y_test)
 
 end = time.time()
 print("Time elapsed:", end-start)
