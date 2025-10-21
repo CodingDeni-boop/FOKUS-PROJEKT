@@ -26,7 +26,7 @@ def evaluate_model(model : object, X_train : pd.DataFrame(), y_train: pd.DataFra
     print(f"Test Accuracy: {accuracy_score(y_test, y_pred):.4f}")
     print(classification_report(y_test, y_pred))
 
-    ################################### CONFUSION MATRIX ###################################################################
+    ################################### CONFUSION MATRIX ###############################################################
 
     print("\n=== Confusion Matrix ===")
     cm = confusion_matrix(y_test, y_pred)
