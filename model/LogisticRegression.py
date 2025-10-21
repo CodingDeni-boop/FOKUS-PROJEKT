@@ -8,7 +8,7 @@ from model_tools import video_train_test_split
 from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
-from FeatureSelection import *
+from FeatureSelection import L2_regularization
 import time
 from sklearn.linear_model import LogisticRegression
 from Prepare_Data import load_and_prepare_data
@@ -71,9 +71,12 @@ evaluate_model(lr, X_train, y_train, X_test, y_test)
 # Regularization
 
 lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000)
-lr_multi = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000, multi_class='multinomial')
+#lr_multi = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000, multi_class='multinomial')
 
 L2_regularization(lr, X_train, y_train, X_test, y_test)
+# Best C = 1.0
+
+
 
 end = time.time()
 print("Time elapsed:", end-start)
