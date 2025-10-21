@@ -10,7 +10,12 @@ from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
 from FeatureSelection import *
 import time
+from sklearn.linear_model import LogisticRegression
+from Prepare_Data import load_and_prepare_data
 
+X_train, X_test, y_train, y_test = load_and_prepare_data()
+
+"""
 start=time.time()
 
 y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
@@ -50,6 +55,7 @@ num_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
 sc = StandardScaler()
 X_train[num_features] = sc.fit_transform(X_train[num_features])
 X_test[num_features] = sc.transform(X_test[num_features])
+"""
 
 ################################ Basic Model ###########################################################################
 """
