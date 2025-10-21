@@ -1,4 +1,3 @@
-from sklearn.ensemble import RandomForestClassifier
 #from labels.deepethogram_vid_import import all_labels
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -16,12 +15,6 @@ X = pd.read_csv("features.csv", index_col=["video_id","frame"])
 X = drop_non_analyzed_videos(X,y)
 X, y = drop_last_frame(X,y)
 
-######################################### MISSING DATA ###########################################
-
-# For time series data, forward fill then backward fill is most appropriate
-X = X.fillna(method='ffill').fillna(method='bfill')
-# If any NaN still remain (e.g., entire columns are NaN), fill with 0
-X = X.fillna(0)
 
 ####################################### Train/Test Split ##########################################
 X_train, X_test, y_train, y_test = video_train_test_split(
@@ -30,8 +23,33 @@ X_train, X_test, y_train, y_test = video_train_test_split(
 y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
 
-lr = LogisticRegression(random_state=42, class_weight='balanced' )
+######################################### MISSING DATA ###########################################
+
+# For time series data, forward fill then backward fill is most appropriate
+X_train = X_train.fillna(method='ffill').fillna(method='bfill')
+X_train = X_train.fillna(0)
+
+X_test = X_test.fillna(method='ffill').fillna(method='bfill')
+X_test = X_test.fillna(0)
+
+#######################  SCALING (after splitting!!) ###############################################################
+from sklearn.preprocessing import StandardScaler
+
+# Get numeric features from the training set
+num_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
+
+sc = StandardScaler()
+X_train[num_features] = sc.fit_transform(X_train[num_features])
+X_test[num_features]  = sc.transform(X_test[num_features])
+
+################################ Basic Model ###########################################################################
+lr = LogisticRegression(random_state=42, class_weight='balanced')
+lr.fit(X_train, y_train)
+
+evaluate_model(lr, X_train, y_train, X_test, y_test)
+
 
 ########################################## Feature Selection ################################################
 
-L1_regularization(X_train, y_train)
+#L1_regularization(X_train, y_train)
+

@@ -12,7 +12,7 @@ from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
 from FeatureSelection import *
 
-rf = RandomForestClassifier()
+
 y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
 X = pd.read_csv("features.csv", index_col=["video_id","frame"])
 X = drop_non_analyzed_videos(X,y)
