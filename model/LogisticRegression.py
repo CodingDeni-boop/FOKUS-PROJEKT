@@ -15,6 +15,8 @@ X = pd.read_csv("features.csv", index_col=["video_id","frame"])
 X = drop_non_analyzed_videos(X,y)
 X, y = drop_last_frame(X,y)
 
+print("X shape", X.shape)
+
 
 ####################################### Train/Test Split ##########################################
 X_train, X_test, y_train, y_test = video_train_test_split(
@@ -25,11 +27,7 @@ y_test = y_test.values.ravel()
 
 ######################################### MISSING DATA ###########################################
 
-# For time series data, forward fill then backward fill (also takes separate videos into account)
-X_train = X_train.groupby(level='video_id').fillna(method='ffill').fillna(method='bfill')
-X_test = X_test.groupby(level='video_id').fillna(method='ffill').fillna(method='bfill')
-
-X_train = X_train.dropna()
+X_train = X_train.dropna() # drop whole row instead
 X_test = X_test.dropna()
 
 #######################  SCALING (after splitting!!) ###############################################################
