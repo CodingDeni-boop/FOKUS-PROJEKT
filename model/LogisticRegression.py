@@ -17,20 +17,15 @@ X, y = drop_last_frame(X,y)
 
 print("X shape", X.shape)
 
+######################################### MISSING DATA ###########################################
+
+valid_mask = X.notna().all(axis=1)
+valid_X = X[valid_mask]
+valid_y = y[valid_mask]
 
 ####################################### Train/Test Split ##########################################
 X_train, X_test, y_train, y_test = video_train_test_split(
-    X, y, test_videos=2)   ### takes seperate vidoes as test set
-
-
-######################################### MISSING DATA ###########################################
-
-# Create boolean mask for valid rows
-valid_mask = ~X_train.isna().any(axis=1)
-
-# Apply mask to both
-X_train = X_train[valid_mask]
-y_train = y_train[valid_mask]
+    valid_X, valid_y, test_videos=2)   ### takes seperate vidoes as test set
 
 # Convert labels to numpy arrays
 y_train = y_train.values.ravel()
