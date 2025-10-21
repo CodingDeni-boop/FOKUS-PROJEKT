@@ -31,25 +31,22 @@ valid_mask = X.notna().all(axis=1)
 valid_X = X[valid_mask]
 valid_y = y[valid_mask]
 
-print(valid_X.shape)
-
 ####################################### Train/Test Split ##########################################
 X_train, X_test, y_train, y_test = video_train_test_split(
-    valid_X, valid_y, test_videos=2)   ### takes seperate vidoes as test set
+    valid_X, valid_y, test_videos=2)
 
 # Convert labels to numpy arrays
 y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
 
-#######################  SCALING (after splitting!!) ###############################################################
+#######################  SCALING ####################
 from sklearn.preprocessing import StandardScaler
 
-# Get numeric features from the training set
 num_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
 
 sc = StandardScaler()
 X_train[num_features] = sc.fit_transform(X_train[num_features])
-X_test[num_features]  = sc.transform(X_test[num_features])
+X_test[num_features] = sc.transform(X_test[num_features])
 
 ################################ Basic Model ###########################################################################
 """

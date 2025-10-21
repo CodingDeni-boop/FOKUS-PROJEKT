@@ -134,7 +134,7 @@ def L2_regularization(X_train, y_train, X_test, y_test):
     LR_L2.fit(X_train, y_train)
 
     best_L2_model = LR_L2.best_estimator_
-    n_used_features_L2 = np.sum(best_L2_model.coef_ != 0)
+    n_used_features_L2 = np.sum(np.any(best_L2_model.coef_ != 0, axis=0))
     print(f"Number of features used (L2): {n_used_features_L2}")
 
     print("Best parameters (L2):\n", LR_L2.best_params_)
