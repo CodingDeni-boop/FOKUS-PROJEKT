@@ -22,13 +22,19 @@ print("X shape", X.shape)
 X_train, X_test, y_train, y_test = video_train_test_split(
     X, y, test_videos=2)   ### takes seperate vidoes as test set
 
-y_train = y_train.values.ravel()
-y_test = y_test.values.ravel()
 
 ######################################### MISSING DATA ###########################################
 
-X_train = X_train.dropna() # drop whole row instead
-X_test = X_test.dropna()
+# Create boolean mask for valid rows
+valid_mask = ~X_train.isna().any(axis=1)
+
+# Apply mask to both
+X_train = X_train[valid_mask]
+y_train = y_train[valid_mask]
+
+# Convert labels to numpy arrays
+y_train = y_train.values.ravel()
+y_test = y_test.values.ravel()
 
 #######################  SCALING (after splitting!!) ###############################################################
 from sklearn.preprocessing import StandardScaler
