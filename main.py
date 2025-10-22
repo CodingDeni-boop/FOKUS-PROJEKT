@@ -27,6 +27,12 @@ fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collectio
 
 
 fc.volume(points = ["neck","bodycentre","bcl","bcr"],faces = [[0,1,2],[2,1,3],[0,3,1],[0,2,3]]).store()
-fc.volume(points = ["bodycentre","hipl","tailbase","hipr"],faces = [[0,1,2],[0,2,3],[0,3,1],[2,1,3]]).store()
+fc.volume(points = ["bodycentre","hipl","tailbase","hipr"],faces = [[0,3,2],[3,1,2],[0,2,1],[0,1,3]]).store()
 
-print(fc[0].data)
+print(fc[0].data[0:10])
+print(fc[0].data[10:20])
+print(fc[0].data[20:30])
+print(fc[0].data[30:40])
+print(fc[0].data[40:50])
+
+print()
