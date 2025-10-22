@@ -76,9 +76,11 @@ def load_and_prepare_data(features_file="features.csv",
     print(f"   Train set size: {len(X_train)}")
     print(f"   Test set size: {len(X_test)}")
 
+
+
     # Scaling
     from sklearn.preprocessing import StandardScaler
-    print(f"\n4. Scaling")
+    print(f"\n. Scaling")
 
     num_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
 

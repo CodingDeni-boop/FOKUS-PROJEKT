@@ -13,13 +13,24 @@ from sklearn.linear_model import LogisticRegression
 from Prepare_Data import load_and_prepare_data
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import SelectKBest, f_classif
+from Data_Preprocessing import preprocess_data
 
 
 start=time.time()
 
 ################################## Load Data ###########################################################################
 
-X_train, X_test, y_train, y_test = load_and_prepare_data()
+#X_train, X_test, y_train, y_test = load_and_prepare_data()
+
+X_train, X_test, y_train, y_test, pca = preprocess_data(
+    features_file="features.csv",
+    labels_file="nataliia_labels.csv",
+    apply_pca=True,
+    n_components=0.95
+)
+
+print(X_train.shape, X_test.shape)
+
 
 
 ################################ Basic Model ###########################################################################
@@ -140,7 +151,7 @@ lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000
 #L1_regularization(lr, X_train, y_train, X_test, y_test)
 # Best C = 0.1
 
-univariateFS(lr, X_train, y_train, X_test, y_test, 30)
+#univariateFS(lr, X_train, y_train, X_test, y_test, 30)
 
 
 end = time.time()
