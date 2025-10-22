@@ -120,7 +120,7 @@ def L1_regularization(X_train, y_train, X_test, y_test):
 # L2 REGULARIZATION
 def L2_regularization(model, X_train, y_train, X_test, y_test):
     param_grid = {
-        "C": [1.0],  # Regularization strength
+        "C": [1.0, 10.0],  # Regularization strength
         "penalty": ["l2"],  # L2 regularization
         "solver": ["lbfgs"]  # Solver for logistic regression, also possible; saga, ovr
        # "multi_class": ["ovr"]
