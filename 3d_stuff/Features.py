@@ -18,7 +18,9 @@ triangulated_tracking_collection = tracking_collection.stereo_triangulate()
 triangulated_tracking_collection.strip_column_names()
 triangulated_tracking_collection.rescale_by_known_distance("tr","tl", 0.64, dims = ("x","y","z"))
 
-# Smoothing and interpolating
+# Interpolating and Smoothing
+
+triangulated_tracking_collection.interpolate(limit = 3)
 
 triangulated_tracking_collection.smooth({
 
@@ -38,17 +40,15 @@ triangulated_tracking_collection.smooth({
     "tailtip": {"window": 3, "type": "mean"},
 
     # oft
-    "tr": {"window": 35, "type": "mean"},
-    "tl": {"window": 35, "type": "mean"},
-    "br": {"window": 35, "type": "mean"},
-    "bl": {"window": 35, "type": "mean"},
-    "top_tr": {"window": 35, "type": "mean"},
-    "top_tl": {"window": 35, "type": "mean"},
-    "top_br": {"window": 35, "type": "mean"},
-    "top_bl": {"window": 35, "type": "mean"}
+    "tr": {"window": 20, "type": "mean"},
+    "tl": {"window": 20, "type": "mean"},
+    "br": {"window": 20, "type": "mean"},
+    "bl": {"window": 20, "type": "mean"},
+    "top_tr": {"window": 20, "type": "mean"},
+    "top_tl": {"window": 20, "type": "mean"},
+    "top_br": {"window": 20, "type": "mean"},
+    "top_bl": {"window": 20, "type": "mean"}
 })
-
-triangulated_tracking_collection.interpolate()
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
 
