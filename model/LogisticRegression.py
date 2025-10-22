@@ -8,11 +8,11 @@ from model_tools import video_train_test_split
 from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
-from FeatureSelection import L2_regularization
 import time
 from sklearn.linear_model import LogisticRegression
 from Prepare_Data import load_and_prepare_data
 from sklearn.model_selection import GridSearchCV
+from sklearn.feature_selection import SelectKBest, f_classif
 
 
 start=time.time()
@@ -31,6 +31,26 @@ evaluate_model(lr, X_train, y_train, X_test, y_test)
 """
 
 ################################### Feature Selection ##################################################################
+
+# Univariate Feature Selection
+def univariateFS(lr, X_train, y_train, X_test, y_test, k):
+    UVFS_Selector = SelectKBest(score_func=f_classif,
+                                k=k)
+    X_UVFS = UVFS_Selector.fit_transform(X_train, y_train)
+    X_UVFS_test = UVFS_Selector.transform(X_test)
+
+    # Scores
+    scores = UVFS_Selector.scores_  # ANOVA scores
+    pvalues = UVFS_Selector.pvalues_  # p-values for each feature
+
+    UVFS_selected_features = UVFS_Selector.get_feature_names_out(input_features=X_train.columns)
+    print("Selected Features (UVFS):\n", UVFS_selected_features)
+
+    LR_UVFS = LogisticRegression(random_state=10, class_weight='balanced')
+    LR_UVFS.fit(X_UVFS, y_train)
+
+    evaluate_model(LR_UVFS, X_UVFS, y_train, X_UVFS_test, y_test)
+
 
 #L1 REGULARIZATION (can recucde to 0)
 def L1_regularization(lr, X_train, y_train, X_test, y_test):
@@ -117,7 +137,10 @@ lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000
 #L2_regularization(lr, X_train, y_train, X_test, y_test)
 # Best C = 1.0
 
-L1_regularization(lr, X_train, y_train, X_test, y_test)
+#L1_regularization(lr, X_train, y_train, X_test, y_test)
+# Best C = 0.1
+
+univariateFS(lr, X_train, y_train, X_test, y_test, 30)
 
 
 end = time.time()
