@@ -1,4 +1,5 @@
 import py3r.behaviour as py3r
+import numpy as np
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
 import json
 from py3r.behaviour.tracking.tracking_mv import TrackingMV as mv
@@ -12,11 +13,9 @@ options = opt(fps=30)
 
 test3dcol = py3r.TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection_test/",options,py3r.TrackingMV)
 
-# only 1 video, how to do for several?????????
-
 test3dcol_tri = test3dcol.stereo_triangulate()
 
-################################## MY STUFF ############################################################################
+################################## TESTING GROUNDS ############################################################################
 
 test3dcol_tri.strip_column_names()
 
@@ -24,8 +23,6 @@ test3dcol_tri.strip_column_names()
 fc = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
 # attempting a volume calculation
-volume=round(fc.volume(), 10)
-fc.store(volume)
 
 
 
