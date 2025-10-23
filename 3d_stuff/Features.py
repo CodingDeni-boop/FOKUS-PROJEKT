@@ -107,13 +107,19 @@ for col in cols:
 
 print("Speed calculated and stored")
 
-#Distance to boundary
+#Distances to boundary
 
 all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
 for point in all_relevant_points:
     fc.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
 
     print("Distance to boundary calculated and stored")
+
+#Heights
+
+for point in all_relevant_points:
+    fc.height(point).store()
+
 #Volume
 
 fc.volume(points = ["neck", "bodycentre", "bcl", "bcr"], faces = [[0, 1, 2], [2, 1, 3], [0, 3, 1], [0, 2, 3]]).store()

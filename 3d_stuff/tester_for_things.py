@@ -23,7 +23,6 @@ test3dcol_tri.strip_column_names()
 fc = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
 # ride with the mob alhamdulillah
-print(fc.is_recognized("nose"))
 
 
 
