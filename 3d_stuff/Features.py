@@ -61,7 +61,9 @@ pairs_of_points_for_lines = pd.DataFrame({
 })
 
 for i in range(0,pairs_of_points_for_lines.shape[0]):
-    fc.distance_between(pairs_of_points_for_lines.iloc[i,0],pairs_of_points_for_lines.iloc[i,1],dims=("x","y","z")).store()
+    fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "x").store()
+    fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "y").store()
+    fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "z").store()
 
 # Azimuth / Angles
 
