@@ -22,7 +22,7 @@ start=time.time()
 
 #X_train, X_test, y_train, y_test = load_and_prepare_data()
 
-X_train, X_test, y_train, y_test, pca = preprocess_data(
+X_train, X_test, y_train, y_test, pca , original_features = preprocess_data(
     features_file="features.csv",
     labels_file="nataliia_labels.csv",
     apply_pca=True,
@@ -74,7 +74,8 @@ def L1_regularization(lr, X_train, y_train, X_test, y_test):
         lr,
         param_grid,
         cv=5 ,
-        scoring ='f1_weighted'
+        scoring ='f1_weighted',
+        n_jobs=-1
     )
 
     # Fit GridSearchCV to training data
@@ -90,7 +91,8 @@ def L1_regularization(lr, X_train, y_train, X_test, y_test):
 
     evaluate_model(best_L1_model, X_train, y_train, X_test, y_test)
 
-    feature_importance(best_L1_model, X_train, y_train, X_test, y_test)
+    feature_importance(best_L1_model, X_train, y_train, X_test, y_test, pca=pca, original_features=original_features)
+
 
 # L2 REGULARIZATION (up to 0)
 def L2_regularization(model, X_train, y_train, X_test, y_test):
@@ -104,7 +106,8 @@ def L2_regularization(model, X_train, y_train, X_test, y_test):
         model,
         param_grid,
         cv=5,
-        scoring='f1_weighted'
+        scoring='f1_weighted',
+        n_jobs=-1
     )
 
     LR_L2.fit(X_train, y_train)
@@ -117,10 +120,11 @@ def L2_regularization(model, X_train, y_train, X_test, y_test):
 
     evaluate_model(best_L2_model, X_train, y_train, X_test, y_test)
 
-    feature_importance(best_L2_model, X_train, y_train, X_test, y_test)
+    feature_importance(best_L2_model, X_train, y_train, X_test, y_test, pca=pca, original_features=original_features)
+
 
 ########################################## Feature Importance ##########################################################
-
+"""
 def feature_importance(model, X_train, y_train, X_test, y_test):
     coefs = model.coef_[0]  # Getting coefficients from the model
     coef_L1 = pd.DataFrame({
@@ -130,16 +134,39 @@ def feature_importance(model, X_train, y_train, X_test, y_test):
 
     print("\nTop Important Features (L1):")
     print(coef_L1.head(10))  #
+"""
+def feature_importance(model, X_train, y_train, X_test, y_test, pca=None, original_features=None):
     """
-    plt.figure(figsize=(10, 6))
-    sns.barplot(x="Importance", y="Feature", data=coef_L1.head(10))
-    plt.title("Top 10 Feature Importances (L2)")
-    plt.tight_layout()
-    
-    file_name = 'L2_features_top_10.png'
-    file_path = os.path.join("output", file_name)
-    plt.savefig(file_path, dpi=300)
+    Print feature importances for logistic regression models.
+    If PCA was used, map the coefficients back to the original feature space.
     """
+
+    coefs = model.coef_[0]  # shape: (n_components,) if PCA used
+
+    # === Case 1: PCA was applied ===
+    if pca is not None and original_features is not None:
+        print("\nRecovering original feature importances from PCA...")
+
+        # pca.components_: shape (n_components, n_original_features)
+        # model.coef_: shape (1, n_components)
+        original_importances = np.dot(pca.components_.T, coefs)
+
+        coef_df = pd.DataFrame({
+            'Feature': original_features,
+            'Importance': np.abs(original_importances)
+        }).sort_values(by='Importance', ascending=False)
+
+    # === Case 2: No PCA ===
+    else:
+        coef_df = pd.DataFrame({
+            'Feature': X_train.columns,
+            'Importance': np.abs(coefs)
+        }).sort_values(by='Importance', ascending=False)
+
+    print("\nTop 10 Important Features:")
+    print(coef_df.head(10))
+    return coef_df
+
 
 ########################################### Model Traininig ############################################################
 
@@ -153,6 +180,10 @@ lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000
 
 #univariateFS(lr, X_train, y_train, X_test, y_test, 30)
 
+X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data()
+
+#L2_regularization(lr, X_train, y_train, X_test, y_test)
+L1_regularization(lr, X_train, y_train, X_test, y_test)
 
 end = time.time()
 print("Time elapsed:", end-start)
