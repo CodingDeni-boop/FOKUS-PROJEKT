@@ -121,7 +121,7 @@ def UnivariateFS(apply_pca=False, n_components=0.95, k=20):
         F-scores and p-values for all features.
     """
     from sklearn.feature_selection import SelectKBest, f_classif
-    from Data_Preprocessing import preprocess_data
+    from DataPreprocessing import preprocess_data
     import pandas as pd
 
     print("=" * 80)

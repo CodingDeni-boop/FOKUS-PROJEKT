@@ -9,7 +9,7 @@ from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
 from FeatureSelection import *
-from Prepare_Data import load_and_prepare_data
+
 from SVM_Daniele import svmModel
 
 X_train, X_test, y_train, y_test = load_and_prepare_data()

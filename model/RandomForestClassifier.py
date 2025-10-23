@@ -11,7 +11,7 @@ from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
 #from FeatureSelection import UnivariateFS, RecursiveFS_CV
-from Data_Preprocessing import preprocess_data
+from DataPreprocessing import preprocess_data
 
 ################################## Load Data ###########################################################################
 

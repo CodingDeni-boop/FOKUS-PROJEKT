@@ -10,10 +10,9 @@ from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
 import time
 from sklearn.linear_model import LogisticRegression
-from Prepare_Data import load_and_prepare_data
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import SelectKBest, f_classif
-from Data_Preprocessing import preprocess_data
+from DataPreprocessing import preprocess_data
 
 
 start=time.time()
