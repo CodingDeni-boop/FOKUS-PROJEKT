@@ -57,11 +57,6 @@ triangulated_tracking_collection.smooth({
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
 
-# Can it see the nose?
-
-fc.is_recognized("nose").store()
-##you can do this for any point by the by
-
 # Distance
 
 pairs_of_points_for_lines = pd.DataFrame({
@@ -86,10 +81,10 @@ pairs_of_points_for_angles = pd.DataFrame({
 })
 
 for i in range(0,pairs_of_points_for_angles.shape[0]):
-    fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
+    #fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
     fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
     fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
-    fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z"))
+    #fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z"))
     fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
     fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
 
@@ -107,18 +102,26 @@ for col in cols:
 
 print("Speed calculated and stored")
 
+
 #Distances to boundary
 
 all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
 for point in all_relevant_points:
     fc.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
 
-    print("Distance to boundary calculated and stored")
+print("Distance to boundary calculated and stored")
 
 #Heights
 
 for point in all_relevant_points:
     fc.height(point).store()
+
+print("height calculated and stored")
+
+# Can it see the nose?
+
+fc.is_recognized("nose").store()
+
 
 #Volume
 
@@ -137,7 +140,8 @@ fc = fc.embedding_df(embedding)
 
 
 
-print(fc)
+
+print("Embedding done")
 
 # Extract features
 feature_dict = {}
@@ -148,11 +152,11 @@ for file in fc.keys():
 combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
 
 
+print("saving...")
 
 combined_features.to_csv("./../model/features.csv")
 
-print(combined_features)
-print("file saved:")
+print("!file saved!")
 
 
 
