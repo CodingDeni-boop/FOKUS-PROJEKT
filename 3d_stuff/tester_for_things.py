@@ -22,8 +22,9 @@ test3dcol_tri.strip_column_names()
 # test3dcol_tri is TrackingCollection
 fc = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
-# hmm distance to boundary?
-print()
+# ride with the mob alhamdulillah
+print(fc.is_recognized("nose"))
+
 
 
 

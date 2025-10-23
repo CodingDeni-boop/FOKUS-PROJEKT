@@ -57,6 +57,10 @@ triangulated_tracking_collection.smooth({
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
 
+# Can it see the nose?
+
+fc.is_recognized("nose").store()
+##you can do this for any point by the by
 
 # Distance
 
@@ -66,7 +70,9 @@ pairs_of_points_for_lines = pd.DataFrame({
 })
 
 for i in range(0,pairs_of_points_for_lines.shape[0]):
-    fc.distance_between(pairs_of_points_for_lines.iloc[i,0],pairs_of_points_for_lines.iloc[i,1],dims=("x","y","z")).store()
+    fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "x").store()
+    fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "y").store()
+    fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "z").store()
 
 print("distance calculated and stored")
 
@@ -102,12 +108,12 @@ for col in cols:
 print("Speed calculated and stored")
 
 #Distance to boundary
+
 all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
 for point in all_relevant_points:
-    fc.distance_to_boundary_dynamic(point, boundary=("tl", "tr", "bl", "br")).store()
+    fc.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
 
-print("Distance to boundary calculated and stored")
-
+    print("Distance to boundary calculated and stored")
 #Volume
 
 fc.volume(points = ["neck", "bodycentre", "bcl", "bcr"], faces = [[0, 1, 2], [2, 1, 3], [0, 3, 1], [0, 2, 3]]).store()
