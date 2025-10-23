@@ -11,34 +11,16 @@ from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
 from FeatureSelection import UnivariateFS, RecursiveFS_CV
+from Data_Preprocessing import preprocess_data
 
+################################## Load Data ###########################################################################
 
-y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
-X = pd.read_csv("features.csv", index_col=["video_id","frame"])
-X = drop_non_analyzed_videos(X,y)
-X, y = drop_last_frame(X,y)
-
-######################################### MISSING DATA ###########################################
-
-na_percentage = X.isna().mean()
-columns_to_keep = na_percentage[na_percentage <= 0.1].index
-columns_dropped = na_percentage[na_percentage > 0.1].index
-
-print(f"Dropped {len(columns_dropped)} columns with >10% missing values:")
-print(columns_dropped.tolist())
-X = X[columns_to_keep]
-
-valid_mask = X.notna().all(axis=1)
-valid_X = X[valid_mask]
-valid_y = y[valid_mask]
-
-###################################### Train/Test Split #############################################
-
-X_train, X_test, y_train, y_test = video_train_test_split(
-    valid_X, valid_y, test_videos=2)   ### takes seperate vidoes as test set
-
-y_train = y_train.values.ravel()
-y_test = y_test.values.ravel()
+X_train, X_test, y_train, y_test, pca , original_features = preprocess_data(
+    features_file="features.csv",
+    labels_file="nataliia_labels.csv",
+    apply_pca=True,
+    n_components=0.95
+)
 
 ####################################### Basic Model ####################################################################
 
@@ -79,6 +61,6 @@ print(f"Best n_estimators: {best_n_estimators}, Best F1 Score: {best_f1:.4f}")
 # Feature Selection
 
 #RecursiveFS(rf, X_train, y_train)
-RecursiveFS_CV(rf, X_train, y_train)
+#RecursiveFS_CV(rf, X_train, y_train)
 
-#UnivariateFS(rf, X_train, y_train, X_test, y_test)
+UnivariateFS(rf, X_train, y_train, X_test, y_test)
