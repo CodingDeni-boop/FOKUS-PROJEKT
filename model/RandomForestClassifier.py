@@ -10,35 +10,17 @@ from model_tools import video_train_test_split
 from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
 from PerformanceEvaluation import evaluate_model
-from FeatureSelection import UnivariateFS, RecursiveFS_CV
+#from FeatureSelection import UnivariateFS, RecursiveFS_CV
+from DataPreprocessing import preprocess_data
 
+################################## Load Data ###########################################################################
 
-y = pd.read_csv("nataliia_labels.csv", index_col=["video_id","frame"])
-X = pd.read_csv("features.csv", index_col=["video_id","frame"])
-X = drop_non_analyzed_videos(X,y)
-X, y = drop_last_frame(X,y)
-
-######################################### MISSING DATA ###########################################
-
-na_percentage = X.isna().mean()
-columns_to_keep = na_percentage[na_percentage <= 0.1].index
-columns_dropped = na_percentage[na_percentage > 0.1].index
-
-print(f"Dropped {len(columns_dropped)} columns with >10% missing values:")
-print(columns_dropped.tolist())
-X = X[columns_to_keep]
-
-valid_mask = X.notna().all(axis=1)
-valid_X = X[valid_mask]
-valid_y = y[valid_mask]
-
-###################################### Train/Test Split #############################################
-
-X_train, X_test, y_train, y_test = video_train_test_split(
-    valid_X, valid_y, test_videos=2)   ### takes seperate vidoes as test set
-
-y_train = y_train.values.ravel()
-y_test = y_test.values.ravel()
+X_train, X_test, y_train, y_test, pca , original_features = preprocess_data(
+    features_file="features.csv",
+    labels_file="nataliia_labels.csv",
+    apply_pca=True,
+    n_components=0.95
+)
 
 ####################################### Basic Model ####################################################################
 
@@ -78,7 +60,78 @@ print(f"Best n_estimators: {best_n_estimators}, Best F1 Score: {best_f1:.4f}")
 
 # Feature Selection
 
-#RecursiveFS(rf, X_train, y_train)
-RecursiveFS_CV(rf, X_train, y_train)
+def UnivariateFS(X_train, y_train, X_test, y_test, k=20):
+    """
+    Perform Univariate Feature Selection (ANOVA F-test).
 
-#UnivariateFS(rf, X_train, y_train, X_test, y_test)
+    Parameters
+    ----------
+    X_train : pd.DataFrame
+        Training features (preprocessed, not PCA-transformed)
+    y_train : pd.Series or np.ndarray
+        Training labels
+    X_test : pd.DataFrame
+        Test features
+    y_test : pd.Series or np.ndarray
+        Test labels
+    k : int, default=20
+        Number of top features to select
+
+    Returns
+    -------
+    X_train_selected : np.ndarray
+        Transformed training data with selected features
+    X_test_selected : np.ndarray
+        Transformed test data with selected features
+    selected_features : list
+        Names of selected features
+    scores_df : pd.DataFrame
+        F-scores and p-values for all features
+    """
+    from sklearn.feature_selection import SelectKBest, f_classif
+    import pandas as pd
+
+    print("=" * 80)
+    print(f"UNIVARIATE FEATURE SELECTION (Top {k} Features)")
+    print("=" * 80)
+
+    # Initialize selector
+    selector = SelectKBest(score_func=f_classif, k=k)
+    selector.fit(X_train, y_train)
+
+    # Get selected features
+    selected_features = X_train.columns[selector.get_support()].tolist()
+
+    # Create scores DataFrame
+    scores_df = pd.DataFrame({
+        'Feature': X_train.columns,
+        'F_Score': selector.scores_,
+        'P_Value': selector.pvalues_
+    }).sort_values('F_Score', ascending=False)
+
+    print(f"\nSelected features ({len(selected_features)}): {selected_features}")
+    print("\nTop 10 features by F-score:")
+    print(scores_df.head(10))
+
+    # Transform datasets
+    X_train_selected = selector.transform(X_train)
+    X_test_selected = selector.transform(X_test)
+
+    print("\nUnivariate feature selection complete.")
+
+    return X_train_selected, X_test_selected, selected_features, scores_df
+
+
+#RecursiveFS(rf, X_train, y_train)
+#RecursiveFS_CV(rf, X_train, y_train)
+
+# Run feature selection
+X_train_sel, X_test_sel, selected_features, scores_df = UnivariateFS(X_train, X_test, y_train, y_test, k=30)
+
+# Train Random Forest on the selected features
+from sklearn.ensemble import RandomForestClassifier
+
+rf.fit(X_train_sel, y_train)
+
+evaluate_model(rf, X_train_sel, y_train, X_test_sel, y_test)
+

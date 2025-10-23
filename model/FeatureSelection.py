@@ -60,7 +60,7 @@ def RecursiveFS_CV(rf, X_train, y_train, X_test, y_test):
     plt.title('RFECV Feature Selection')
     plt.show()
 
-
+"""
 # Univariate Feature Selection
 def UnivariateFS(rf, X_train, y_train, X_test, y_test):
     from sklearn.feature_selection import SelectKBest, f_classif
@@ -89,4 +89,72 @@ def UnivariateFS(rf, X_train, y_train, X_test, y_test):
 
     print("Univariate Feature Selection: ")
     evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
+"""
+
+def UnivariateFS(apply_pca=False, n_components=0.95, k=20):
+    """
+    Perform Univariate Feature Selection after data preprocessing.
+    Returns transformed datasets and feature information for model training.
+
+    Parameters
+    ----------
+    apply_pca : bool, default=False
+        Whether to apply PCA in preprocessing. PCA should generally be False for feature-level interpretability.
+    n_components : float or int, default=0.95
+        Number of PCA components or explained variance ratio.
+    k : int, default=20
+        Number of top features to select.
+
+    Returns
+    -------
+    X_train_selected : np.ndarray
+        Transformed training data with selected features.
+    X_test_selected : np.ndarray
+        Transformed test data with selected features.
+    y_train : np.ndarray
+        Training labels.
+    y_test : np.ndarray
+        Test labels.
+    selected_features : list
+        Names of selected features.
+    scores_df : pd.DataFrame
+        F-scores and p-values for all features.
+    """
+    from sklearn.feature_selection import SelectKBest, f_classif
+    from DataPreprocessing import preprocess_data
+    import pandas as pd
+
+    print("=" * 80)
+    print("UNIVARIATE FEATURE SELECTION")
+    print("=" * 80)
+
+    # Step 1: Preprocess data
+    X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data()
+
+    # Step 3: Perform univariate feature selection
+    selector = SelectKBest(score_func=f_classif, k=k)
+    selector.fit(X_train, y_train)
+
+    # Step 4: Collect results
+    selected_features = X_train.columns[selector.get_support()].tolist()
+
+    scores_df = pd.DataFrame({
+        'Feature': X_train.columns,
+        'F_Score': selector.scores_,
+        'P_Value': selector.pvalues_
+    }).sort_values('F_Score', ascending=False)
+
+    print(f"\nSelected top {k} features:\n{selected_features}")
+    print("\nTop 10 features by F-score:")
+    print(scores_df.head(10))
+
+    # Step 5: Transform datasets
+    X_train_selected = selector.transform(X_train)
+    X_test_selected = selector.transform(X_test)
+
+    print("\nUnivariate feature selection complete.")
+
+    return X_train_selected, X_test_selected, y_train, y_test, selected_features, scores_df
+
+
 

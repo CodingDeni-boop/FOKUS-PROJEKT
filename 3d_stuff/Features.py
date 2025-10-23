@@ -118,10 +118,10 @@ for point in all_relevant_points:
 
 print("height calculated and stored")
 
-# Can it see the nose?
+# is it BALL?
 
 fc.is_recognized("nose").store()
-
+fc.is_recognized("tailbase").store()
 
 #Volume
 

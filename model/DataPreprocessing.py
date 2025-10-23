@@ -10,7 +10,7 @@ def preprocess_data(
         labels_file="nataliia_labels.csv",
         missing_threshold=0.1,
         test_videos=2,
-        apply_pca=False,
+        apply_pca=True,
         n_components=0.95  # keep 95% variance by default
 ):
     """
@@ -108,4 +108,5 @@ def preprocess_data(
     print("PREPROCESSING COMPLETE")
     print("=" * 70 + "\n")
 
-    return X_train, X_test, y_train, y_test, pca
+    return X_train, X_test, y_train, y_test, pca, X.columns.tolist()
+
