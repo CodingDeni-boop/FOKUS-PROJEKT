@@ -23,7 +23,7 @@ test3dcol_tri.strip_column_names()
 fc = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
 # hmm distance to boundary?
-print(fc.distance_to_boundary_dynamic("bodycentre", ["tl", "tr", "bl", "br"], "oft"))
+print()
 
 
 
