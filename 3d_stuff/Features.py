@@ -18,6 +18,10 @@ triangulated_tracking_collection = tracking_collection.stereo_triangulate()
 triangulated_tracking_collection.strip_column_names()
 triangulated_tracking_collection.rescale_by_known_distance("tr","tl", 0.64, dims = ("x","y","z"))
 
+# Add construction point middle of OFT
+
+triangulated_tracking_collection.construction_point("mid",["tl","tr","bl","br"],dims=("x","y","z"))
+
 # Interpolating and Smoothing
 
 triangulated_tracking_collection.interpolate(limit = 3)
@@ -40,14 +44,15 @@ triangulated_tracking_collection.smooth({
     "tailtip": {"window": 3, "type": "mean"},
 
     # oft
-    "tr": {"window": 20, "type": "mean"},
-    "tl": {"window": 20, "type": "mean"},
-    "br": {"window": 20, "type": "mean"},
-    "bl": {"window": 20, "type": "mean"},
-    "top_tr": {"window": 20, "type": "mean"},
-    "top_tl": {"window": 20, "type": "mean"},
-    "top_br": {"window": 20, "type": "mean"},
-    "top_bl": {"window": 20, "type": "mean"}
+    "tr": {"window": 20, "type": "median"},
+    "tl": {"window": 20, "type": "median"},
+    "br": {"window": 20, "type": "median"},
+    "bl": {"window": 20, "type": "median"},
+    "top_tr": {"window": 20, "type": "median"},
+    "top_tl": {"window": 20, "type": "median"},
+    "top_br": {"window": 20, "type": "median"},
+    "top_bl": {"window": 20, "type": "median"},
+    "mid": {"window": 20, "type": "median"}
 })
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
@@ -62,6 +67,8 @@ pairs_of_points_for_lines = pd.DataFrame({
 
 for i in range(0,pairs_of_points_for_lines.shape[0]):
     fc.distance_between(pairs_of_points_for_lines.iloc[i,0],pairs_of_points_for_lines.iloc[i,1],dims=("x","y","z")).store()
+
+print("distance calculated and stored")
 
 # Azimuth / Angles
 
@@ -80,6 +87,8 @@ for i in range(0,pairs_of_points_for_angles.shape[0]):
     fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
     fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
 
+print("angle calculated and stored")
+
 # Speed
 
 first_F = next(iter(fc.features_dict.values()))
@@ -90,10 +99,15 @@ for col in cols:
         p = col[:-2]
         fc.speed(p, dims=("x","y","z")).store()
 
+print("Speed calculated and stored")
+
 #Distance to boundary
 all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
 for point in all_relevant_points:
-    fc.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
+    fc.distance_to_boundary_dynamic(point, boundary=("tl", "tr", "bl", "br")).store()
+
+print("Distance to boundary calculated and stored")
+
 #Volume
 
 fc.volume(points = ["neck", "bodycentre", "bcl", "bcr"], faces = [[0, 1, 2], [2, 1, 3], [0, 3, 1], [0, 2, 3]]).store()
@@ -101,11 +115,15 @@ fc.volume(points = ["bodycentre", "hipl", "tailbase", "hipr"], faces = [[0, 3, 2
 fc.volume(points = ["neck", "bcl", "hipl", "bodycentre"], faces = [[0, 1, 3], [1, 2, 3], [3, 2, 0], [0, 2, 1]]).store()
 fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1, 3, 2], [3, 0, 2], [0, 1, 2]]).store()
 
+print("Volume calculated and stored")
+
 #Embed
 embedding = {}
 for column in fc[0].data.columns:
     embedding[column] =  [-3,-2,-1,0,1,2,3]
 fc = fc.embedding_df(embedding)
+
+
 
 print(fc)
 
@@ -116,6 +134,7 @@ for file in fc.keys():
     feature_dict[file] = feature_obj
 
 combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
+
 
 
 combined_features.to_csv("./../model/features.csv")

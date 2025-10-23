@@ -10,9 +10,6 @@ from py3r.behaviour.tracking.tracking_collection import TrackingCollection
 from py3r.behaviour.tracking.tracking_mv import TrackingMV
 import time
 
-
-
-
 options = opt(fps=30)
 
 tracking_collection = TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection_test",options, TrackingMV)
@@ -20,19 +17,9 @@ triangulated_tracking_collection = tracking_collection.stereo_triangulate()
 triangulated_tracking_collection.strip_column_names()
 triangulated_tracking_collection.rescale_by_known_distance("tr","tl", 0.64, dims = ("x","y","z"))
 
+triangulated_tracking_collection.construction_point("mid",["tl","tr","bl","br"],dims=("x","y","z"))
+
 triangulated_tracking_collection.interpolate()
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
 
-
-
-fc.volume(points = ["neck","bodycentre","bcl","bcr"],faces = [[0,1,2],[2,1,3],[0,3,1],[0,2,3]]).store()
-fc.volume(points = ["bodycentre","hipl","tailbase","hipr"],faces = [[0,3,2],[3,1,2],[0,2,1],[0,1,3]]).store()
-
-print(fc[0].data[0:10])
-print(fc[0].data[10:20])
-print(fc[0].data[20:30])
-print(fc[0].data[30:40])
-print(fc[0].data[40:50])
-
-print()
