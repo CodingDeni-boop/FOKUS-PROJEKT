@@ -22,7 +22,8 @@ test3dcol_tri.strip_column_names()
 # test3dcol_tri is TrackingCollection
 fc = py3r.FeaturesCollection.from_tracking_collection(test3dcol_tri)
 
-# attempting a volume calculation
+# hmm distance to boundary?
+print(fc.distance_to_boundary_dynamic("bodycentre", ["tl", "tr", "bl", "br"], "oft"))
 
 
 

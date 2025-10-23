@@ -92,29 +92,15 @@ for col in cols:
 
 #Distance to boundary
 all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
-# im like hey whats up hello
-# seen your pretty ass soon as you came in the door
-# i just wanna chill, got a sack for us to roll
-# married to the money, introduced her to my stove
-
-# showed her how to whip it, now she remixin for low
-# she my trap queen, let her hit the bando
-# we be countin up, watchin how the
-# we just set a goal, talkin matchin lambos
-
-# at 56 a gram, 5 a hundred grams tho
-# man i swear i love her how she work the damn pole
-# hit the strip club, we be lettin bands go
-# everybody hatin, we just call em fans tho
-
-# in love with the money, i aint never lettin go
+for point in all_relevant_points:
+    fc.distance_to_boundary_dynamic(point, boundary=("tl", "tr", "bl", "br")).store()
 
 #Volume
 
 fc.volume(points = ["neck", "bodycentre", "bcl", "bcr"], faces = [[0, 1, 2], [2, 1, 3], [0, 3, 1], [0, 2, 3]]).store()
 fc.volume(points = ["bodycentre", "hipl", "tailbase", "hipr"], faces = [[0, 3, 2], [3, 1, 2], [0, 2 , 1], [0, 1, 3]]).store()
 fc.volume(points = ["neck", "bcl", "hipl", "bodycentre"], faces = [[0, 1, 3], [1, 2, 3], [3, 2, 0], [0, 2, 1]]).store()
-# fix it  felix fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1, 3, 2], [3, 0, 2], [0, 1, 3]]).store()
+fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1, 3, 2], [3, 0, 2], [0, 1, 2]]).store()
 
 #Embed
 embedding = {}
