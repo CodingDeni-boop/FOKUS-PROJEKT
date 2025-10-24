@@ -177,12 +177,14 @@ lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000
 #L1_regularization(lr, X_train, y_train, X_test, y_test)
 # Best C = 0.1
 
-#univariateFS(lr, X_train, y_train, X_test, y_test, 30)
-
-X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data()
-
-#L2_regularization(lr, X_train, y_train, X_test, y_test)
+# PCA + L2
+X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data(apply_pca=True, apply_uvfs=False)
 L2_regularization(lr, X_train, y_train, X_test, y_test)
+
+# UVFS + L2
+X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data(apply_pca=False, apply_uvfs=True)
+L2_regularization(lr, X_train, y_train, X_test, y_test)
+
 
 end = time.time()
 print("Time elapsed:", end-start)

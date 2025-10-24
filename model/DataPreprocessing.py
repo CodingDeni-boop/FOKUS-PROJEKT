@@ -17,9 +17,9 @@ def preprocess_data(
         labels_file="nataliia_labels.csv",
         missing_threshold=0.1,
         test_videos=2,
-        apply_uvfs=True,
+        apply_uvfs=False,
         k_best=30,
-        apply_pca=True,
+        apply_pca=False,
         n_components=0.95  # keep 95% variance by default
 ):
     """
@@ -110,7 +110,7 @@ def preprocess_data(
         print("\n5. Skipping Univariate Feature Selection (UVFS).")
 
     # ------------------------------
-    # 6. PCA (after UVFS)
+    # 6. PCA
     # ------------------------------
     pca = None
     if apply_pca:
