@@ -12,8 +12,16 @@ from tools_3d import get_vector
 from tools_3d import seg_angle
 
 options = opt(fps=30)
-
+all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailbase")
 tracking_collection = TrackingCollection.from_yolo3r_folder("./oft_tracking/Empty_Cage/collection",options, TrackingMV)
+
+# Likelihood filter
+
+filter_threshold = 0.9
+tracking_collection.filter_likelihood(filter_threshold)
+
+#Triangulation
+
 triangulated_tracking_collection = tracking_collection.stereo_triangulate()
 triangulated_tracking_collection.strip_column_names()
 triangulated_tracking_collection.rescale_by_known_distance("tr","tl", 0.64, dims = ("x","y","z"))
@@ -105,7 +113,6 @@ print("Speed calculated and stored")
 
 #Distances to boundary
 
-all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
 for point in all_relevant_points:
     fc.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
 
