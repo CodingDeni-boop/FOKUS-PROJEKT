@@ -63,7 +63,7 @@ def preprocess_data(
     # 3. Train/Test split
     # ------------------------------
     print(f"\n3. Splitting data (test_videos={test_videos})...")
-    X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=test_videos)
+    X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=test_videos, random_state=42)
     y_train = y_train.values.ravel()
     y_test = y_test.values.ravel()
     print(f"   Train size: {len(X_train)}, Test size: {len(X_test)}")
