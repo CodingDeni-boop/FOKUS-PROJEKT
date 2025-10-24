@@ -22,9 +22,9 @@ triangulated_tracking_collection.rescale_by_known_distance("tr","tl", 0.64, dims
 
 triangulated_tracking_collection.construction_point("mid",["tl","tr","bl","br"],dims=("x","y","z"))
 
-# Interpolating and Smoothing
+# (Interpolating) and Smoothing
 
-triangulated_tracking_collection.interpolate(limit = 3)
+# triangulated_tracking_collection.interpolate(limit = 3)
 
 triangulated_tracking_collection.smooth({
 
@@ -81,12 +81,12 @@ pairs_of_points_for_angles = pd.DataFrame({
 })
 
 for i in range(0,pairs_of_points_for_angles.shape[0]):
-    #fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
-    fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
-    fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
-    #fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z"))
-    fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
-    fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
+    fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
+    #fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
+    #fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
+    fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z"))
+    #fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
+    #fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
 
 print("angle calculated and stored")
 
@@ -135,7 +135,7 @@ print("Volume calculated and stored")
 #Embed
 embedding = {}
 for column in fc[0].data.columns:
-    embedding[column] =  [-3,-2,-1,0,1,2,3]
+    embedding[column] =  [0]
 fc = fc.embedding_df(embedding)
 
 
@@ -154,7 +154,7 @@ combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), n
 
 print("saving...")
 
-combined_features.to_csv("./../model/features.csv")
+combined_features.to_csv("./../model/features_lite.csv")
 
 print("!file saved!")
 
