@@ -18,20 +18,6 @@ from FeatureSelection import apply_pca, apply_uvfs
 
 start=time.time()
 
-################################## Load Data ###########################################################################
-
-# Load and preprocess data
-X_train, X_test, y_train, y_test = preprocess_data(
-    features_file="features.csv",
-    labels_file="nataliia_labels.csv"
-)
-
-# Apply PCA
-X_train, X_test, pca = apply_pca(X_train, X_test, n_components=0.95)
-original_features = X_train.columns.tolist()
-
-print(X_train.shape, X_test.shape)
-
 
 
 ################################ Basic Model ###########################################################################
@@ -64,7 +50,7 @@ def univariateFS(lr, X_train, y_train, X_test, y_test, k):
     evaluate_model(LR_UVFS, X_UVFS, y_train, X_UVFS_test, y_test)
 
 
-#L1 REGULARIZATION (can recucde to 0)
+#L1 REGULARIZATION (can reduce to 0)
 def L1_regularization(lr, X_train, y_train, X_test, y_test):
     param_grid = {
         "C": [1.0],  # Regularization strength
