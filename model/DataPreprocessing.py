@@ -7,7 +7,7 @@ from model_tools import video_train_test_split, drop_non_analyzed_videos, drop_l
 def preprocess_data(
         features_file="features.csv",
         labels_file="nataliia_labels.csv",
-        missing_threshold=0.1,
+        missing_threshold=0.05,
         test_videos=2
 ):
     """
