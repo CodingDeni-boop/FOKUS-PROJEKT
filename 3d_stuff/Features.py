@@ -123,6 +123,9 @@ print("height calculated and stored")
 fc.is_recognized("nose").store()
 fc.is_recognized("tailbase").store()
 
+#Standard deviation
+fc.standard_dev("headcentre").store()
+
 #Volume
 
 fc.volume(points = ["neck", "bodycentre", "bcl", "bcr"], faces = [[0, 1, 2], [2, 1, 3], [0, 3, 1], [0, 2, 3]]).store()
