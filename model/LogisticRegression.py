@@ -150,8 +150,8 @@ def feature_importance(model, X_train, y_train, X_test, y_test, pca=None, origin
             'Importance': np.abs(coefs)
         }).sort_values(by='Importance', ascending=False)
 
-    print("\nTop 10 Important Features:")
-    print(coef_df.head(10))
+    print("\nTop 30 Important Features:")
+    print(coef_df.head(100))
     return coef_df
 
 
@@ -166,19 +166,20 @@ lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000
 # Best C = 0.1
 
 # PCA + L2
+"""
 X_train, X_test, y_train, y_test = preprocess_data(features_file="features_lite.csv", labels_file="nataliia_labels.csv")
 X_train, X_test, pca = apply_pca(X_train, X_test, n_components=0.95)
 original_features = X_train.columns.tolist()
 L2_regularization(lr, X_train, y_train, X_test, y_test)
-
-# UVFS + L2
 """
+# UVFS + L2
+
 X_train, X_test, y_train, y_test = preprocess_data()
-X_train, X_test, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=30)
+X_train, X_test, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
 original_features = selected_features
 pca = None
 L2_regularization(lr, X_train, y_train, X_test, y_test)
-"""
+
 
 end = time.time()
 print("Time elapsed:", end-start)
