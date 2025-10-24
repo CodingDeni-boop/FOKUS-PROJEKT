@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.decomposition import PCA
 
 ########################################### FEATURE SELECTION #########################################################
 
@@ -60,36 +62,105 @@ def RecursiveFS_CV(rf, X_train, y_train, X_test, y_test):
     plt.title('RFECV Feature Selection')
     plt.show()
 
-"""
-# Univariate Feature Selection
-def UnivariateFS(rf, X_train, y_train, X_test, y_test):
-    from sklearn.feature_selection import SelectKBest, f_classif
-    # Select top K features
-    k = 20
-    selector = SelectKBest(score_func=f_classif, k=k)
-    selector.fit(X_train, y_train)
+def apply_uvfs(X_train, X_test, y_train, k_best=30):
+    """
+    Apply Univariate Feature Selection (UVFS) to select top k features.
 
-    # Get selected features
-    selected_features = X_train.columns[selector.get_support()].tolist()
-    print(f"Selected features: {selected_features}")
+    Parameters
+    ----------
+    X_train : pd.DataFrame
+        Training features
+    X_test : pd.DataFrame
+        Test features
+    y_train : array-like
+        Training labels
+    k_best : int, default=30
+        Number of top features to select
 
-    # Get scores
-    scores_df = pd.DataFrame({
-        'feature': X_train.columns,
-        'f_score': selector.scores_,
-        'p_value': selector.pvalues_
-    }).sort_values('f_score', ascending=False)
+    Returns
+    -------
+    X_train_selected : pd.DataFrame
+        Training data with selected features
+    X_test_selected : pd.DataFrame
+        Test data with selected features
+    selected_feature_names : list
+        Names of selected features
+    feature_scores_df : pd.DataFrame
+        DataFrame with feature scores and p-values
+    """
+    print(f"\nApplying Univariate Feature Selection (top {k_best} features)...")
 
-    print(f"Top 10 features by F-score:")
-    print(scores_df.head(10))
+    num_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
+    selector = SelectKBest(score_func=f_classif, k=k_best)
+    X_train_selected = selector.fit_transform(X_train[num_features], y_train)
+    X_test_selected = selector.transform(X_test[num_features])
 
-    # Transform
-    X_train_selected = selector.transform(X_train)
-    X_test_selected = selector.transform(X_test)
+    selected_feature_mask = selector.get_support()
+    selected_feature_names = X_train[num_features].columns[selected_feature_mask].tolist()
 
-    print("Univariate Feature Selection: ")
-    evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
-"""
+    # Create DataFrame with feature scores
+    feature_scores_df = pd.DataFrame({
+        'Feature': X_train[num_features].columns,
+        'F_Score': selector.scores_,
+        'P_Value': selector.pvalues_
+    }).sort_values(by='F_Score', ascending=False)
+
+    print("\n    Top Selected Features by UVFS:")
+    print(feature_scores_df.head(k_best).to_string(index=False))
+
+    # Convert to DataFrame
+    X_train_selected = pd.DataFrame(X_train_selected, index=X_train.index, columns=selected_feature_names)
+    X_test_selected = pd.DataFrame(X_test_selected, index=X_test.index, columns=selected_feature_names)
+
+    return X_train_selected, X_test_selected, selected_feature_names, feature_scores_df
+
+
+def apply_pca(X_train, X_test, n_components=0.95):
+    """
+    Apply PCA for dimensionality reduction.
+
+    Parameters
+    ----------
+    X_train : pd.DataFrame or array-like
+        Training features
+    X_test : pd.DataFrame or array-like
+        Test features
+    n_components : float or int, default=0.95
+        Number of components or explained variance ratio
+
+    Returns
+    -------
+    X_train_pca : pd.DataFrame
+        Training data after PCA transformation
+    X_test_pca : pd.DataFrame
+        Test data after PCA transformation
+    pca : PCA object
+        Fitted PCA transformer
+    """
+    print(f"\nApplying PCA (n_components={n_components})...")
+
+    pca = PCA(n_components=n_components, random_state=42)
+    X_train_pca_array = pca.fit_transform(X_train)
+    X_test_pca_array = pca.transform(X_test)
+
+    explained_var = np.sum(pca.explained_variance_ratio_) * 100
+    print(f"   PCA reduced dimensions: {X_train_pca_array.shape[1]} components")
+    print(f"   Total explained variance: {explained_var:.2f}%")
+
+    # Convert to DataFrame
+    X_train_pca = pd.DataFrame(
+        X_train_pca_array,
+        index=X_train.index,
+        columns=[f"PC{i+1}" for i in range(X_train_pca_array.shape[1])]
+    )
+    X_test_pca = pd.DataFrame(
+        X_test_pca_array,
+        index=X_test.index,
+        columns=[f"PC{i+1}" for i in range(X_test_pca_array.shape[1])]
+    )
+
+    return X_train_pca, X_test_pca, pca
+
 
 def UnivariateFS(apply_pca=False, n_components=0.95, k=20):
     """
@@ -120,9 +191,7 @@ def UnivariateFS(apply_pca=False, n_components=0.95, k=20):
     scores_df : pd.DataFrame
         F-scores and p-values for all features.
     """
-    from sklearn.feature_selection import SelectKBest, f_classif
     from DataPreprocessing import preprocess_data
-    import pandas as pd
 
     print("=" * 80)
     print("UNIVARIATE FEATURE SELECTION")

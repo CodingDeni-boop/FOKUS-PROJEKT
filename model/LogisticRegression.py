@@ -13,20 +13,22 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import SelectKBest, f_classif
 from DataPreprocessing import preprocess_data
+from FeatureSelection import apply_pca, apply_uvfs
 
 
 start=time.time()
 
 ################################## Load Data ###########################################################################
 
-#X_train, X_test, y_train, y_test = load_and_prepare_data()
-
-X_train, X_test, y_train, y_test, pca , original_features = preprocess_data(
+# Load and preprocess data
+X_train, X_test, y_train, y_test = preprocess_data(
     features_file="features.csv",
-    labels_file="nataliia_labels.csv",
-    apply_pca=True,
-    n_components=0.95
+    labels_file="nataliia_labels.csv"
 )
+
+# Apply PCA
+X_train, X_test, pca = apply_pca(X_train, X_test, n_components=0.95)
+original_features = X_train.columns.tolist()
 
 print(X_train.shape, X_test.shape)
 
@@ -178,12 +180,17 @@ lr = LogisticRegression(random_state=42, class_weight='balanced', max_iter=10000
 # Best C = 0.1
 
 # PCA + L2
-X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data(apply_pca=True, apply_uvfs=False)
+X_train, X_test, y_train, y_test = preprocess_data()
+X_train, X_test, pca = apply_pca(X_train, X_test, n_components=0.95)
+original_features = X_train.columns.tolist()
 L2_regularization(lr, X_train, y_train, X_test, y_test)
 
 # UVFS + L2
 """
-X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data(apply_pca=False, apply_uvfs=True)
+X_train, X_test, y_train, y_test = preprocess_data()
+X_train, X_test, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=30)
+original_features = selected_features
+pca = None
 L2_regularization(lr, X_train, y_train, X_test, y_test)
 """
 
