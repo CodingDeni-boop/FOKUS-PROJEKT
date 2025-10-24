@@ -17,11 +17,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 start=time.time()
 
-X_train, X_test, y_train, y_test, pca = preprocess_data(
-    features_file="features.csv",
+X_train, X_test, y_train, y_test = preprocess_data(
+    features_file="features_lite.csv",
     labels_file="nataliia_labels.csv",
 )
-print(X_train.shape, X_test.shape)
+print(X_train.shape,y_train.shape, X_test.shape)
 
 k = 20
 selector = SelectKBest(score_func=f_classif, k=k)
@@ -39,11 +39,12 @@ plt.title("Normalized Feature Importance with Univariate Feature Selection")
 sns.barplot(data=feature_importance,y="column_name",x="importance")
 plt.savefig("./Eval_output/Univariate_Feature_Selection.png")
 
-corr_matrix = X_train.corr("spearman")
+corr_matrix = X_train.corr("pearson")
 plt.figure(figsize=(40,30))
 sns.heatmap(corr_matrix)
 plt.savefig("./Eval_output/correalation_matrix.png")
 end=time.time()
+
 
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
 
