@@ -182,9 +182,10 @@ X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data(appl
 L2_regularization(lr, X_train, y_train, X_test, y_test)
 
 # UVFS + L2
+"""
 X_train, X_test, y_train, y_test, pca, original_features  = preprocess_data(apply_pca=False, apply_uvfs=True)
 L2_regularization(lr, X_train, y_train, X_test, y_test)
-
+"""
 
 end = time.time()
 print("Time elapsed:", end-start)
