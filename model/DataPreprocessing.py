@@ -97,7 +97,7 @@ def preprocess_data(
             'P_Value': selector.pvalues_
         }).sort_values(by='F_Score', ascending=False)
 
-        print("\n   📊 Top Selected Features by UVFS:")
+        print("\n    Top Selected Features by UVFS:")
         print(feature_scores_df.head(k_best).to_string(index=False))
 
         # Replace numeric columns with selected features
