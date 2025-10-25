@@ -19,31 +19,27 @@ from FeatureSelection import collinearity_then_uvfs
 
 start=time.time()
 
+
 X_train, X_test, y_train, y_test = preprocess_data(
     features_file="features_lite.csv",
     labels_file="nataliia_labels.csv",
 ) 
 
-k = 20
-selector = SelectKBest(score_func=f_classif, k=k)
-selector.fit(X_train, y_train)
+collinearity_then_uvfs(X_train, X_test, y_train, y_test,0.90,do_pretty_graphs=True)
 
-# Get selected features
-scores = selector.scores_
-norm_scores = scores / np.max(scores)
-feature_importance = pd.DataFrame({"column_name":pd.Series(X_train.columns),"importance":pd.Series(norm_scores)})
-feature_importance=feature_importance.sort_values(by="importance",ignore_index=True,ascending=False)
-print(feature_importance)
 
-plt.figure(figsize=(40,30))
-plt.title("Normalized Feature Importance with Univariate Feature Selection")
-sns.barplot(data=feature_importance,y="column_name",x="importance")
-plt.savefig("./Eval_output/Univariate_Feature_Selection.png")
 
-corr_matrix = X_train.corr("pearson")
-plt.figure(figsize=(40,30))
-sns.heatmap(corr_matrix)
-plt.savefig("./Eval_output/correalation_matrix.png")
+
+
+
+
+
+
+
+
+
+
+
 end=time.time()
 
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")

@@ -5,6 +5,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 ########################################### FEATURE SELECTION #########################################################
 
@@ -162,6 +164,7 @@ def apply_pca(X_train, X_test, n_components=0.95):
     return X_train_pca, X_test_pca, pca
 
 
+
 def UnivariateFS(apply_pca=False, n_components=0.95, k=20):
     """
     Perform Univariate Feature Selection after data preprocessing.
@@ -225,5 +228,119 @@ def UnivariateFS(apply_pca=False, n_components=0.95, k=20):
 
     return X_train_selected, X_test_selected, y_train, y_test, selected_features, scores_df
 
+def collinearity_then_uvfs(X_train : pd.DataFrame,X_test : pd.DataFrame,y_train : pd.DataFrame,y_test : pd.DataFrame,collinearity_threshold = 0.9,uvfs_k = 30, 
+                           do_pretty_graphs = False):
+    
+    selector = SelectKBest(score_func=f_classif, k=uvfs_k)
+    correlation_matrix = X_train.corr("pearson").abs()
+
+    if do_pretty_graphs:
+        correlation_matrix_for_graph = X_train.corr("pearson")
+        plt.figure(figsize=(40,30))
+        sns.heatmap(correlation_matrix_for_graph,vmin=-1,vmax=1)
+        plt.savefig("./Eval_output/correalation_matrix_before_dropping_collinear_features.png")
+
+    if do_pretty_graphs:
+        correlation_matrix_for_graph = X_train.corr("pearson").abs()
+        for i in range(0,correlation_matrix_for_graph.shape[0]):
+            correlation_matrix_for_graph.iloc[i,i]=0
+        max_corr = correlation_matrix_for_graph.max(axis=0)
+
+        selector.fit(X_train, y_train)
+        scores = selector.scores_
+        norm_scores = scores / np.max(scores)
+
+        feature_importance = pd.DataFrame({ 
+            "column_name": X_train.columns,
+            "importance": norm_scores,
+            "correlation": [max_corr[col] for col in X_train.columns]})
+        feature_importance=feature_importance.sort_values(by="importance",ignore_index=True,ascending=False)
+        plt.figure(figsize=(100,60))
+        plt.title("Normalized Feature Importance with Univariate Feature Selection; color is the maximum correlation with another feature")
+        sns.barplot(data=feature_importance,y="column_name",x="importance",hue="correlation",palette="viridis") ##rocket, viridis, cubehelix
+        plt.savefig("./Eval_output/Univariate_Feature_Selection_before_collinearity_drop.png")
+        
+
+    relevant_matrix = []
+
+    for row in correlation_matrix:
+        temp = correlation_matrix[row].sort_values(axis=0,ascending=False)
+        temp.pop(temp.name)
+        temp = temp[temp > collinearity_threshold]
+
+        if temp.size>0:
+            already_contained=False
+            series = []
+            series.append(temp.name)
+            for item in temp.index:
+                series.append(item)
+            series.sort()
+            for element in series:
+                for series2 in relevant_matrix:
+                    for element2 in series2:
+                        if element2==element:
+                            if len(series2)>=len(series):
+                                already_contained = True
+                            else:
+                                relevant_matrix.remove(series2)
+                                print(f"series in matrix was dropped because:{series} length {len(series)} > {series2} length {len(series2)}\n\n")
+            if not already_contained:
+                relevant_matrix.append(series)
+                
+    selector.fit(X_train, y_train)
+    scores = selector.scores_
+    norm_scores = scores / np.max(scores)
+    feature_importance = pd.DataFrame({"column_name":pd.Series(X_train.columns),"importance":pd.Series(norm_scores)})
+    for series in relevant_matrix:
+        todrop = feature_importance.loc[feature_importance["column_name"].isin(series)]
+        todrop = todrop.sort_values(by="importance",ascending=False,ignore_index=True)
+        todrop.drop(0,inplace=True)
+        print(X_train.shape)
+        X_train.drop(columns = todrop["column_name"],inplace=True)
+        X_test.drop(columns = todrop["column_name"],inplace=True)
+        print(X_train.shape)
+    
+    if do_pretty_graphs:
+        correlation_matrix_for_graph = X_train.corr("pearson")
+        plt.figure(figsize=(40,30))
+        sns.heatmap(correlation_matrix_for_graph,vmin=-1,vmax=1)
+        plt.savefig("./Eval_output/correalation_matrix_after_dropping_collinear_features.png")
+
+        correlation_matrix_for_graph = X_train.corr("pearson").abs()
+        for i in range(0,correlation_matrix_for_graph.shape[0]):
+            correlation_matrix_for_graph.iloc[i,i]=0
+        max_corr = correlation_matrix_for_graph.max(axis=0)
+
+        selector.fit(X_train, y_train)
+        scores = selector.scores_
+        norm_scores = scores / np.max(scores)
+
+        feature_importance = pd.DataFrame({ 
+            "column_name": X_train.columns,
+            "importance": norm_scores,
+            "correlation": [max_corr[col] for col in X_train.columns]})
+        feature_importance=feature_importance.sort_values(by="importance",ignore_index=True,ascending=False)
+        print(feature_importance)
+        
+    if do_pretty_graphs:
+        correlation_matrix_for_graph = X_train.corr("pearson").abs()
+        for i in range(0,correlation_matrix_for_graph.shape[0]):
+            correlation_matrix_for_graph.iloc[i,i]=0
+        max_corr = correlation_matrix_for_graph.max(axis=0)
+
+        selector.fit(X_train, y_train)
+        scores = selector.scores_
+        norm_scores = scores / np.max(scores)
+
+        feature_importance = pd.DataFrame({ 
+            "column_name": X_train.columns,
+            "importance": norm_scores,
+            "correlation": [max_corr[col] for col in X_train.columns]})
+        feature_importance=feature_importance.sort_values(by="importance",ignore_index=True,ascending=False)
+        plt.figure(figsize=(100,60))
+        plt.title("Normalized Feature Importance with Univariate Feature Selection; color is the maximum correlation with another feature")
+        sns.barplot(data=feature_importance,y="column_name",x="importance",hue="correlation",palette="viridis") ##rocket, viridis, cubehelix
+        plt.savefig("./Eval_output/Univariate_Feature_Selection_after_collinearity_drop.png")
 
 
+    return X_train,X_test,y_train,y_test

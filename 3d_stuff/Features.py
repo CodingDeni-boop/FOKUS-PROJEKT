@@ -127,7 +127,7 @@ print("height calculated and stored")
 
 # is it BALL?
 
-fc.is_recognized("nose").store()
+# fc.is_recognized("nose").store()
 # fc.is_recognized("tailbase").store()
 
 #Standard deviation
@@ -145,7 +145,7 @@ print("Volume calculated and stored")
 #Embed
 embedding = {}
 for column in fc[0].data.columns:
-    embedding[column] =  [0]
+    embedding[column] =  [-3,-2,-1,0,1,2,3]
 fc = fc.embedding_df(embedding)
 
 print("Embedding done")
@@ -161,7 +161,7 @@ combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), n
 
 print("saving...")
 
-combined_features.to_csv("./../model/features_lite.csv")
+combined_features.to_csv("./../model/features.csv")
 
 print("!file saved!")
 
