@@ -25,9 +25,7 @@ X_train, X_test, y_train, y_test = preprocess_data(
     labels_file="nataliia_labels.csv",
 ) 
 
-collinearity_then_uvfs(X_train, X_test, y_train, y_test,0.90,do_pretty_graphs=True)
-
-
+collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.9,uvfs_k=40,do_pretty_graphs=True)
 
 
 

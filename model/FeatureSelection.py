@@ -228,7 +228,7 @@ def UnivariateFS(apply_pca=False, n_components=0.95, k=20):
 
     return X_train_selected, X_test_selected, y_train, y_test, selected_features, scores_df
 
-def collinearity_then_uvfs(X_train : pd.DataFrame,X_test : pd.DataFrame,y_train : pd.DataFrame,y_test : pd.DataFrame,collinearity_threshold = 0.9,uvfs_k = 30, 
+def collinearity_then_uvfs(X_train : pd.DataFrame,X_test : pd.DataFrame,y_train : pd.DataFrame,y_test : pd.DataFrame,collinearity_threshold = 0.9,uvfs_k = None, 
                            do_pretty_graphs = False):
     
     selector = SelectKBest(score_func=f_classif, k=uvfs_k)
@@ -295,10 +295,9 @@ def collinearity_then_uvfs(X_train : pd.DataFrame,X_test : pd.DataFrame,y_train 
         todrop = feature_importance.loc[feature_importance["column_name"].isin(series)]
         todrop = todrop.sort_values(by="importance",ascending=False,ignore_index=True)
         todrop.drop(0,inplace=True)
-        print(X_train.shape)
         X_train.drop(columns = todrop["column_name"],inplace=True)
         X_test.drop(columns = todrop["column_name"],inplace=True)
-        print(X_train.shape)
+        print(X_train.shape[1]*"-")
     
     if do_pretty_graphs:
         correlation_matrix_for_graph = X_train.corr("pearson")
@@ -320,7 +319,6 @@ def collinearity_then_uvfs(X_train : pd.DataFrame,X_test : pd.DataFrame,y_train 
             "importance": norm_scores,
             "correlation": [max_corr[col] for col in X_train.columns]})
         feature_importance=feature_importance.sort_values(by="importance",ignore_index=True,ascending=False)
-        print(feature_importance)
         
     if do_pretty_graphs:
         correlation_matrix_for_graph = X_train.corr("pearson").abs()
@@ -342,5 +340,15 @@ def collinearity_then_uvfs(X_train : pd.DataFrame,X_test : pd.DataFrame,y_train 
         sns.barplot(data=feature_importance,y="column_name",x="importance",hue="correlation",palette="viridis") ##rocket, viridis, cubehelix
         plt.savefig("./Eval_output/Univariate_Feature_Selection_after_collinearity_drop.png")
 
+    if not uvfs_k==None:
+
+        selector.fit(X_train, y_train)
+        X_train = X_train.loc[:,selector.get_support()]
+        X_test = X_test.loc[:,selector.get_support()]
+    
+    X_train.to_csv("./filtered_X_train.csv")
+    X_test.to_csv("./filtered_X_test.csv")
+    pd.DataFrame(y_train).to_csv("./filtered_y_train.csv",header=False)
+    pd.DataFrame(y_test).to_csv("./filtered_y_test.csv",header=False)
 
     return X_train,X_test,y_train,y_test
