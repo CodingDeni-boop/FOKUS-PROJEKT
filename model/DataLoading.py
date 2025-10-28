@@ -45,4 +45,3 @@ def load_data(
 
     return X, y
 
-load_data()

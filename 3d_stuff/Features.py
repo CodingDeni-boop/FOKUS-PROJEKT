@@ -177,7 +177,7 @@ print("Embedding...")
 #Embed
 embedding = {}
 for column in fc[0].data.columns:
-    embedding[column] =  list(range(-1, 2))
+    embedding[column] =  list(range(-15, 16))
 fc = fc.embedding_df(embedding)
 
 # Extract features
@@ -191,7 +191,7 @@ combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), n
 
 print("saving...")
 
-combined_features.to_csv("./../model/features_lite.csv")
+combined_features.to_csv("./../model/features.csv")
 
 print("!file saved!")
 
