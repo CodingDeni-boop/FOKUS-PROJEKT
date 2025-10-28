@@ -33,33 +33,36 @@ triangulated_tracking_collection.construction_point("mid",["tl","tr","bl","br"],
 
 # triangulated_tracking_collection.interpolate(limit = 3)
 
+smoothing_mouse = 3
+smoothing_oft = 20
+
 triangulated_tracking_collection.smooth({
 
     # mouse
-    "nose": {"window": 3, "type": "mean"},
-    "headcentre": {"window": 3, "type": "mean"},
-    "neck": {"window": 3, "type": "mean"},
-    "earl": {"window": 3, "type": "mean"},
-    "earr": {"window": 3, "type": "mean"},
-    "bodycentre": {"window": 3, "type": "mean"},
-    "bcl": {"window": 3, "type": "mean"},
-    "bcr": {"window": 3, "type": "mean"},
-    "hipl": {"window": 3, "type": "mean"},
-    "hipr": {"window": 3, "type": "mean"},
-    "tailbase": {"window": 3, "type": "mean"},
-    "tailcentre": {"window": 3, "type": "mean"},
-    "tailtip": {"window": 3, "type": "mean"},
+    "nose": {"window": smoothing_mouse, "type": "mean"},
+    "headcentre": {"window": smoothing_mouse, "type": "mean"},
+    "neck": {"window": smoothing_mouse, "type": "mean"},
+    "earl": {"window": smoothing_mouse, "type": "mean"},
+    "earr": {"window": smoothing_mouse, "type": "mean"},
+    "bodycentre": {"window": smoothing_mouse, "type": "mean"},
+    "bcl": {"window": smoothing_mouse, "type": "mean"},
+    "bcr": {"window": smoothing_mouse, "type": "mean"},
+    "hipl": {"window": smoothing_mouse, "type": "mean"},
+    "hipr": {"window": smoothing_mouse, "type": "mean"},
+    "tailbase": {"window": smoothing_mouse, "type": "mean"},
+    "tailcentre": {"window": smoothing_mouse, "type": "mean"},
+    "tailtip": {"window": smoothing_mouse, "type": "mean"},
 
     # oft
-    "tr": {"window": 20, "type": "median"},
-    "tl": {"window": 20, "type": "median"},
-    "br": {"window": 20, "type": "median"},
-    "bl": {"window": 20, "type": "median"},
-    "top_tr": {"window": 20, "type": "median"},
-    "top_tl": {"window": 20, "type": "median"},
-    "top_br": {"window": 20, "type": "median"},
-    "top_bl": {"window": 20, "type": "median"},
-    "mid": {"window": 20, "type": "median"}
+    "tr": {"window": smoothing_oft, "type": "median"},
+    "tl": {"window": smoothing_oft, "type": "median"},
+    "br": {"window": smoothing_oft, "type": "median"},
+    "bl": {"window": smoothing_oft, "type": "median"},
+    "top_tr": {"window": smoothing_oft, "type": "median"},
+    "top_tl": {"window": smoothing_oft, "type": "median"},
+    "top_br": {"window": smoothing_oft, "type": "median"},
+    "top_bl": {"window": smoothing_oft, "type": "median"},
+    "mid": {"window": smoothing_oft, "type": "median"}
 })
 
 fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
@@ -164,7 +167,7 @@ print("Missing data filled (forward/backward)")
 #Embed
 embedding = {}
 for column in fc[0].data.columns:
-    embedding[column] =  list(range(-15, 16))
+    embedding[column] =  list(range(-1, 2))
 fc = fc.embedding_df(embedding)
 
 print("Embedding done")
@@ -180,7 +183,7 @@ combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), n
 
 print("saving...")
 
-combined_features.to_csv("./../model/features.csv")
+combined_features.to_csv("./../model/features_lite.csv")
 
 print("!file saved!")
 
