@@ -17,57 +17,28 @@ from DataLoading import load_data
 
 start = time.time()
 
-######################################## HYPERPARAMETER TUNING #################################################
-"""
-# n_estimators
-from sklearn.metrics import f1_score
-
-n_estimators = [100, 150, 200, 250, 300, 350, 400, 450, 500, 600]
-best_f1 = 0
-best_n_estimators = None
-
-for n in n_estimators:
-    rf = RandomForestClassifier(n_estimators=n, class_weight="balanced", random_state=42)
-    rf.fit(X_train, y_train)
-    y_pred = rf.predict(X_test)
-    # Calculate F1 score - use 'weighted' for multi-class
-    f1 = f1_score(y_test, y_pred, average='macro')
-    if f1 > best_f1:
-        best_f1 = f1
-        best_n_estimators = n
-    print(f"n_estimators: {n}, F1 Score: {f1:.4f}")
-
-print(f"Best n_estimators: {best_n_estimators}, Best F1 Score: {best_f1:.4f}")
-
 # Best n_estimators: 150, Best F1 Score: 0.8932
-rf = RandomForestClassifier(
-    n_estimators=best_n_estimators,
-    random_state=42,
-    class_weight='balanced',
-    n_jobs=-1,
-    verbose=True)
-"""
 
-########################################### Data loading ##########################################################
+########################################### Data loading ###############################################################
 """
 # Apply UVFS
 X_train_sel, X_test_sel, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
 """
 
-# UVFS + Collinearity
-
 load_data()
 X_train, X_test, y_train, y_test = preprocess_data()
+
+# UVFS + Collinearity
 #X_train_sel, X_test_sel, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test, collinearity_threshold = 0.95)
 
-############################################# Basic Model ####################################
+############################################# Basic Model ##############################################################
 
 #rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1, n_estimators=150,max_depth=10,min_samples_split=5,min_samples_leaf=2,max_features='sqrt')
 #rf.fit(X_train, y_train)
 
 #evaluate_model(rf, X_train, y_train, X_test, y_test)
 
-############################################ Hyperparamter Tuning ##############
+############################################ Hyperparameter Tuning #####################################################
 
 from sklearn.model_selection import GridSearchCV
 
@@ -98,13 +69,6 @@ print("Best parameters:", grid_search.best_params_)
 evaluate_model(best_rf, X_train, y_train, X_test, y_test)
 
 
-########################################### Model Training #############################################################
-"""
-# Train Random Forest on the selected features
-rf.fit(X_train_sel, y_train)
-
-evaluate_model(rf, X_train_sel, y_train, X_test_sel, y_test)
-"""
 end = time.time()
 print("Time elapsed:", end - start)
 

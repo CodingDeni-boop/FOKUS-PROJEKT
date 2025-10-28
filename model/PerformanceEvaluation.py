@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def evaluate_model(model : object, X_train : pd.DataFrame(), y_train: pd.DataFrame(), X_test: pd.DataFrame(), y_test: pd.DataFrame()):
-    model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     y_pred_proba = model.predict_proba(X_test)
 
@@ -50,7 +49,7 @@ def evaluate_model(model : object, X_train : pd.DataFrame(), y_train: pd.DataFra
     plt.savefig('Eval_output/confusion_matrix.png', dpi=300, bbox_inches='tight')
 
     ########################################### Feature Importance #########################################################
-"""
+
     if hasattr(X_train, 'columns'):
         feature_names = X_train.columns
         importance_df = pd.DataFrame({
@@ -63,4 +62,3 @@ def evaluate_model(model : object, X_train : pd.DataFrame(), y_train: pd.DataFra
     else:
         print("\n=== Feature Importance ===")
         print("Feature names not available")
-"""
