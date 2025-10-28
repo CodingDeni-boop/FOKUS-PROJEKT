@@ -12,27 +12,9 @@ from PerformanceEvaluation import evaluate_model
 from DataPreprocessing import preprocess_data
 from FeatureSelection import apply_uvfs, apply_pca
 import time
+from FeatureSelection import collinearity_then_uvfs
 
 start = time.time()
-
-################################## Load Data ###########################################################################
-
-X_train, X_test, y_train, y_test = preprocess_data(
-    features_file="features.csv",
-    labels_file="nataliia_labels.csv"
-)
-
-####################################### Basic Model ####################################################################
-
-rf = RandomForestClassifier(
-    n_estimators=150,
-    random_state=42,
-    class_weight='balanced', 
-    n_jobs=-1,
-    verbose=True)
-
-# Evaluate model
-#evaluate_model(rf, X_train, y_train, X_test, y_test)
 
 ######################################## HYPERPARAMETER TUNING #################################################
 """
@@ -65,10 +47,16 @@ rf = RandomForestClassifier(
     verbose=True)
 """
 
-########################################### Feature Selection ##########################################################
-
+########################################### Data loading ##########################################################
+"""
 # Apply UVFS
 X_train_sel, X_test_sel, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
+"""
+
+# UVFS + Collinearity
+X_train, X_test, y_train, y_test = preprocess_data(features_file="features.csv")
+X_train_sel, X_test_sel, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test)
+
 
 ############################################ Hyperparamter Tuning ##############
 
