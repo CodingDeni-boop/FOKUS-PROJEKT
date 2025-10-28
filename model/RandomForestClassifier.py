@@ -35,7 +35,7 @@ rf = RandomForestClassifier(
 #evaluate_model(rf, X_train, y_train, X_test, y_test)
 
 ######################################## HYPERPARAMETER TUNING #################################################
-"""
+
 # n_estimators
 from sklearn.metrics import f1_score
 
@@ -48,20 +48,25 @@ for n in n_estimators:
     rf.fit(X_train, y_train)
     y_pred = rf.predict(X_test)
     # Calculate F1 score - use 'weighted' for multi-class
-    f1 = f1_score(y_test, y_pred, average='weighted')
+    f1 = f1_score(y_test, y_pred, average='macro')
     if f1 > best_f1:
         best_f1 = f1
         best_n_estimators = n
     print(f"n_estimators: {n}, F1 Score: {f1:.4f}")
 
 print(f"Best n_estimators: {best_n_estimators}, Best F1 Score: {best_f1:.4f}")
-"""
-# Best n_estimators: 150, Best F1 Score: 0.8932
 
+# Best n_estimators: 150, Best F1 Score: 0.8932
+rf = RandomForestClassifier(
+    n_estimators=best_n_estimators,
+    random_state=42,
+    class_weight='balanced',
+    n_jobs=-1,
+    verbose=True)
 ########################################### Feature Selection ##########################################################
 
 # Apply UVFS
-X_train_sel, X_test_sel, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=30)
+X_train_sel, X_test_sel, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
 
 ########################################### Model Training #############################################################
 
