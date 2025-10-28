@@ -19,11 +19,16 @@ from FeatureSelection import collinearity_then_uvfs
 
 start=time.time()
 
+data = pd.read_csv("./features.csv")
+
+print(data.isna().sum().sum())
+
 
 X_train, X_test, y_train, y_test = preprocess_data(
-    features_file="features_lite.csv",
+    features_file="features.csv",
     labels_file="nataliia_labels.csv",
 ) 
+
 
 collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.9,uvfs_k=40,do_pretty_graphs=True)
 
