@@ -32,22 +32,8 @@ def preprocess_data(
     X, y = drop_last_frame(X, y)
     print(f"   Initial X shape: {X.shape}")
 
-"""
     # ------------------------------
-    # 2. Handle missing values
-    # ------------------------------
-    print(f"\n2. Handling missing data (threshold={missing_threshold * 100:.0f}%)...")
-    na_percentage = X.isna().mean()
-    columns_to_keep = na_percentage[na_percentage <= missing_threshold].index
-    X = X[columns_to_keep]
-    valid_mask = X.notna().all(axis=1)
-    X = X[valid_mask]
-    y = y[valid_mask]
-    print(f"   Final X shape after cleaning: {X.shape}")
-"""
-
-    # ------------------------------
-    # 3. Train/Test split
+    # 2. Train/Test split
     # ------------------------------
     print(f"\n3. Splitting data (test_videos={test_videos})...")
     X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=test_videos, random_state=42)
@@ -56,7 +42,7 @@ def preprocess_data(
     print(f"   Train size: {len(X_train)}, Test size: {len(X_test)}")
 
     # ------------------------------
-    # 4. Scaling
+    # 3. Scaling
     # ------------------------------
     print("\n4. Scaling numeric features...")
     num_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
