@@ -32,6 +32,7 @@ def preprocess_data(
     X, y = drop_last_frame(X, y)
     print(f"   Initial X shape: {X.shape}")
 
+"""
     # ------------------------------
     # 2. Handle missing values
     # ------------------------------
@@ -43,6 +44,7 @@ def preprocess_data(
     X = X[valid_mask]
     y = y[valid_mask]
     print(f"   Final X shape after cleaning: {X.shape}")
+"""
 
     # ------------------------------
     # 3. Train/Test split

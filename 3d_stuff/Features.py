@@ -67,8 +67,8 @@ fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collectio
 # Distance
 
 pairs_of_points_for_lines = pd.DataFrame({
-    "point1": ["nose", "nose", "neck", "neck", "neck", "neck", "bcl",  "bcr",  "hipl",     "hipr",     "nose",       "headcentre", "neck",       "bodycentre", "headcentre", "headcentre", "bodycentre", "bodycentre", "bodycentre", "bodycentre"],
-    "point2": ["earl", "earr", "earl", "earr", "bcl",  "bcr",  "hipl", "hipr", "tailbase", "tailbase", "headcentre", "neck",       "bodycentre", "tailbase",   "earl",       "earr",       "bcl",        "bcr",        "hipl",       "hipr"]
+    "point1": ["neck", "neck", "neck", "neck", "bcl",  "bcr",  "hipl",     "hipr",     "headcentre",  "neck",       "bodycentre", "headcentre", "headcentre", "bodycentre", "bodycentre", "bodycentre", "bodycentre"],
+    "point2": ["earl", "earr", "bcl",  "bcr",  "hipl", "hipr", "tailbase", "tailbase",  "neck",       "bodycentre", "tailbase",   "earl",       "earr",       "bcl",        "bcr",        "hipl",       "hipr"]
 })
 
 for i in range(0,pairs_of_points_for_lines.shape[0]):
@@ -98,7 +98,7 @@ for i in range(0,pairs_of_points_for_angles.shape[0]):
 print("angle calculated and stored")
 
 # Speed
-
+"""
 first_F = next(iter(fc.features_dict.values()))
 cols = first_F.tracking.data.columns
 
@@ -106,13 +106,16 @@ for col in cols:
     if col.endswith(".x"):
         p = col[:-2]
         fc.speed(p, dims=("x","y","z")).store()
+"""
+
+for point in all_relevant_points:
+     fc.speed(point, dims=("x","y","z")).store()
 
 print("Speed calculated and stored")
 
-
 #Distances to boundary
 
-all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
+all_relevant_points = ("headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
 for point in all_relevant_points:
     fc.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
 
@@ -127,8 +130,8 @@ print("height calculated and stored")
 
 # is it BALL?
 
-# fc.is_recognized("nose").store()
-# fc.is_recognized("tailbase").store()
+fc.is_recognized("nose").store()
+fc.is_recognized("tailbase").store()
 
 #Standard deviation
 fc.standard_dev("headcentre").store()
@@ -142,10 +145,26 @@ fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1
 
 print("Volume calculated and stored")
 
+############################################### Missing data handling
+
+# Forward fill then backward fill missing data
+for file in fc.keys():
+    feature_obj = fc[file]
+    df = feature_obj.data
+
+    # Forward fill, then backward fill remaining NAs
+    df = df.ffill().bfill()
+
+    feature_obj.data = df
+
+print("Missing data filled (forward/backward)")
+
+
+
 #Embed
 embedding = {}
 for column in fc[0].data.columns:
-    embedding[column] =  [-3,-2,-1,0,1,2,3]
+    embedding[column] =  list(range(-15, 16))
 fc = fc.embedding_df(embedding)
 
 print("Embedding done")
