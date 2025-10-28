@@ -151,8 +151,8 @@ def feature_importance(model, X_train, y_train, X_test, y_test, pca=None, origin
             'Importance': np.abs(coefs)
         }).sort_values(by='Importance', ascending=False)
 
-    print("\nTop 30 Important Features:")
-    print(coef_df.head(30))
+    print("\nTop 100 Important Features:")
+    print(coef_df.head(100))
     return coef_df
 
 

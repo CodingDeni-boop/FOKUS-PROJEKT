@@ -54,12 +54,18 @@ X_train_sel, X_test_sel, selected_features, feature_scores_df = apply_uvfs(X_tra
 """
 
 # UVFS + Collinearity
-X_train, X_test, y_train, y_test = preprocess_data(features_file="features.csv")
-X_train_sel, X_test_sel, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test)
+X_train, X_test, y_train, y_test = preprocess_data()
+X_train_sel, X_test_sel, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test, collinearity_threshold = 0.95)
 
+############################################# Basic Model ####################################
+
+rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1, n_estimators=150,max_depth=10,min_samples_split=5,min_samples_leaf=2,max_features='sqrt')
+rf.fit(X_train_sel, y_train)
+
+evaluate_model(rf, X_train_sel, y_train, X_test_sel, y_test)
 
 ############################################ Hyperparamter Tuning ##############
-
+"""
 from sklearn.model_selection import GridSearchCV
 
 param_grid = {
@@ -87,7 +93,7 @@ best_rf = grid_search.best_estimator_
 print("Best parameters:", grid_search.best_params_)
 
 evaluate_model(best_rf, X_train_sel, y_train, X_test_sel, y_test)
-
+"""
 
 ########################################### Model Training #############################################################
 """
