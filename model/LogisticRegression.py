@@ -14,6 +14,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import SelectKBest, f_classif
 from DataPreprocessing import preprocess_data
 from FeatureSelection import apply_pca, apply_uvfs
+from FeatureSelection import collinearity_then_uvfs
 
 
 start=time.time()
@@ -82,7 +83,7 @@ def L1_regularization(lr, X_train, y_train, X_test, y_test):
 
 
 # L2 REGULARIZATION (up to 0)
-def L2_regularization(model, X_train, y_train, X_test, y_test):
+def L2_regularization(model, X_train, y_train, X_test, y_test, pca=None, original_features=None):
     param_grid = {
         "C": [1.0],  # Regularization strength
         "penalty": ["l2"],  # L2 regularization
@@ -107,7 +108,7 @@ def L2_regularization(model, X_train, y_train, X_test, y_test):
 
     evaluate_model(best_L2_model, X_train, y_train, X_test, y_test)
 
-    feature_importance(best_L2_model, X_train, y_train, X_test, y_test, pca=pca, original_features=original_features)
+    feature_importance(best_L2_model, X_train, y_train, X_test, y_test, pca, original_features)
 
 
 ########################################## Feature Importance ##########################################################
@@ -151,7 +152,7 @@ def feature_importance(model, X_train, y_train, X_test, y_test, pca=None, origin
         }).sort_values(by='Importance', ascending=False)
 
     print("\nTop 30 Important Features:")
-    print(coef_df.head(100))
+    print(coef_df.head(30))
     return coef_df
 
 
@@ -173,13 +174,21 @@ original_features = X_train.columns.tolist()
 L2_regularization(lr, X_train, y_train, X_test, y_test)
 """
 # UVFS + L2
-
+"""
 X_train, X_test, y_train, y_test = preprocess_data()
 X_train, X_test, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
 original_features = selected_features
 pca = None
 L2_regularization(lr, X_train, y_train, X_test, y_test)
+"""
+
+# Collinearity + UVFS + L2
+X_train, X_test, y_train, y_test = preprocess_data(features_file="features_long.csv")
+X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test)
+L2_regularization(lr, X_train, y_train, X_test, y_test)
 
 
 end = time.time()
 print("Time elapsed:", end-start)
+
+# weighted average f1 bad? -> macro average f1 better?
