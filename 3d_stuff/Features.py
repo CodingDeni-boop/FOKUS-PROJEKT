@@ -69,6 +69,8 @@ fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collectio
 
 # Distance
 
+print("calculating distance...")
+
 pairs_of_points_for_lines = pd.DataFrame({
     "point1": ["neck", "neck", "neck", "neck", "bcl",  "bcr",  "hipl",     "hipr",     "headcentre",  "neck",       "bodycentre", "headcentre", "headcentre", "bodycentre", "bodycentre", "bodycentre", "bodycentre"],
     "point2": ["earl", "earr", "bcl",  "bcr",  "hipl", "hipr", "tailbase", "tailbase",  "neck",       "bodycentre", "tailbase",   "earl",       "earr",       "bcl",        "bcr",        "hipl",       "hipr"]
@@ -79,9 +81,9 @@ for i in range(0,pairs_of_points_for_lines.shape[0]):
     fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "y").store()
     fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "z").store()
 
-print("distance calculated and stored")
-
 # Azimuth / Angles
+
+print("calculating angles...")
 
 pairs_of_points_for_angles = pd.DataFrame({
     "point1": ["bodycentre","bodycentre","bodycentre","tailbase",   "tailbase",  "tailbase",  "tailbase",  "tailbase",  "bodycentre","bodycentre"],
@@ -98,9 +100,10 @@ for i in range(0,pairs_of_points_for_angles.shape[0]):
     #fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
     #fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
 
-print("angle calculated and stored")
-
 # Speed
+
+print("calculating speed...")
+
 """
 first_F = next(iter(fc.features_dict.values()))
 cols = first_F.tracking.data.columns
@@ -114,41 +117,48 @@ for col in cols:
 for point in all_relevant_points:
      fc.speed(point, dims=("x","y","z")).store()
 
-print("Speed calculated and stored")
-
 #Distances to boundary
+
+print("calculating distance to boundary...")
 
 all_relevant_points = ("headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
 for point in all_relevant_points:
     fc.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
 
-print("Distance to boundary calculated and stored")
 
 #Heights
+
+print("calculating height...")
 
 for point in all_relevant_points:
     fc.height(point).store()
 
-print("height calculated and stored")
-
 # is it BALL?
+
+print("calculating ball...")
 
 fc.is_recognized("nose").store()
 fc.is_recognized("tailbase").store()
 
 #Standard deviation
+print("calculating standard deviation...")
+
 fc.standard_dev("headcentre").store()
 
 #Volume
+
+print("calculating volume...")
 
 fc.volume(points = ["neck", "bodycentre", "bcl", "bcr"], faces = [[0, 1, 2], [2, 1, 3], [0, 3, 1], [0, 2, 3]]).store()
 fc.volume(points = ["bodycentre", "hipl", "tailbase", "hipr"], faces = [[0, 3, 2], [3, 1, 2], [0, 2 , 1], [0, 1, 3]]).store()
 fc.volume(points = ["neck", "bcl", "hipl", "bodycentre"], faces = [[0, 1, 3], [1, 2, 3], [3, 2, 0], [0, 2, 1]]).store()
 fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1, 3, 2], [3, 0, 2], [0, 1, 2]]).store()
 
-print("Volume calculated and stored")
+
 
 ############################################### Missing data handling
+
+print("Missing data filling (forward/backward)...")
 
 # Forward fill then backward fill missing data
 for file in fc.keys():
@@ -160,17 +170,15 @@ for file in fc.keys():
 
     feature_obj.data = df
 
-print("Missing data filled (forward/backward)")
 
 
+print("Embedding...")
 
 #Embed
 embedding = {}
 for column in fc[0].data.columns:
     embedding[column] =  list(range(-1, 2))
 fc = fc.embedding_df(embedding)
-
-print("Embedding done")
 
 # Extract features
 feature_dict = {}

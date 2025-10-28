@@ -231,7 +231,7 @@ def UnivariateFS(apply_pca=False, n_components=0.95, k=20):
 def collinearity_then_uvfs(X_train : pd.DataFrame,X_test : pd.DataFrame,y_train : pd.DataFrame,y_test : pd.DataFrame,collinearity_threshold = 0.9,uvfs_k = None, 
                            do_pretty_graphs = False):
     
-    selector = SelectKBest(score_func=f_classif, k=uvfs_k)
+    selector = SelectKBest(score_func=f_classif)
     correlation_matrix = X_train.corr("pearson").abs()
 
     if do_pretty_graphs:
@@ -299,49 +299,34 @@ def collinearity_then_uvfs(X_train : pd.DataFrame,X_test : pd.DataFrame,y_train 
         X_test.drop(columns = todrop["column_name"],inplace=True)
         print(X_train.shape[1]*"-")
     
+
+    correlation_matrix_for_stuff = X_train.corr("pearson").abs()
+    for i in range(0,correlation_matrix_for_stuff.shape[0]):
+        correlation_matrix_for_stuff.iloc[i,i]=0
+    max_corr = correlation_matrix_for_stuff.max(axis=0)
+    selector.fit(X_train, y_train)
+    scores = selector.scores_
+    norm_scores = scores / np.max(scores)
+    feature_importance = pd.DataFrame({ 
+        "column_name": X_train.columns,
+        "importance": norm_scores,
+        "correlation": [max_corr[col] for col in X_train.columns]})
+    feature_importance=feature_importance.sort_values(by="importance",ignore_index=True,ascending=False)
+    print(feature_importance)
+
     if do_pretty_graphs:
         correlation_matrix_for_graph = X_train.corr("pearson")
         plt.figure(figsize=(40,30))
         sns.heatmap(correlation_matrix_for_graph,vmin=-1,vmax=1)
         plt.savefig("./Eval_output/correalation_matrix_after_dropping_collinear_features.png")
-
-        correlation_matrix_for_graph = X_train.corr("pearson").abs()
-        for i in range(0,correlation_matrix_for_graph.shape[0]):
-            correlation_matrix_for_graph.iloc[i,i]=0
-        max_corr = correlation_matrix_for_graph.max(axis=0)
-
-        selector.fit(X_train, y_train)
-        scores = selector.scores_
-        norm_scores = scores / np.max(scores)
-
-        feature_importance = pd.DataFrame({ 
-            "column_name": X_train.columns,
-            "importance": norm_scores,
-            "correlation": [max_corr[col] for col in X_train.columns]})
-        feature_importance=feature_importance.sort_values(by="importance",ignore_index=True,ascending=False)
         
     if do_pretty_graphs:
-        correlation_matrix_for_graph = X_train.corr("pearson").abs()
-        for i in range(0,correlation_matrix_for_graph.shape[0]):
-            correlation_matrix_for_graph.iloc[i,i]=0
-        max_corr = correlation_matrix_for_graph.max(axis=0)
-
-        selector.fit(X_train, y_train)
-        scores = selector.scores_
-        norm_scores = scores / np.max(scores)
-
-        feature_importance = pd.DataFrame({ 
-            "column_name": X_train.columns,
-            "importance": norm_scores,
-            "correlation": [max_corr[col] for col in X_train.columns]})
-        feature_importance=feature_importance.sort_values(by="importance",ignore_index=True,ascending=False)
         plt.figure(figsize=(100,60))
         plt.title("Normalized Feature Importance with Univariate Feature Selection; color is the maximum correlation with another feature")
         sns.barplot(data=feature_importance,y="column_name",x="importance",hue="correlation",palette="viridis") ##rocket, viridis, cubehelix
         plt.savefig("./Eval_output/Univariate_Feature_Selection_after_collinearity_drop.png")
-
+    
     if not uvfs_k==None:
-
         selector.fit(X_train, y_train)
         X_train = X_train.loc[:,selector.get_support()]
         X_test = X_test.loc[:,selector.get_support()]

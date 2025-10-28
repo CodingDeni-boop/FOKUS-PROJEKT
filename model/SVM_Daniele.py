@@ -22,7 +22,6 @@ def svmModel(X_train, y_train, X_test, y_test):
         cv=5,
         verbose=2,
         n_jobs=-1
-
     )
     grid.fit(X_train, y_train)
     bestFit = grid.best_estimator_

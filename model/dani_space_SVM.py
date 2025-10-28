@@ -16,32 +16,41 @@ from sklearn.feature_selection import SelectKBest, f_classif
 import matplotlib.pyplot as plt
 import seaborn as sns
 from FeatureSelection import collinearity_then_uvfs
+from DataLoading import load_data
+from sklearn.svm import SVC
+from sklearn.pipeline import Pipeline
 
 start=time.time()
 
-data = pd.read_csv("./features.csv")
-
-print(data.isna().sum().sum())
-
-
 X_train, X_test, y_train, y_test = preprocess_data(
-    features_file="features.csv",
-    labels_file="nataliia_labels.csv",
+    features_file="processed_features_lite.csv",
+    labels_file="processed_labels_lite.csv",
 ) 
 
+collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.95)
 
-collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.9,uvfs_k=40,do_pretty_graphs=True)
+pipe = Pipeline([
+    ("SVM", SVC(class_weight="balanced", probability=True))
+])
 
+hyperparameters={
+    "SVM__C" : [1],
+    "SVM__kernel" : ["rbf"]
+}
+grid = GridSearchCV(
+    estimator=pipe,
+    param_grid=hyperparameters,
+    scoring="f1",
+    cv=5,
+    verbose=2,
+    n_jobs=-1
+)
+grid.fit(X_train, y_train)
+bestFit = grid.best_estimator_
+bestHyperparameters = grid.best_params_
+print(f"The best hyperparameters selected were:   {bestHyperparameters}")
 
-
-
-
-
-
-
-
-
-
+evaluate_model(bestFit,X_train, X_test, y_train, y_test)
 
 end=time.time()
 
