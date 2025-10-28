@@ -5,8 +5,8 @@ from model_tools import video_train_test_split, drop_non_analyzed_videos, drop_l
 
 
 def preprocess_data(
-        features_file="features.csv",
-        labels_file="nataliia_labels.csv",
+        processed_features_file="model/processed_features.csv",
+        processed_labels_file="model/processed_labels.csv",
         missing_threshold=0.05,
         test_videos=2
 ):
@@ -23,13 +23,11 @@ def preprocess_data(
     print("=" * 70)
 
     # ------------------------------
-    # 1. Load data
+    # 1. Load processed data
     # ------------------------------
-    print("\n1. Loading data...")
-    y = pd.read_csv(labels_file, index_col=["video_id", "frame"])
-    X = pd.read_csv(features_file, index_col=["video_id", "frame"])
-    X = drop_non_analyzed_videos(X, y)
-    X, y = drop_last_frame(X, y)
+    print("\n1. Loading processed data...")
+    X = pd.read_csv(processed_features_file, index_col=["video_id", "frame"])
+    y = pd.read_csv(processed_labels_file, index_col=["video_id", "frame"])
     print(f"   Initial X shape: {X.shape}")
 
     # ------------------------------
