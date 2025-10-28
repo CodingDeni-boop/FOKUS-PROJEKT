@@ -183,7 +183,7 @@ L2_regularization(lr, X_train, y_train, X_test, y_test)
 """
 
 # Collinearity + UVFS + L2
-X_train, X_test, y_train, y_test = preprocess_data(features_file="features.csv")
+X_train, X_test, y_train, y_test = preprocess_data()
 X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test,uvfs_k=40)
 L2_regularization(lr, X_train, y_train, X_test, y_test)
 

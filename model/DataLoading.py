@@ -24,18 +24,19 @@ def load_data(
     # 2. Drop NA from embedding
     # ------------------------------
 
-    valid_mask = X.isnotna().all(axis=1)
+    valid_mask = X.notna().all(axis=1)
     X = X[valid_mask]
     y = y[valid_mask]
 
     print("Finished dropping NA's")
+    print(f"   Final X shape: {X.shape}")
 
     # ------------------------------
     # 3. Save processed data
     # ------------------------------
     print("\n2. Saving processed data...")
-    X.to_csv("model/processed_features.csv")
-    y.to_csv("model/processed_labels.csv")
+    X.to_csv("processed_features.csv")
+    y.to_csv("processed_labels.csv")
     print("   Saved to processed_features.csv and processed_labels.csv")
 
     print("\n" + "=" * 70)
@@ -43,3 +44,5 @@ def load_data(
     print("=" * 70 + "\n")
 
     return X, y
+
+load_data()
