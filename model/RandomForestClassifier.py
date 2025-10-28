@@ -35,7 +35,7 @@ rf = RandomForestClassifier(
 #evaluate_model(rf, X_train, y_train, X_test, y_test)
 
 ######################################## HYPERPARAMETER TUNING #################################################
-
+"""
 # n_estimators
 from sklearn.metrics import f1_score
 
@@ -63,18 +63,51 @@ rf = RandomForestClassifier(
     class_weight='balanced',
     n_jobs=-1,
     verbose=True)
+"""
+
 ########################################### Feature Selection ##########################################################
 
 # Apply UVFS
 X_train_sel, X_test_sel, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
 
-########################################### Model Training #############################################################
+############################################ Hyperparamter Tuning ##############
 
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'n_estimators': [150, 200],
+    'max_depth': [10, 20, 30],
+    'min_samples_split': [5, 10, 20],
+    'min_samples_leaf': [2, 4, 8],
+    'max_features': ['sqrt', 'log2']
+}
+
+rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1)
+
+grid_search = GridSearchCV(
+    rf,
+    param_grid,
+    cv=5,
+    scoring='f1_macro',
+    n_jobs=-1,
+    verbose=2
+)
+
+grid_search.fit(X_train_sel, y_train)
+
+best_rf = grid_search.best_estimator_
+print("Best parameters:", grid_search.best_params_)
+
+evaluate_model(best_rf, X_train_sel, y_train, X_test_sel, y_test)
+
+
+########################################### Model Training #############################################################
+"""
 # Train Random Forest on the selected features
 rf.fit(X_train_sel, y_train)
 
 evaluate_model(rf, X_train_sel, y_train, X_test_sel, y_test)
-
+"""
 end = time.time()
 print("Time elapsed:", end - start)
 
