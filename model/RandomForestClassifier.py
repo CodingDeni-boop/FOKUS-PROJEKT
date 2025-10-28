@@ -68,6 +68,22 @@ print("Best parameters:", grid_search.best_params_)
 
 evaluate_model(best_rf, X_train, y_train, X_test, y_test)
 
+############################################### New RF with selected features ##########################################
+
+# Extract feature importances
+importances = rf.feature_importances_
+feature_names = X_train.columns
+feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+
+# Rank features by importance
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+print(feature_importance_df)
+
+# Select top N features (example selecting top 50 features)
+top_features = feature_importance_df['Feature'][:50].values
+X_train_selected = X_train[top_features]
+X_test_selected = X_test[top_features]
+
 
 end = time.time()
 print("Time elapsed:", end - start)
