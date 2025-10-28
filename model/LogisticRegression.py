@@ -62,7 +62,7 @@ def L1_regularization(lr, X_train, y_train, X_test, y_test):
         lr,
         param_grid,
         cv=5 ,
-        scoring ='f1_weighted',
+        scoring ='f1_macro',
         n_jobs=-1
     )
 
@@ -94,7 +94,7 @@ def L2_regularization(model, X_train, y_train, X_test, y_test, pca=None, origina
         model,
         param_grid,
         cv=5,
-        scoring='f1_weighted',
+        scoring='f1_macro',
         n_jobs=-1
     )
 
