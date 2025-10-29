@@ -161,13 +161,52 @@ fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1
 print("Missing data filling (forward/backward)...")
 
 # Forward fill then backward fill missing data
-for file in fc.keys():
+"""for file in fc.keys():
     feature_obj = fc[file]
     df = feature_obj.data
 
     # Forward fill, then backward fill remaining NAs
     df = df.ffill().bfill()
 
+    feature_obj.data = df"""
+
+# Linear fill of missing data
+for file in fc.keys():
+    feature_obj = fc[file]
+    df = feature_obj.data
+
+    len = df.shape[0]
+    ncol = df.shape[1]
+
+    for col in range(ncol):
+        # first we make sure theres no nas at the start or at the end
+
+        i = 0
+        while (isnan(df[i][col])):
+            i += 1
+        for j in range(i):
+            df[j][col] = df[i][col]
+        i = len
+        while (isnan(df[i][col])):
+            i -= 1
+        for j in (i + 1, len):
+            df[j][col] = df[i][col]
+
+        # now we go through and linearly fill gaps
+
+        for pos in range(len):
+            if (isnan(df[pos][col]))  # if it is unknown
+                startvalue = df[pos - 1][col]  # mark the last known value
+                i = pos
+                while (isnan(df[i][col])):
+                    i += 1
+                stopvalue = df[i][col]  # mark the next known value
+                step = (stopvalue - startvalue) / (i - pos + 1)  # fit a line between startvalue and stopvalue
+                i = pos
+                while (isnan(df[i][col])):
+                    df[i][col] = (i - pos + 1) * step  # fill
+                    i += 1
+                pos = i  # go to where the next known value was. this makes it run in O(n)
     feature_obj.data = df
 
 
