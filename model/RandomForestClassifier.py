@@ -26,7 +26,7 @@ X_train, X_test, y_train, y_test = preprocess_data()
 
 ############################################# Tuned Model ##############################################################
 
-rf = RandomForestClassifier(random_state=2, class_weight='balanced', n_jobs=-1, n_estimators=200,max_depth=10,min_samples_split=20,min_samples_leaf=8,max_features='log2')
+rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1, n_estimators=200,max_depth=10,min_samples_split=20,min_samples_leaf=8,max_features='log2')
 rf.fit(X_train, y_train)
 
 evaluate_model(rf, X_train, y_train, X_test, y_test)
@@ -107,6 +107,9 @@ brf = BalancedRandomForestClassifier(
     n_estimators=200,
     min_samples_leaf=8,
     min_samples_split=20,
+    max_samples=0.5,
+    max_features='log2',
+    bootstrap=True,
     max_depth=10,
     sampling_strategy='all',  # Balance classes by undersampling
     replacement=True,
