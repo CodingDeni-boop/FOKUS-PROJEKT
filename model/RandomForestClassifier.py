@@ -73,7 +73,8 @@ feature_importance_df = feature_importance_df.sort_values(by='Importance', ascen
 print(feature_importance_df)
 
 # Select top N features
-top_features = feature_importance_df['Feature'][:1000].values
+n = 1000
+top_features = feature_importance_df['Feature'][:n].values
 X_train_selected = X_train[top_features]
 X_test_selected = X_test[top_features]
 
@@ -91,7 +92,7 @@ rf = RandomForestClassifier(
 rf.fit(X_train_selected, y_train)
 
 print("=" * 80)
-print("New Random Forest Classifier with selected features:")
+print(f"New Random Forest Classifier with selected features ({n}):")
 print("=" * 80)
 
 evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
