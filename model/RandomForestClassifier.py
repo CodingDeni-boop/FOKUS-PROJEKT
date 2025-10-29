@@ -14,23 +14,26 @@ from FeatureSelection import apply_uvfs, apply_pca
 import time
 from FeatureSelection import collinearity_then_uvfs
 from DataLoading import load_data
+from sklearn.feature_selection import VarianceThreshold
 
 start = time.time()
 
-# Best n_estimators: 150, Best F1 Score: 0.8932
 
 ########################################### Data loading ###############################################################
-"""
-# Apply UVFS
-X_train_sel, X_test_sel, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
-"""
+
 
 X_train, X_test, y_train, y_test = preprocess_data()
 
-# UVFS + Collinearity
-#X_train_sel, X_test_sel, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test, collinearity_threshold = 0.95)
+# Remove low-variance features
+variance_selector = VarianceThreshold(threshold=0.001)
+X_train = variance_selector.fit_transform(X_train)
+X_test = variance_selector.transform(X_test)
 
-############################################# Basic Model ##############################################################
+print(f"After variance filtering: {X_train.shape[1]} features")
+
+
+
+############################################# Tuned Model ##############################################################
 
 rf = RandomForestClassifier(random_state=2, class_weight='balanced', n_jobs=-1, n_estimators=200,max_depth=10,min_samples_split=20,min_samples_leaf=8,max_features='log2')
 rf.fit(X_train, y_train)
@@ -67,7 +70,7 @@ print("Best parameters:", grid_search.best_params_)
 
 evaluate_model(best_rf, X_train, y_train, X_test, y_test)
 """
-############################################### New RF with selected features ##########################################
+############################################### Feature Importance ##########################################
 
 # Extract feature importances
 importances = rf.feature_importances_
@@ -78,10 +81,17 @@ feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': im
 feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
 print(feature_importance_df)
 
-# Select top N features (example selecting top 50 features)
-top_features = feature_importance_df['Feature'][:50].values
+# Select top N features
+top_features = feature_importance_df['Feature'][:500].values
 X_train_selected = X_train[top_features]
 X_test_selected = X_test[top_features]
+
+################################################# New RF with selected features ########################################
+
+rf = RandomForestClassifier(random_state=2, class_weight='balanced', n_jobs=-1, n_estimators=200,max_depth=10,min_samples_split=20,min_samples_leaf=8,max_features='log2')
+rf.fit(X_train_selected, y_train)
+
+evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
 
 
 end = time.time()
