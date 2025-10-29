@@ -2,6 +2,8 @@ import os
 import shutil
 import pandas as pd
 import random as rd
+from imblearn.under_sampling import RandomUnderSampler
+
 
 def drop_non_analyzed_videos(X : pd.DataFrame,y : pd.DataFrame):
 
@@ -53,3 +55,13 @@ def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int 
     X_train, X_test, y_train, y_test = X.loc[train_index],X.loc[test_index],y.loc[train_index],y.loc[test_index]
 
     return X_train, X_test, y_train, y_test
+
+def undersample(X_train : pd.DataFrame, y_train : pd.DataFrame,random_state=None):
+    """
+    resamples with RandomUnderSampler;
+    X_train : pd.DataFrame
+    y_train : pd.DataFrame
+    random_state=None | 42 | any
+    """
+    rus = RandomUnderSampler(random_state=random_state)
+    return rus.fit_resample(X_train,y_train)
