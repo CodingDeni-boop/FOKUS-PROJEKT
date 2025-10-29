@@ -25,7 +25,6 @@ start = time.time()
 X_train_sel, X_test_sel, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
 """
 
-load_data()
 X_train, X_test, y_train, y_test = preprocess_data()
 
 # UVFS + Collinearity
@@ -33,13 +32,13 @@ X_train, X_test, y_train, y_test = preprocess_data()
 
 ############################################# Basic Model ##############################################################
 
-#rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1, n_estimators=150,max_depth=10,min_samples_split=5,min_samples_leaf=2,max_features='sqrt')
-#rf.fit(X_train, y_train)
+rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1, n_estimators=200,max_depth=10,min_samples_split=20,min_samples_leaf=8,max_features='log2')
+rf.fit(X_train, y_train)
 
-#evaluate_model(rf, X_train, y_train, X_test, y_test)
+evaluate_model(rf, X_train, y_train, X_test, y_test)
 
 ############################################ Hyperparameter Tuning #####################################################
-
+"""
 from sklearn.model_selection import GridSearchCV
 
 param_grid = {
@@ -67,7 +66,7 @@ best_rf = grid_search.best_estimator_
 print("Best parameters:", grid_search.best_params_)
 
 evaluate_model(best_rf, X_train, y_train, X_test, y_test)
-
+"""
 ############################################### New RF with selected features ##########################################
 
 # Extract feature importances
