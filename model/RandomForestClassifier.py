@@ -27,21 +27,21 @@ start = time.time()
 X_train, X_test, y_train, y_test = preprocess_data()
 
 ############################################# Tuned Model ##############################################################
-
+"""
 rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1, n_estimators=200,max_depth=10,min_samples_split=20,min_samples_leaf=8,max_features='log2')
 rf.fit(X_train, y_train)
 
 evaluate_model(rf, X_train, y_train, X_test, y_test)
-
+"""
 ############################################ Hyperparameter Tuning #####################################################
 
 from sklearn.model_selection import GridSearchCV
 
 param_grid = {
-    'n_estimators': [125, 200],
-    'max_depth': [5, 10],
+    'n_estimators': [100, 125],
+    'max_depth': [10, 20],
     'min_samples_split': [10, 20],
-    'min_samples_leaf': [ 8, 16],
+    'min_samples_leaf': [16, 32],
     'max_features': ['log2']
 }
 
@@ -50,9 +50,9 @@ rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1)
 grid_search = GridSearchCV(
     rf,
     param_grid,
-    cv=3,
+    cv=5,
     scoring='f1_macro',
-    n_jobs=-1,
+    n_jobs=2,
     verbose=2
 )
 
