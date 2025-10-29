@@ -14,7 +14,7 @@ def evaluate_model(model : object, X_train : pd.DataFrame(), y_train: pd.DataFra
 
     print("\n=== Model Evaluation ===")
     print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-    print(f"Cross-validation score: {cross_val_score(model, X_train, y_train, cv=5).mean():.4f}")
+    #print(f"Cross-validation score: {cross_val_score(model, X_train, y_train, cv=5).mean():.4f}")
 
     print("\n=== Classification Report - TRAIN SET ===")
     y_train_pred = model.predict(X_train)
