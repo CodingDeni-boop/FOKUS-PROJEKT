@@ -59,7 +59,7 @@ hyperparameters = [
     {
         "SVM__kernel": ["sigmoid"],
         "SVM__C": [0.1,1, 10],
-        "SVM__coef0": [0, 1,],
+        "SVM__coef0": [0, 1],
     }
                 ]
 grid = GridSearchCV(
@@ -75,7 +75,6 @@ bestFit = grid.best_estimator_
 bestHyperparameters = grid.best_params_
 print(f"The best hyperparameters selected were:   {bestHyperparameters}") 
 
-bestFit = grid.fit(X=X_train,y=y_train)
 
 evaluate_model(bestFit,X_train, y_train, X_test, y_test)
 
