@@ -182,12 +182,12 @@ for file in fc.keys():
         # first we make sure theres no nas at the start or at the end
 
         i = 0
-        while (isna(df[i][col])):
+        while (isnan(df[i][col])):
             i += 1
         for j in range(i):
             df[j][col] = df[i][col]
         i = len
-        while (isna(df[i][col])):
+        while (isnan(df[i][col])):
             i -= 1
         for j in (i + 1, len):
             df[j][col] = df[i][col]
@@ -195,15 +195,15 @@ for file in fc.keys():
         # now we go through and linearly fill gaps
 
         for pos in range(len):
-            if (isna(df[pos][col]))  # if it is unknown
+            if (isnan(df[pos][col])):  # if it is unknown
                 startvalue = df[pos - 1][col]  # mark the last known value
                 i = pos
-                while (isna(df[i][col])):
+                while (isnan(df[i][col])):
                     i += 1
                 stopvalue = df[i][col]  # mark the next known value
                 step = (stopvalue - startvalue) / (i - pos + 1)  # fit a line between startvalue and stopvalue
                 i = pos
-                while (isna(df[i][col])):
+                while (isnan(df[i][col])):
                     df[i][col] = (i - pos + 1) * step  # fill
                     i += 1
                 pos = i  # go to where the next known value was. this makes it run in O(n)

@@ -50,7 +50,7 @@ for file in fc.keys():
         #now we go through and linearly fill gaps
 
         for pos in range(len):
-            if (isnan(df[pos][col])) # if it is unknown
+            if (isnan(df[pos][col])): # if it is unknown
                 startvalue = df[pos-1][col] # mark the last known value
                 i = pos
                 while (isnan(df[i][col])):
