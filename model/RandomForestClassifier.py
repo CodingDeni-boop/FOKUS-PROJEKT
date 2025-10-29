@@ -15,6 +15,7 @@ import time
 from FeatureSelection import collinearity_then_uvfs
 from DataLoading import load_data
 from sklearn.feature_selection import VarianceThreshold
+from imblearn.ensemble import BalancedRandomForestClassifier
 
 start = time.time()
 
@@ -88,7 +89,15 @@ X_test_selected = X_test[top_features]
 
 ################################################# New RF with selected features ########################################
 
-rf = RandomForestClassifier(random_state=2, class_weight='balanced', n_jobs=-1, n_estimators=200,max_depth=10,min_samples_split=20,min_samples_leaf=8,max_features='log2')
+rf = RandomForestClassifier(
+    random_state=42,
+    class_weight='balanced',
+    n_jobs=-1,
+    n_estimators=200,
+    max_depth=10,
+    min_samples_split=20,
+    min_samples_leaf=8,
+    max_features='log2')
 rf.fit(X_train_selected, y_train)
 
 evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
@@ -96,4 +105,21 @@ evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
 
 end = time.time()
 print("Time elapsed:", end - start)
+
+############################################# Balanced Random Forest Classifier ########################################
+
+brf = BalancedRandomForestClassifier(
+    n_estimators=200,
+    min_samples_leaf=8,
+    min_samples_split=20,
+    max_depth=10,
+    sampling_strategy='all',  # Balance classes by undersampling
+    replacement=True,
+    n_jobs=-1,
+    random_state=42
+)
+
+brf.fit(X_train, y_train)
+
+evaluate_model(brf, X_train, y_train, X_test, y_test)
 
