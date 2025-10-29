@@ -22,17 +22,7 @@ start = time.time()
 
 ########################################### Data loading ###############################################################
 
-
 X_train, X_test, y_train, y_test = preprocess_data()
-
-# Remove low-variance features
-variance_selector = VarianceThreshold(threshold=0.001)
-X_train = variance_selector.fit_transform(X_train)
-X_test = variance_selector.transform(X_test)
-
-print(f"After variance filtering: {X_train.shape[1]} features")
-
-
 
 ############################################# Tuned Model ##############################################################
 
@@ -83,7 +73,7 @@ feature_importance_df = feature_importance_df.sort_values(by='Importance', ascen
 print(feature_importance_df)
 
 # Select top N features
-top_features = feature_importance_df['Feature'][:500].values
+top_features = feature_importance_df['Feature'][:1000].values
 X_train_selected = X_train[top_features]
 X_test_selected = X_test[top_features]
 
@@ -99,6 +89,10 @@ rf = RandomForestClassifier(
     min_samples_leaf=8,
     max_features='log2')
 rf.fit(X_train_selected, y_train)
+
+print("=" * 80)
+print("New Random Forest Classifier with selected features:")
+print("=" * 80)
 
 evaluate_model(rf, X_train_selected, y_train, X_test_selected, y_test)
 
@@ -120,6 +114,10 @@ brf = BalancedRandomForestClassifier(
 )
 
 brf.fit(X_train, y_train)
+
+print("=" * 80)
+print("Balanced Random Forest Classifier:")
+print("=" * 80)
 
 evaluate_model(brf, X_train, y_train, X_test, y_test)
 
