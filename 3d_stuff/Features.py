@@ -1,4 +1,5 @@
 import pandas as pd
+from math import isnan
 import numpy as np
 import py3r.behaviour as py3r
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
