@@ -35,4 +35,6 @@ X_train, X_test, y_train, y_test = joblib.load("./SVM_(hyper)parameters/dataset.
 
 print("!loaded!")
 
-evaluate_model(model,X_train,y_train,X_test, y_test)
+y_pred = pd.Series(model.predict(X_test))
+y_pred.to_csv("./prediction.csv")
+pd.Series(y_test).to_csv("./test.csv")

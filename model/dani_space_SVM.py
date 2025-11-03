@@ -26,6 +26,7 @@ import joblib
 
 start=time.time()
 
+name = "onlypoly_lite"
 
 X_train, X_test, y_train, y_test = preprocess_data(
     features_file="processed_features_lite.csv",
@@ -66,14 +67,14 @@ bestHyperparameters = grid.best_params_
 print(f"The best hyperparameters selected were:   {bestHyperparameters}") 
 
 print("dumping hyperparameters")
-with open("./SVM_(hyper)parameters/hyperparameters_SVM_night_2_onlypoly.json", "w") as f:
+with open("./SVM_(hyper)parameters/"+name+"hyperparameters.json", "w") as f:
     json.dump(bestHyperparameters, f, indent=4)
 
 print("dumping model")
-joblib.dump(bestFit,"./SVM_(hyper)parameters/model_SVM_night_2_onlypoly.pkl")
+joblib.dump(bestFit,"./SVM_(hyper)parameters/"+name+"model.pkl")
 
 print("dumping dataset")
-joblib.dump([X_train, X_test, y_train, y_test],"./SVM_(hyper)parameters/dataset_SVM_night_2_onlypoly.pkl")
+joblib.dump([X_train, X_test, y_train, y_test],"./SVM_(hyper)parameters/"+name+"dataset.pkl")
 
 evaluate_model(bestFit,X_train,y_train,X_test,y_test)
 

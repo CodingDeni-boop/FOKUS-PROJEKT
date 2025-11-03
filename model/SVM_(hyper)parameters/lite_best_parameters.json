@@ -1,6 +1,0 @@
-{
-    "SVM__C": 0.1,
-    "SVM__coef0": 1,
-    "SVM__degree": 2,
-    "SVM__kernel": "poly"
-}
