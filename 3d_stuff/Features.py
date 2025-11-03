@@ -145,6 +145,9 @@ fc.is_recognized("tailbase").store()
 print("calculating standard deviation...")
 
 fc.standard_dev("headcentre").store()
+fc.standard_dev("earl").store()
+fc.standard_dev("earr").store()
+fc.standard_dev("bodycentre").store()
 
 #Volume
 
