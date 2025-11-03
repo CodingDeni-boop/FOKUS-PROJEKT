@@ -20,6 +20,9 @@ from FeatureSelection import collinearity_then_uvfs
 from DataLoading import load_data
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
+import json
+import joblib
+
 
 start=time.time()
 
@@ -33,7 +36,7 @@ X_train,y_train = undersample(X_train,y_train)
 
 print("!undersampled!")
 
-X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.95)
+# X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.95)
 
 print(X_train, X_test, y_train, y_test)
 
@@ -43,23 +46,10 @@ pipe = Pipeline([
 
 hyperparameters = [
     {
-        "SVM__kernel": ["linear"],
-        "SVM__C": [0.1,1, 10],
-    },
-    {
         "SVM__kernel": ["poly"],
-        "SVM__C": [0.1,1, 10],
-        "SVM__degree": [3, 5, 9],
-        "SVM__coef0": [0,1],
-    },
-    {
-        "SVM__kernel": ["rbf"],
-        "SVM__C": [0.1,1, 10],
-    },
-    {
-        "SVM__kernel": ["sigmoid"],
-        "SVM__C": [0.1,1, 10],
-        "SVM__coef0": [0, 1],
+        "SVM__C": [0.0001,0.001,0.005,0.01,0.05,0.1,1, 10],
+        "SVM__degree": [3],
+        "SVM__coef0": [1],
     }
                 ]
 grid = GridSearchCV(
@@ -75,9 +65,45 @@ bestFit = grid.best_estimator_
 bestHyperparameters = grid.best_params_
 print(f"The best hyperparameters selected were:   {bestHyperparameters}") 
 
+print("dumping hyperparameters")
+with open("./SVM_(hyper)parameters/hyperparameters_SVM_night_2_onlypoly.json", "w") as f:
+    json.dump(bestHyperparameters, f, indent=4)
 
-evaluate_model(bestFit,X_train, y_train, X_test, y_test)
+print("dumping model")
+joblib.dump(bestFit,"./SVM_(hyper)parameters/model_SVM_night_2_onlypoly.pkl")
+
+print("dumping dataset")
+joblib.dump([X_train, X_test, y_train, y_test],"./SVM_(hyper)parameters/dataset_SVM_night_2_onlypoly.pkl")
+
+evaluate_model(bestFit,X_train,y_train,X_test,y_test)
 
 end=time.time()
 
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
+
+
+"""
+
+hyperparameters = [
+    {
+        "SVM__kernel": ["linear"],
+        "SVM__C": [0.1,1, 10],
+    },
+    {
+        "SVM__kernel": ["poly"],
+        "SVM__C": [0.1,1, 10],
+        "SVM__degree": [2,3,4, 5, 9],
+        "SVM__coef0": [0,1],
+    },
+    {
+        "SVM__kernel": ["rbf"],
+        "SVM__C": [0.1,1, 10],
+    },
+    {
+        "SVM__kernel": ["sigmoid"],
+        "SVM__C": [0.1,1, 10],
+        "SVM__coef0": [0, 1],
+    }
+                ]
+
+"""

@@ -1,0 +1,4 @@
+{
+    "SVM__C": 0.1,
+    "SVM__kernel": "rbf"
+}
