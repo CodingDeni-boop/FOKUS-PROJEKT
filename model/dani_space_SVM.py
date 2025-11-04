@@ -20,7 +20,7 @@ from FeatureSelection import collinearity_then_uvfs
 from DataLoading import load_data
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
-from save_and_load_as_pkl import save_model_as_pkl
+from save_and_load_as_pkl import save_grid_as_pkl
 
 
 start=time.time()
@@ -64,12 +64,13 @@ bestFit = grid.best_estimator_
 bestHyperparameters = grid.best_params_
 print(f"The best hyperparameters selected were:   {bestHyperparameters}") 
 
-save_model_as_pkl(name = "onlypoly_lite", grid=grid,columns=X_train.columns,random_state=42)
+save_grid_as_pkl(name = "onlypoly_lite", grid=grid,columns=X_train.columns,random_state=42)
 
 
 
 end=time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
+
 
 
 """
