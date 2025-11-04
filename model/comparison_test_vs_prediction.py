@@ -14,8 +14,8 @@ label_map = {
     "grooming": 3,
 }
 
-y_true = test["0"].map(label_map).to_numpy()
-y_pred = pred["0"].map(label_map).to_numpy()
+y_true = test.iloc[:, 0].map(label_map).to_numpy()
+y_pred = pred.iloc[:, 0].map(label_map).to_numpy()
 
 mat = np.vstack([y_true, y_pred])
 names = ["Test", "Prediction"]
