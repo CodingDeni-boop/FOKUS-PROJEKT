@@ -33,5 +33,6 @@ X_train, X_test, y_train, y_test, model = load_model_from_pkl(name = "onlypoly_l
 
 y_pred = pd.Series(model.predict(X_test))
 y_pred.to_csv("./prediction.csv")
+y_test.to_csv("./test.csv")
 
 
