@@ -8,7 +8,8 @@ def preprocess_data(
         features_file="processed_features.csv",
         labels_file="processed_labels.csv",
         missing_threshold=0.05,
-        test_videos=2
+        test_videos=2,
+        random_state = 42
 ):
     """
     Load data, handle missing values, split, and scale features.
@@ -34,7 +35,7 @@ def preprocess_data(
     # 2. Train/Test split
     # ------------------------------
     print(f"\n3. Splitting data (test_videos={test_videos})...")
-    X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=test_videos, random_state=42)
+    X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=test_videos, random_state=random_state)
     y_train = y_train.values.ravel()
     y_test = y_test.values.ravel()
     print(f"   Train size: {len(X_train)}, Test size: {len(X_test)}")

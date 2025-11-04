@@ -31,13 +31,14 @@ name = "onlypoly_lite"
 X_train, X_test, y_train, y_test = preprocess_data(
     features_file="processed_features_lite.csv",
     labels_file="processed_labels_lite.csv",
+    random_state=42
 )
 
 X_train,y_train = undersample(X_train,y_train)
 
 print("!undersampled!")
 
-# X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.95)
+X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.95)
 
 print(X_train, X_test, y_train, y_test)
 
@@ -48,7 +49,7 @@ pipe = Pipeline([
 hyperparameters = [
     {
         "SVM__kernel": ["poly"],
-        "SVM__C": [0.0001,0.001,0.005,0.01,0.05,0.1,1, 10],
+        "SVM__C": [0.05],
         "SVM__degree": [3],
         "SVM__coef0": [1],
     }
@@ -67,14 +68,14 @@ bestHyperparameters = grid.best_params_
 print(f"The best hyperparameters selected were:   {bestHyperparameters}") 
 
 print("dumping hyperparameters")
-with open("./SVM_(hyper)parameters/"+name+"hyperparameters.json", "w") as f:
+with open("./SVM_(hyper)parameters/"+name+"_hyperparameters.json", "w") as f:
     json.dump(bestHyperparameters, f, indent=4)
 
 print("dumping model")
-joblib.dump(bestFit,"./SVM_(hyper)parameters/"+name+"model.pkl")
+joblib.dump(bestFit,"./SVM_(hyper)parameters/"+name+"_model.pkl")
 
-print("dumping dataset")
-joblib.dump([X_train, X_test, y_train, y_test],"./SVM_(hyper)parameters/"+name+"dataset.pkl")
+print("dumping dataset columns")
+joblib.dump(X_train.columns,"./SVM_(hyper)parameters/"+name+"_columns.pkl")
 
 evaluate_model(bestFit,X_train,y_train,X_test,y_test)
 

@@ -23,18 +23,24 @@ from sklearn.pipeline import Pipeline
 import json
 import joblib
 
+name = "onlypoly_lite"
+
 print("loading model...")
-model : SVC = joblib.load("./SVM_(hyper)parameters/lite_best_parameters.pkl")
+model : SVC = joblib.load("./SVM_(hyper)parameters/"+name+"_model.pkl")
 
 print("loading dataset...")
-X_train: pd.DataFrame
-X_test: pd.DataFrame
-y_train: pd.Series
-y_test: pd.Series
-X_train, X_test, y_train, y_test = joblib.load("./SVM_(hyper)parameters/dataset.pkl")[:]
+columns = joblib.load("./SVM_(hyper)parameters/"+name+"_columns.pkl")
 
-print("!loaded!")
+X_train, X_test, y_train, y_test = preprocess_data(
+    features_file="processed_features_lite.csv",
+    labels_file="processed_labels_lite.csv",
+    random_state=42
+)
+
+X_train = X_train[columns]
+X_test = X_test[columns]
 
 y_pred = pd.Series(model.predict(X_test))
 y_pred.to_csv("./prediction.csv")
-pd.Series(y_test).to_csv("./test.csv")
+
+
