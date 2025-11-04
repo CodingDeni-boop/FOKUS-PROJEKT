@@ -56,7 +56,7 @@ def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int 
     train_index = index.drop(test_index)
 
     X_train, X_test, y_train, y_test = X.loc[train_index],X.loc[test_index],y.loc[train_index],y.loc[test_index]
-
+    print(f"videos selected for test are: {test_index}")
     return X_train, X_test, y_train, y_test
 
 def undersample(X_train : pd.DataFrame, y_train : pd.DataFrame,random_state=None):
