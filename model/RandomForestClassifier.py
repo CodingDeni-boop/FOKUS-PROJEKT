@@ -18,13 +18,14 @@ from sklearn.feature_selection import VarianceThreshold
 from imblearn.ensemble import BalancedRandomForestClassifier
 import matplotlib.pyplot as plt
 import json
+from save_and_load_as_pkl import save_model_as_pkl
 
 start = time.time()
 
 
 ########################################### Data loading ###############################################################
 
-X_train, X_test, y_train, y_test = preprocess_data()
+X_train, X_test, y_train, y_test = preprocess_data(features_file="processed_features.csv", labels_file="processed_labels.csv")
 
 ############################################# Tuned Model ##############################################################
 
@@ -99,7 +100,7 @@ plt.close()
 
 ################################################ Grid Search for Number of Features ####################################
 """
-n_features_list = [50, 100, 250, 500, 750, 1000, 1500, 2000]
+n_features_list = [50, 100, 250, 500, 750, 1000, 1500, 2000, 2500, 3000]
 
 print("=" * 80)
 print("Grid Search: Finding Optimal Number of Features")
@@ -135,9 +136,11 @@ for n in n_features_list:
 print(f"\nBest: {best_n_features} features (F1-Macro: {best_score:.4f})")
 print("=" * 80)
 """
-# Output: Best n features = 750
 
-best_n_features = 750
+
+
+best_n_features = 750, #now 500  #(with embedding)
+#best_n_features = 50   #(without embedding)
 
 ################################################# New RF with selected features ########################################
 
@@ -165,7 +168,7 @@ evaluate_model(rf_selected, X_train_selected, y_train, X_test_selected, y_test)
 
 
 ############################################# Balanced Random Forest Classifier ########################################
-
+"""
 brf = BalancedRandomForestClassifier(
     n_estimators=75,
     min_samples_leaf=16,
@@ -191,3 +194,8 @@ evaluate_model(brf, X_train, y_train, X_test, y_test)
 
 end = time.time()
 print("Time elapsed:", end - start)
+"""
+
+#get top important features from lite ->> then fit rf model with embedding
+
+save_model_as_pkl(name = "rf", folder = "RF_model", model= rf_selected, columns=X_train_selected.columns,random_state=42)

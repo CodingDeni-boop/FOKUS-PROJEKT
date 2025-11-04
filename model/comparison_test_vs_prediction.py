@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Patch
 
-test = pd.read_csv("test.csv")
-pred = pd.read_csv("prediction.csv")
+test = pd.read_csv("../model/rf_test.csv")
+pred = pd.read_csv("../model/rf_prediction.csv")
 
 label_map = {
     "background": 0,
@@ -66,3 +66,43 @@ conf_df = pd.crosstab(
 
 print("\nConfusion matrix:")
 print(conf_df)
+
+# Behaviour Frames counts
+print("\n=== Behaviour Frame Counts ===")
+test_counts = test.iloc[:, 0].value_counts().sort_index()
+pred_counts = pred.iloc[:, 0].value_counts().sort_index()
+
+comparison_df = pd.DataFrame({
+    "Test": test_counts,
+    "Prediction": pred_counts,
+    "Difference": pred_counts - test_counts
+}).fillna(0).astype(int)
+
+print("\nBehaviour counts:")
+print(comparison_df)
+
+# Behavior Instances
+
+def count_behavior_instances(df, behavior_name):
+    """
+    Count instances of a specific behavior in the label column.
+    An instance starts when label changes to the behavior and ends when it changes to something else.
+    """
+    label_series = df.iloc[:, 0]
+    is_behavior = (label_series == behavior_name).astype(int)
+    changes = is_behavior.diff()
+    instances = (changes > 0.5).sum()
+    return instances
+
+behaviors = ["supportedrear", "unsupportedrear", "grooming"]
+
+print("\n=== Behaviour Instance Counts ===")
+for behavior in behaviors:
+    count_test = count_behavior_instances(test, behavior)
+    count_pred = count_behavior_instances(pred, behavior)
+    difference = count_pred - count_test
+    
+    print(f"\n{behavior}:")
+    print(f"  Test: {count_test} instances")
+    print(f"  Prediction: {count_pred} instances")
+    print(f"  Difference: {difference}")

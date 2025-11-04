@@ -8,7 +8,7 @@ def preprocess_data(
         features_file="processed_features.csv",
         labels_file="processed_labels.csv",
         missing_threshold=0.05,
-        test_videos=2,
+        test_videos=1,
         random_state = 42
 ):
     """

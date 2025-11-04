@@ -35,8 +35,8 @@ def load_data(
     # 3. Save processed data
     # ------------------------------
     print("\n2. Saving processed data...")
-    X.to_csv("processed_features.csv")
-    y.to_csv("processed_labels.csv")
+    X.to_csv("processed_features_lite.csv")
+    y.to_csv("processed_labels_lite.csv")
     print("   Saved to processed_features.csv and processed_labels.csv")
 
     print("\n" + "=" * 70)
