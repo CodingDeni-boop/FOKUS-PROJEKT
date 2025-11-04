@@ -20,13 +20,10 @@ from FeatureSelection import collinearity_then_uvfs
 from DataLoading import load_data
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
-import json
-import joblib
+from save_and_load_as_pkl import save_model_as_pkl
 
 
 start=time.time()
-
-name = "onlypoly_lite"
 
 X_train, X_test, y_train, y_test = preprocess_data(
     features_file="processed_features_lite.csv",
@@ -67,20 +64,11 @@ bestFit = grid.best_estimator_
 bestHyperparameters = grid.best_params_
 print(f"The best hyperparameters selected were:   {bestHyperparameters}") 
 
-print("dumping hyperparameters")
-with open("./SVM_(hyper)parameters/"+name+"_hyperparameters.json", "w") as f:
-    json.dump(bestHyperparameters, f, indent=4)
+save_model_as_pkl(name = "onlypoly_lite", grid=grid,columns=X_train.columns,random_state=42)
 
-print("dumping model")
-joblib.dump(bestFit,"./SVM_(hyper)parameters/"+name+"_model.pkl")
 
-print("dumping dataset columns")
-joblib.dump(X_train.columns,"./SVM_(hyper)parameters/"+name+"_columns.pkl")
-
-evaluate_model(bestFit,X_train,y_train,X_test,y_test)
 
 end=time.time()
-
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
 
 
