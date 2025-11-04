@@ -31,8 +31,9 @@ X_train, X_test, y_train, y_test, model = load_model_from_pkl(name = "onlypoly_l
                                                               labels_path="processed_labels_lite.csv",
                                                               folder = "SVM_(hyper)parameters")
 
-y_pred = pd.Series(model.predict(X_test))
-y_pred.to_csv("./prediction.csv", header=False)
-pd.Series(y_test).to_csv("./test.csv", header=False)
+y_test = pd.Series(y_test,name = "label")
+y_pred = pd.Series(model.predict(X_test),name="label")
+y_pred.to_csv("./prediction.csv",index=0)
+y_test.to_csv("./test.csv",index=0)
 
 
