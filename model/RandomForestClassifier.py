@@ -8,7 +8,7 @@ import numpy as np
 from model_tools import video_train_test_split
 from model_tools import drop_non_analyzed_videos
 from model_tools import drop_last_frame
-from PerformanceEvaluation import evaluate_model
+from PerformanceEvaluation import evaluate_model, smooth_predictions
 from DataPreprocessing import preprocess_data
 from FeatureSelection import apply_uvfs, apply_pca
 import time
@@ -32,7 +32,7 @@ X_train, X_test, y_train, y_test = preprocess_data(features_file="processed_feat
 rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1, n_estimators=75,max_depth=10,min_samples_split=10,min_samples_leaf=16,max_features='log2')
 rf.fit(X_train, y_train)
 
-evaluate_model(rf, X_train, y_train, X_test, y_test)
+evaluate_model(rf, X_train, y_train, X_test, y_test, min_frames = 20)
 
 ############################################ Hyperparameter Tuning #####################################################
 """
@@ -139,8 +139,8 @@ print("=" * 80)
 
 
 
-best_n_features = 750, #now 500  #(with embedding)
-#best_n_features = 50   #(without embedding)
+best_n_features = 500 #now 750  #(with embedding)
+#best_n_features = 50  #(without embedding)
 
 ################################################# New RF with selected features ########################################
 
@@ -164,7 +164,7 @@ print("=" * 80)
 print(f"New Random Forest Classifier with selected features ({n}):")
 print("=" * 80)
 
-evaluate_model(rf_selected, X_train_selected, y_train, X_test_selected, y_test)
+evaluate_model(rf_selected, X_train_selected, y_train, X_test_selected, y_test, min_frames = 20)
 
 
 ############################################# Balanced Random Forest Classifier ########################################
@@ -198,4 +198,5 @@ print("Time elapsed:", end - start)
 
 #get top important features from lite ->> then fit rf model with embedding
 
-save_model_as_pkl(name = "rf", folder = "RF_model", model= rf_selected, columns=X_train_selected.columns,random_state=42)
+
+save_model_as_pkl(name = "rf", folder = "RF_model", model= rf, columns=X_train.columns,random_state=42)

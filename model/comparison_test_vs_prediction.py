@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Patch
+from PerformanceEvaluation import smooth_predictions
 
 test = pd.read_csv("../model/rf_test.csv")
 pred = pd.read_csv("../model/rf_prediction.csv")
@@ -16,6 +17,13 @@ label_map = {
 
 y_true = test.iloc[:, 0].map(label_map).to_numpy()
 y_pred = pred.iloc[:, 0].map(label_map).to_numpy()
+
+# Apply smoothing to remove outliers below x frames
+y_pred = smooth_predictions(y_pred, min_frames=20)
+
+# Create smoothed prediction DataFrame for instance counting
+inv_label_map = {v: k for k, v in label_map.items()}
+pred_smoothed = pd.DataFrame(pd.Series(y_pred).map(inv_label_map), columns=pred.columns)
 
 mat = np.vstack([y_true, y_pred])
 names = ["Test", "Prediction"]
@@ -54,8 +62,6 @@ accuracy = (y_true == y_pred).mean()
 print(f"Accuracy: {accuracy:.4f}")
 
 # Confusion matrix
-inv_label_map = {v: k for k, v in label_map.items()}
-
 conf_df = pd.crosstab(
     pd.Series(y_true).map(inv_label_map),
     pd.Series(y_pred).map(inv_label_map),
@@ -70,7 +76,7 @@ print(conf_df)
 # Behaviour Frames counts
 print("\n=== Behaviour Frame Counts ===")
 test_counts = test.iloc[:, 0].value_counts().sort_index()
-pred_counts = pred.iloc[:, 0].value_counts().sort_index()
+pred_counts = pred_smoothed.iloc[:, 0].value_counts().sort_index()
 
 comparison_df = pd.DataFrame({
     "Test": test_counts,
@@ -78,7 +84,6 @@ comparison_df = pd.DataFrame({
     "Difference": pred_counts - test_counts
 }).fillna(0).astype(int)
 
-print("\nBehaviour counts:")
 print(comparison_df)
 
 # Behavior Instances
@@ -99,9 +104,9 @@ behaviors = ["supportedrear", "unsupportedrear", "grooming"]
 print("\n=== Behaviour Instance Counts ===")
 for behavior in behaviors:
     count_test = count_behavior_instances(test, behavior)
-    count_pred = count_behavior_instances(pred, behavior)
+    count_pred = count_behavior_instances(pred_smoothed, behavior)
     difference = count_pred - count_test
-    
+
     print(f"\n{behavior}:")
     print(f"  Test: {count_test} instances")
     print(f"  Prediction: {count_pred} instances")
