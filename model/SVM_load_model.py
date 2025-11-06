@@ -26,14 +26,25 @@ from save_and_load_as_pkl import load_model_from_pkl
 
 
 
-X_train, X_test, y_train, y_test, model = load_model_from_pkl(name = "onlypoly_lite",random_state=42,
-                                                              features_path = "processed_features_lite.csv",
-                                                              labels_path="processed_labels_lite.csv",
-                                                              folder = "SVM_(hyper)parameters")
+X_train, X_test, y_train, y_test, model = load_model_from_pkl(name = "poly_3_not_undersampled",random_state=42,
+                                                              features_path = "processed_features.csv",
+                                                              labels_path="processed_labels.csv",
+                                                              folder = "SVM_(hyper)parameters/6hr_SVM")
+
+print(X_train)
 
 y_test = pd.Series(y_test,name = "label")
+
+print("predicting...")
 y_pred = pd.Series(model.predict(X_test),name="label")
+
+print("predicting probabilities...")
+y_proba = pd.DataFrame(model.predict_proba(X_test))
+
+print("saving data...")
 y_pred.to_csv("./prediction.csv",index=0)
 y_test.to_csv("./test.csv",index=0)
+y_proba.to_csv("./proba.csv")
 
+evaluate_model(model,X_train,y_train,X_test,y_test)
 

@@ -27,10 +27,10 @@ def save_model_as_pkl(name : str, model : LinearRegression, columns : list, rand
 
 def load_model_from_pkl(name : str, random_state : int,features_path = "processed_features.csv", labels_path= "processed_labels.csv", folder ="SVM_(hyper)parameters"):
     print("loading model...")
-    model : SVC = joblib.load("./SVM_(hyper)parameters/"+name+"_model.pkl")
+    model : SVC = joblib.load("./"+folder+"/"+name+"_model.pkl")
 
     print("loading dataset...")
-    columns = joblib.load("./SVM_(hyper)parameters/"+name+"_columns.pkl")
+    columns = joblib.load("./"+folder+"/"+name+"_columns.pkl")
 
     X_train, X_test, y_train, y_test = preprocess_data(
         features_file=features_path,
