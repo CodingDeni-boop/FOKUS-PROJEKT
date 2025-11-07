@@ -82,7 +82,7 @@ hyperparameters = [
     },
     {
         "SVM__kernel": ["poly"],
-        "SVM__C": [0.1,1, 10],
+        "SVM__C": [0.001, 0.01, 0.05, 0.1,1, 10],
         "SVM__degree": [2,3,4, 5, 9],
         "SVM__coef0": [0,1],
     },
