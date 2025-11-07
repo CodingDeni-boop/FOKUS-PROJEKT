@@ -22,22 +22,52 @@ from save_and_load_as_pkl import save_model_as_pkl
 
 start = time.time()
 
+#load_data()
 
 ########################################### Data loading ###############################################################
 
 X_train, X_test, y_train, y_test = preprocess_data(features_file="processed_features.csv", labels_file="processed_labels.csv")
 
 ############################################# Tuned Model ##############################################################
-
+"""
 rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1, n_estimators=75,max_depth=10,min_samples_split=10,min_samples_leaf=16,max_features='log2')
 rf.fit(X_train, y_train)
 
+print("With smoothing")
 evaluate_model(rf, X_train, y_train, X_test, y_test, min_frames = 20)
 
-############################################ Hyperparameter Tuning #####################################################
+print("Without smoothing")
+evaluate_model(rf, X_train, y_train, X_test, y_test, min_frames = 0)
 """
+
+############################################ Hyperparameter Tuning #####################################################
+
 from sklearn.model_selection import GridSearchCV
 
+param_grid = {
+    # Number of trees - more is generally better but diminishing returns
+    'n_estimators': [50, 75, 100, 150, 200, 250],
+
+    # Tree depth - prevents overfitting with high-dimensional data
+    'max_depth': [5, 10, 15, 20, 25, None],
+
+    # Minimum samples to split a node
+    'min_samples_split': [2, 5, 10, 15, 20],
+
+    # Minimum samples per leaf - higher values prevent overfitting
+    'min_samples_leaf': [1, 2, 4, 8, 16],
+
+    # Number of features to consider at each split
+    'max_features': ['sqrt', 'log2', 0.3, 0.5],
+
+    # Bootstrap samples
+    'bootstrap': [True],
+
+    # Maximum number of leaf nodes (alternative to max_depth)
+    # 'max_leaf_nodes': [50, 100, 200, None],
+}
+
+"""
 param_grid = {
     'n_estimators': [75],
     'max_depth': [10],
@@ -45,6 +75,7 @@ param_grid = {
     'min_samples_leaf': [16],
     'max_features': ['log2']
 }
+"""
 
 rf = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=-1)
 
@@ -64,12 +95,12 @@ print("Best parameters:", grid_search.best_params_)
 
 # Save best parameters as JSON and plot
 best_params = grid_search.best_params_
-with open('best_parameters_2.json', 'w') as f:
+with open('best_parameters_chunky.json', 'w') as f:
     json.dump(best_params, f, indent=4)
 
 
 evaluate_model(best_rf, X_train, y_train, X_test, y_test)
-"""
+
 ############################################### Feature Importance #####################################################
 
 # Extract feature importances
@@ -99,7 +130,7 @@ plt.savefig('feature_importances.png', dpi=300, bbox_inches='tight')
 plt.close()
 
 ################################################ Grid Search for Number of Features ####################################
-"""
+
 n_features_list = [50, 100, 250, 500, 750, 1000, 1500, 2000, 2500, 3000]
 
 print("=" * 80)
@@ -109,20 +140,15 @@ print("=" * 80)
 best_score = 0
 best_n_features = None
 
+# Load the parameters
+with open('best_parameters_chunky.json', 'r') as f:
+    best_parameters = json.load(f)
+
 for n in n_features_list:
     top_features = feature_importance_df['Feature'][:n].values
     X_train_selected = X_train[top_features]
 
-    rf_temp = RandomForestClassifier(
-        random_state=42,
-        class_weight='balanced',
-        n_jobs=-1,
-        n_estimators=75,
-        max_depth=10,
-        min_samples_split=10,
-        min_samples_leaf=16,
-        max_features='log2'
-    )
+    rf_temp = RandomForestClassifier(**best_parameters)
 
     cv_scores = cross_val_score(rf_temp, X_train_selected, y_train, cv=5, scoring='f1_macro', n_jobs=-1)
     mean_cv_score = cv_scores.mean()
@@ -135,11 +161,11 @@ for n in n_features_list:
 
 print(f"\nBest: {best_n_features} features (F1-Macro: {best_score:.4f})")
 print("=" * 80)
-"""
 
 
 
-best_n_features = 500 #now 750  #(with embedding)
+
+#best_n_features = 750 #now 500  #(with embedding)
 #best_n_features = 50  #(without embedding)
 
 ################################################# New RF with selected features ########################################
@@ -149,22 +175,20 @@ top_features = feature_importance_df['Feature'][:n].values
 X_train_selected = X_train[top_features]
 X_test_selected = X_test[top_features]
 
-rf_selected = RandomForestClassifier(
-    random_state=42,
-    class_weight='balanced_subsample', # new
-    n_jobs=-1,
-    n_estimators=75,
-    max_depth=10,
-    min_samples_split=10,
-    min_samples_leaf=16,
-    max_features='log2')
+rf_selected = RandomForestClassifier(**best_parameters)
+
 rf_selected.fit(X_train_selected, y_train)
+
+#  class_weight='balanced_subsample', # new
 
 print("=" * 80)
 print(f"New Random Forest Classifier with selected features ({n}):")
 print("=" * 80)
 
+print("With smoothing")
 evaluate_model(rf_selected, X_train_selected, y_train, X_test_selected, y_test, min_frames = 20)
+print("Without smoothing")
+evaluate_model(rf_selected, X_train_selected, y_train, X_test_selected, y_test, min_frames = 0)
 
 
 ############################################# Balanced Random Forest Classifier ########################################
