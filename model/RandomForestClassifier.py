@@ -46,19 +46,19 @@ from sklearn.model_selection import GridSearchCV
 
 param_grid = {
     # Number of trees - more is generally better but diminishing returns
-    'n_estimators': [50, 75, 100, 150, 200, 250],
+    'n_estimators': [50, 75, 100, 150, 200],
 
     # Tree depth - prevents overfitting with high-dimensional data
-    'max_depth': [5, 10, 15, 20, 25, None],
+    'max_depth': [5, 10, 15],
 
     # Minimum samples to split a node
-    'min_samples_split': [2, 5, 10, 15, 20],
+    'min_samples_split': [5, 10, 15, 20],
 
     # Minimum samples per leaf - higher values prevent overfitting
-    'min_samples_leaf': [1, 2, 4, 8, 16],
+    'min_samples_leaf': [8, 16, 32],
 
     # Number of features to consider at each split
-    'max_features': ['sqrt', 'log2', 0.3, 0.5],
+    'max_features': ['sqrt', 'log2'],
 
     # Bootstrap samples
     'bootstrap': [True],
