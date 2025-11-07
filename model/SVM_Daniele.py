@@ -32,9 +32,9 @@ X_train, X_test, y_train, y_test = preprocess_data(
     test_videos = 1
 )
 
-X_train,y_train = undersample(X_train,y_train)
+#X_train,y_train = undersample(X_train,y_train)
 
-print("!undersampled!")
+#print("!undersampled!")
 
 # X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test,collinearity_threshold=0.95)
 
@@ -43,7 +43,7 @@ print(X_train, X_test, y_train, y_test)
 svm = SVC(probability=True,C=0.05,coef0=1,degree=3,kernel="poly")
 svm.fit(X_train, y_train)
 
-save_model_as_pkl(name = "onlypoly_lite", model=svm,columns=X_train.columns,random_state=42)
+save_model_as_pkl(name = "poly_3_not_undersampled", model=svm,columns=X_train.columns,random_state=42)
 
 end=time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
