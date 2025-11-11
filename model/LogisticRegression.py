@@ -19,6 +19,9 @@ from FeatureSelection import collinearity_then_uvfs
 
 start=time.time()
 
+########################################### Data loading ###############################################################
+
+X_train, X_test, y_train, y_test = preprocess_data(features_file="processed_features.csv", labels_file="processed_labels.csv")
 
 
 ################################ Basic Model ###########################################################################
@@ -174,19 +177,19 @@ original_features = X_train.columns.tolist()
 L2_regularization(lr, X_train, y_train, X_test, y_test)
 """
 # UVFS + L2
-"""
+
 X_train, X_test, y_train, y_test = preprocess_data()
-X_train, X_test, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=100)
+X_train, X_test, selected_features, feature_scores_df = apply_uvfs(X_train, X_test, y_train, k_best=500)
 original_features = selected_features
 pca = None
 L2_regularization(lr, X_train, y_train, X_test, y_test)
+
 """
-
 # Collinearity + UVFS + L2
-X_train, X_test, y_train, y_test = preprocess_data()
-X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test,uvfs_k=40)
+#X_train, X_test, y_train, y_test = preprocess_data()
+#X_train, X_test, y_train, y_test = collinearity_then_uvfs(X_train, X_test, y_train, y_test,uvfs_k=40)
 L2_regularization(lr, X_train, y_train, X_test, y_test)
-
+"""
 
 end = time.time()
 print("Time elapsed:", end-start)
