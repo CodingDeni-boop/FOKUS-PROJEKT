@@ -65,13 +65,21 @@ evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
 
 from sklearn.model_selection import GridSearchCV
 
-param_grid = {
-    'max_iter': [50, 100, 150, 200],
+"""
+ 'max_iter': [50, 100, 150, 200],
     'max_depth': [3, 6, 9, 12],
     'learning_rate': [0.01, 0.05, 0.1, 0.2],
     'min_samples_leaf': [10, 20, 30, 40],
     'l2_regularization': [0.0, 0.1, 0.5, 1.0],
-    'max_bins': [255]  # can try [128, 255] if you want
+    'max_bins': [255]  # can try 128"""
+
+param_grid = {
+    'max_iter': [100, 200],  # Reduced from 4 to 2 options
+    'max_depth': [6, 9],  # Reduced from 4 to 2 options
+    'learning_rate': [0.05, 0.1],  # Reduced from 4 to 2 options
+    'min_samples_leaf': [20, 30],  # Reduced from 4 to 2 options
+    'l2_regularization': [0.0, 0.1],  # Reduced from 4 to 2 options
+    'max_bins': [255]
 }
 
 base_model = HistGradientBoostingClassifier(
@@ -83,9 +91,9 @@ base_model = HistGradientBoostingClassifier(
 grid_search = GridSearchCV(
     base_model,
     param_grid,
-    cv=5,
+    cv=3,  # Reduced from 5 to 3 folds
     scoring='f1_macro',
-    n_jobs=2,
+    n_jobs=-1,  # Use all CPU cores instead of just 2
     verbose=2
 )
 
@@ -124,7 +132,7 @@ plt.barh(range(top_n_plot), top_features_plot['Importance'], align='center')
 plt.yticks(range(top_n_plot), top_features_plot['Feature'])
 plt.xlabel('Importance', fontsize=12)
 plt.ylabel('Feature', fontsize=12)
-model_name = "LightGBM" if USE_HIST_GB else "Gradient Boosting"
+model_name =  "Histogram Gradient Boosting"
 plt.title(f'Top {top_n_plot} {model_name} Feature Importances', fontsize=14, fontweight='bold')
 plt.gca().invert_yaxis()
 plt.tight_layout()
@@ -152,7 +160,7 @@ model_selected = HistGradientBoostingClassifier(**best_parameters)
 model_selected.fit(X_train_selected, y_train, sample_weight=sample_weights)
 
 print("=" * 80)
-model_name = "LightGBM" if USE_HIST_GB else "Gradient Boosting"
+model_name =  "Histogram Gradient Boosting"
 print(f"New {model_name} Classifier with selected features ({n}):")
 print("=" * 80)
 
