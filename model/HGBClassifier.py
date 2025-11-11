@@ -39,7 +39,7 @@ sample_weights = np.array([class_weights[y] for y in y_train])
 print(f"Class weights: {class_weights}")
 
 ############################################# Tuned Model ##############################################################
-
+"""
 print("Using Histogram-Based Gradient Boosting Classifier")
 model = HistGradientBoostingClassifier(
     random_state=42,
@@ -60,9 +60,9 @@ evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=20)
 
 print("Without smoothing")
 evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
-
-############################################ Hyperparameter Tuning #####################################################
 """
+############################################ Hyperparameter Tuning #####################################################
+
 from sklearn.model_selection import GridSearchCV
 
 param_grid = {
@@ -96,16 +96,16 @@ print("Best parameters:", grid_search.best_params_)
 
 # Save best parameters as JSON
 best_params = grid_search.best_params_
-with open('best_parameters_model.json', 'w') as f:
+with open('best_parameters_hgb.json', 'w') as f:
     json.dump(best_params, f, indent=4)
 
 evaluate_model(best_model, X_train, y_train, X_test, y_test)
-"""
+
 
 ############################################### Feature Importance #####################################################
 
 # Extract feature importances
-importances = model.feature_importances_
+importances = best_model.feature_importances_
 feature_names = X_train.columns
 feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
 
@@ -142,18 +142,12 @@ top_features = feature_importance_df['Feature'][:n].values
 X_train_selected = X_train[top_features]
 X_test_selected = X_test[top_features]
 
+# Load the parameters
+with open('best_parameters_hgb.json', 'r') as f:
+    best_parameters = json.load(f)
+
 print("Using Histogram-Based Gradient Boosting Classifier")
-model_selected = HistGradientBoostingClassifier(
-    random_state=42,
-    max_iter=100,  # equivalent to n_estimators
-    max_depth=6,
-    learning_rate=0.1,
-    max_bins=255,  # default, can increase for more precision
-    min_samples_leaf=20,
-    l2_regularization=0.0,
-    early_stopping=False,
-    verbose=0
-)
+model_selected = HistGradientBoostingClassifier(**best_parameters)
 
 model_selected.fit(X_train_selected, y_train, sample_weight=sample_weights)
 
@@ -171,4 +165,4 @@ end = time.time()
 print("Time elapsed:", end - start)
 
 # Save model
-save_model_as_pkl(name="gradient_boost", folder="GB_model", model=model, columns=X_train.columns, random_state=42)
+save_model_as_pkl(name="gradient_boost", folder="GB_model", model=best_model, columns=X_train.columns, random_state=42)
