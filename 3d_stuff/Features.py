@@ -157,6 +157,10 @@ fc.standard_dev("headcentre.z").store()
 fc.standard_dev("earl.z").store()
 fc.standard_dev("earr.z").store()
 fc.standard_dev("bodycentre.z").store()
+fc.standard_dev("Volume_of_neck_bodycentre_bcl_bcr").store()
+fc.standard_dev("Volume_of_bodycentre_hipl_tailbase_hipr").store()
+fc.standard_dev("Volume_of_neck_bcl_hipl_bodycentre").store()
+fc.standard_dev("Volume_of_neck_bcr_hipr_bodycentre").store()
 
 ############################################### Missing data handling
 
