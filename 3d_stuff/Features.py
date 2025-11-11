@@ -141,14 +141,6 @@ print("calculating ball...")
 fc.is_recognized("nose").store()
 fc.is_recognized("tailbase").store()
 
-#Standard deviation
-print("calculating standard deviation...")
-
-fc.standard_dev("headcentre").store()
-fc.standard_dev("earl").store()
-fc.standard_dev("earr").store()
-fc.standard_dev("bodycentre").store()
-
 #Volume
 
 print("calculating volume...")
@@ -158,22 +150,28 @@ fc.volume(points = ["bodycentre", "hipl", "tailbase", "hipr"], faces = [[0, 3, 2
 fc.volume(points = ["neck", "bcl", "hipl", "bodycentre"], faces = [[0, 1, 3], [1, 2, 3], [3, 2, 0], [0, 2, 1]]).store()
 fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1, 3, 2], [3, 0, 2], [0, 1, 2]]).store()
 
+#Standard deviation
+print("calculating standard deviation...")
 
+fc.standard_dev("headcentre.z").store()
+fc.standard_dev("earl.z").store()
+fc.standard_dev("earr.z").store()
+fc.standard_dev("bodycentre.z").store()
 
 ############################################### Missing data handling
 
 print("Missing data filling (forward/backward)...")
 
 # Forward fill then backward fill missing data
-"""for file in fc.keys():
+for file in fc.keys():
     feature_obj = fc[file]
     df = feature_obj.data
 
     # Forward fill, then backward fill remaining NAs
     df = df.ffill().bfill()
 
-    feature_obj.data = df"""
-
+    feature_obj.data = df
+'''
 # Linear fill of missing data
 for file in fc.keys():
     feature_obj = fc[file]
@@ -212,7 +210,7 @@ for file in fc.keys():
                     i += 1
                 pos = i  # go to where the next known value was. this makes it run in O(n)
     feature_obj.data = df
-
+'''
 
 
 print("Embedding...")
@@ -220,7 +218,7 @@ print("Embedding...")
 #Embed
 embedding = {}
 for column in fc[0].data.columns:
-    embedding[column] =  list(range(-15, 16))
+    embedding[column] =  list(range(0, 1))
 fc = fc.embedding_df(embedding)
 
 # Extract features
@@ -234,7 +232,7 @@ combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), n
 
 print("saving...")
 
-combined_features.to_csv("./../model/features.csv")
+combined_features.to_csv("./../model/features_lite.csv")
 
 print("!file saved!")
 
