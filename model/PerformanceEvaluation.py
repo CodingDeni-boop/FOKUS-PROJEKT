@@ -10,15 +10,15 @@ import seaborn as sns
 import numpy as np
 
 def smooth_predictions(predictions, min_frames):
-    """
-    Remove behavior prediction outliers shorter than min_frames.
+    
+    #Remove behavior prediction outliers shorter than min_frames.
 
-        predictions: Array of predicted labels
-        min_frames: Minimum number of consecutive frames for a behavior to be valid
+       # predictions: Array of predicted labels
+      #  min_frames: Minimum number of consecutive frames for a behavior to be valid
 
-    Returns:
-        Smoothed predictions array
-    """
+    #Returns:
+      #  Smoothed predictions array
+    
     if len(predictions) < min_frames:
         return predictions
 
@@ -60,7 +60,8 @@ def evaluate_model(model : object, X_train : pd.DataFrame(), y_train: pd.DataFra
     y_pred_proba = model.predict_proba(X_test)
 
     # Apply smoothing to remove outliers below 20 frames
-    y_pred = smooth_predictions(y_pred, min_frames)
+    if min_frames is not None:
+        y_pred = smooth_predictions(y_pred, min_frames)
 
     print("\n=== Model Evaluation ===")
     print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
@@ -68,7 +69,8 @@ def evaluate_model(model : object, X_train : pd.DataFrame(), y_train: pd.DataFra
 
     print("\n=== Classification Report - TRAIN SET ===")
     y_train_pred = model.predict(X_train)
-    y_train_pred = smooth_predictions(y_train_pred, min_frames )
+    if min_frames is not None:
+        y_train_pred = smooth_predictions(y_train_pred, min_frames )
     print(f"Train Accuracy: {accuracy_score(y_train, y_train_pred):.4f}")
     print(classification_report(y_train, y_train_pred))
 
