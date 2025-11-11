@@ -74,11 +74,11 @@ from sklearn.model_selection import GridSearchCV
     'max_bins': [255]  # can try 128"""
 
 param_grid = {
-    'max_iter': [100, 200],  # Reduced from 4 to 2 options
-    'max_depth': [6, 9],  # Reduced from 4 to 2 options
-    'learning_rate': [0.05, 0.1],  # Reduced from 4 to 2 options
-    'min_samples_leaf': [20, 30],  # Reduced from 4 to 2 options
-    'l2_regularization': [0.0, 0.1],  # Reduced from 4 to 2 options
+    'max_iter': [100, 200],
+    'max_depth': [6, 9],
+    'learning_rate': [0.05, 0.1],
+    'min_samples_leaf': [20, 30],
+    'l2_regularization': [0.0, 0.1],
     'max_bins': [255]
 }
 
@@ -93,7 +93,7 @@ grid_search = GridSearchCV(
     param_grid,
     cv=3,  # Reduced from 5 to 3 folds
     scoring='f1_macro',
-    n_jobs=-1,  # Use all CPU cores instead of just 2
+    n_jobs=4,
     verbose=2
 )
 
