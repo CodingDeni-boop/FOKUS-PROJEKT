@@ -1,4 +1,4 @@
-from pipeline_code.generate_X import triangulate
+from pipeline_code.generate_features import triangulate
 import joblib as job
 import time
 
@@ -17,10 +17,11 @@ fc = triangulate(
     rescale_points = ("tr","tl"),
     rescale_distance = 0.64,
     filter_threshold = 0.9,
-    construction_points = {"mid" : {"between_points" : ("tl", "tr", "bl", "br"), "mouse_or_oft" : "oft"}},
+    construction_points = {"mid" : {"between_points" : ("tl", "tr", "bl", "br"), "mouse_or_oft" : "oft"},},
     smoothing = True,
     smoothing_mouse = 3,
     smoothing_oft = 20
     )
+
 job.dump(fc, f"pipeline_saved_processes/Feature_Collection_{int(time.localtime()[2])}-{int(time.localtime()[1])}-{int(time.localtime()[0])}_{int(time.localtime()[3])}:{int(time.localtime()[4])}")
 

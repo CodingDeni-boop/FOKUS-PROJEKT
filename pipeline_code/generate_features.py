@@ -64,18 +64,18 @@ def triangulate(collection_path : str,
         "top_br": {"window": smoothing_oft, "type": "median"},
         "top_bl": {"window": smoothing_oft, "type": "median"},
     }
-
-    for handle in construction_points:
-        construction_infos = construction_points[handle]
-        triangulated_tracking_collection.construction_point(handle,construction_infos["between_points"],dims=("x","y","z"))
-        if construction_infos["mouse_or_oft"] == "mouse":
-            smoothing_dict[handle] = {"window": smoothing_mouse, "type": "mean"}
-        elif construction_infos["mouse_or_oft"] == "oft":
-            smoothing_dict[handle] = {"window": smoothing_oft, "type": "median"}
-        else:
-            raise ValueError(f"{construction_infos['mouse_or_oft']} only accepts 'mouse' or 'oft' as values"  )
-        print(f"Created construction point {handle} between {construction_infos['between_points']} as {construction_infos['mouse_or_oft']} point")
-    
+    if not construction_points==None:
+        for handle in construction_points:
+            construction_infos = construction_points[handle]
+            triangulated_tracking_collection.construction_point(handle,construction_infos["between_points"],dims=("x","y","z"))
+            if construction_infos["mouse_or_oft"] == "mouse":
+                smoothing_dict[handle] = {"window": smoothing_mouse, "type": "mean"}
+            elif construction_infos["mouse_or_oft"] == "oft":
+                smoothing_dict[handle] = {"window": smoothing_oft, "type": "median"}
+            else:
+                raise ValueError(f"{construction_infos['mouse_or_oft']} only accepts 'mouse' or 'oft' as values"  )
+            print(f"Created construction point {handle} between {construction_infos['between_points']} as {construction_infos['mouse_or_oft']} point")
+        
     if smoothing:
         triangulated_tracking_collection.smooth(smoothing_dict)
 
@@ -86,9 +86,13 @@ def triangulate(collection_path : str,
     # Distance
 
 
-def later():
+def generate_features(features_collection : FeaturesCollection, 
+                      distance = tuple[tuple],
+                      ):
     
     all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailbase")
+    
+
     print("calculating distance...")
 
     pairs_of_points_for_lines = pd.DataFrame({
@@ -160,14 +164,6 @@ def later():
     fc.is_recognized("nose").store()
     fc.is_recognized("tailbase").store()
 
-    #Standard deviation
-    print("calculating standard deviation...")
-
-    fc.standard_dev("headcentre").store()
-    fc.standard_dev("earl").store()
-    fc.standard_dev("earr").store()
-    fc.standard_dev("bodycentre").store()
-
     #Volume
 
     print("calculating volume...")
@@ -177,22 +173,32 @@ def later():
     fc.volume(points = ["neck", "bcl", "hipl", "bodycentre"], faces = [[0, 1, 3], [1, 2, 3], [3, 2, 0], [0, 2, 1]]).store()
     fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1, 3, 2], [3, 0, 2], [0, 1, 2]]).store()
 
+    #Standard deviation
+    print("calculating standard deviation...")
 
+    fc.standard_dev("headcentre.z").store()
+    fc.standard_dev("earl.z").store()
+    fc.standard_dev("earr.z").store()
+    fc.standard_dev("bodycentre.z").store()
+    fc.standard_dev("Volume_of_neck_bodycentre_bcl_bcr").store()
+    fc.standard_dev("Volume_of_bodycentre_hipl_tailbase_hipr").store()
+    fc.standard_dev("Volume_of_neck_bcl_hipl_bodycentre").store()
+    fc.standard_dev("Volume_of_neck_bcr_hipr_bodycentre").store()
 
     ############################################### Missing data handling
 
     print("Missing data filling (forward/backward)...")
 
     # Forward fill then backward fill missing data
-    """for file in fc.keys():
+    for file in fc.keys():
         feature_obj = fc[file]
         df = feature_obj.data
 
         # Forward fill, then backward fill remaining NAs
         df = df.ffill().bfill()
 
-        feature_obj.data = df"""
-
+        feature_obj.data = df
+    '''
     # Linear fill of missing data
     for file in fc.keys():
         feature_obj = fc[file]
@@ -231,7 +237,7 @@ def later():
                         i += 1
                     pos = i  # go to where the next known value was. this makes it run in O(n)
         feature_obj.data = df
-
+    '''
 
 
     print("Embedding...")
@@ -239,7 +245,7 @@ def later():
     #Embed
     embedding = {}
     for column in fc[0].data.columns:
-        embedding[column] =  list(range(-15, 16))
+        embedding[column] =  list(range(0, 1))
     fc = fc.embedding_df(embedding)
 
     # Extract features
@@ -253,7 +259,7 @@ def later():
 
     print("saving...")
 
-    combined_features.to_csv("./../model/features.csv")
+    combined_features.to_csv("./../model/features_lite.csv")
 
     print("!file saved!")
 
