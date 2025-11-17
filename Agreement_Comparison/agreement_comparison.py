@@ -5,8 +5,67 @@ import seaborn as sns
 import sklearn
 from sklearn.metrics import cohen_kappa_score
 
+behavior = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 
+videos = { "1" : ["Nata", "Nataliia"],
+           "2" : ["Nata", "Nataliia"],
+           "3" : ["Nata", "Nataliia"],
+           "4" : ["Nata", "Nataliia"],
+           "5" : ["Nata", "Nataliia"],
+           "6" : ["Radu", "Nataliia"],
+           "7" : ["Radu", "Nataliia"],
+           "8" : ["Radu", "Nataliia"],
+           "9" : ["Radu", "Nataliia"],
+           "10" : ["Radu", "Nataliia"],
+           "11" : ["Radu", "Nataliia"],
+           "12" : ["Radu", "Nataliia"],
+           "13" : ["Radu", "Nataliia"],
+           "14" : ["Radu", "Nataliia"],
+           "15" : ["Radu", "Daniele"],
+           "16" : ["Radu", "Nata"],
+           "17" : ["Nata", "Nataliia"],
+           "18" : ["Radu", "Daniele"],
+           "19" : ["Radu", "Daniele"],
+           "20" : ["Daniele", "Nataliia"],
+           "21" : ["Daniele", "Nataliia"]
+        }
 
+videos_dataframes = {}
 
+for handle in videos:
+    videos_dataframes[handle] = []
+    for person in videos[handle]:
+        print(handle+"_"+person)
+        videos_dataframes[handle].append(pd.read_csv("./data_final/"+handle+"_"+person+".csv").iloc[:,1:])
 
+### PRINT COMPARISONS ###
 
+for handle in videos_dataframes:
+    plt.figure(figsize=(15, 3))
+    timeline_data = []
+
+    for df in videos_dataframes[handle]:
+        print(handle)
+        cat_series = pd.Series('background', index=df.index)
+        for cat in behavior[1:]:  # skip background
+            cat_series[df[cat] == 1] = cat
+        timeline_data.append(cat_series)
+
+    colors = {'background': 'gray', 'supportedrear': 'blue',
+            'unsupportedrear': 'red', 'grooming': 'green'}
+    for i, (data, name) in enumerate(zip(timeline_data, videos[handle])):
+        for cat in behavior:
+            mask = data == cat
+            if mask.any():
+                plt.scatter(data[mask].index, [i + 1] * mask.sum(),
+                            label=cat if i == 0 else None,
+                            alpha=0.6, c=colors[cat], marker='|', s=500)
+
+    plt.yticks(list(range(1, len(videos[handle]) + 1)), videos[handle])
+    plt.xlabel('Frame Number')
+    plt.title(f'Timeline of Behavior Classifications (Video {handle})')
+    plt.legend(bbox_to_anchor=(1.005, 1), loc='upper left')
+    #plt.legend(bbox_to_anchor=(1.01, 0.5), loc='center left', borderaxespad=0)
+
+    plt.tight_layout()
+    plt.savefig(f'output/timeline_{handle}_plot.png', bbox_inches='tight', dpi=300)
