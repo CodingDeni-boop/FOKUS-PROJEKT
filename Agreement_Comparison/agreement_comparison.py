@@ -35,37 +35,37 @@ videos_dataframes = {}
 for handle in videos:
     videos_dataframes[handle] = []
     for person in videos[handle]:
-        print(handle+"_"+person)
         videos_dataframes[handle].append(pd.read_csv("./data_final/"+handle+"_"+person+".csv").iloc[:,1:])
 
 ### PRINT COMPARISONS ###
 
 for handle in videos_dataframes:
-    plt.figure(figsize=(15, 3))
+    plt.figure(figsize=(24, 3))
     timeline_data = []
 
     for df in videos_dataframes[handle]:
-        print(handle)
         cat_series = pd.Series('background', index=df.index)
         for cat in behavior[1:]:  # skip background
             cat_series[df[cat] == 1] = cat
         timeline_data.append(cat_series)
 
-    colors = {'background': 'gray', 'supportedrear': 'blue',
-            'unsupportedrear': 'red', 'grooming': 'green'}
+    colors = {'background': 'gray', 'supportedrear': 'red',
+            'unsupportedrear': 'green', 'grooming': 'orange'}
     for i, (data, name) in enumerate(zip(timeline_data, videos[handle])):
         for cat in behavior:
             mask = data == cat
             if mask.any():
                 plt.scatter(data[mask].index, [i + 1] * mask.sum(),
                             label=cat if i == 0 else None,
-                            alpha=0.6, c=colors[cat], marker='|', s=500)
+                            alpha=0.6, c=colors[cat], marker='|', s=10000)
 
     plt.yticks(list(range(1, len(videos[handle]) + 1)), videos[handle])
     plt.xlabel('Frame Number')
     plt.title(f'Timeline of Behavior Classifications (Video {handle})')
-    plt.legend(bbox_to_anchor=(1.005, 1), loc='upper left')
-    #plt.legend(bbox_to_anchor=(1.01, 0.5), loc='center left', borderaxespad=0)
+    plt.legend([plt.Line2D([],[],color=colors[c],marker='.',linestyle='',markersize=15) for c in behavior],
+           behavior,bbox_to_anchor=(1.005, 1))
 
     plt.tight_layout()
     plt.savefig(f'output/timeline_{handle}_plot.png', bbox_inches='tight', dpi=300)
+    plt.close()
+
