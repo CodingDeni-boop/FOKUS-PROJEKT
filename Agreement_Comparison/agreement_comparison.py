@@ -3,11 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sklearn
-from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import cohen_kappa_score, classification_report, confusion_matrix, accuracy_score
 
-behavior = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
+
+behaviour = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 
 comparisons = False
+agreement_confusion_matrix = True
 
 videos = { "1" : ["Nata", "Nataliia"],
            "2" : ["Nata", "Nataliia"],
@@ -47,14 +49,14 @@ if comparisons:
 
         for df in videos_dataframes[handle]:
             cat_series = pd.Series('background', index=df.index)
-            for cat in behavior[1:]:  # skip background
+            for cat in behaviour[1:]:  # skip background
                 cat_series[df[cat] == 1] = cat
             timeline_data.append(cat_series)
 
         colors = {'background': 'gray', 'supportedrear': 'red',
                 'unsupportedrear': 'green', 'grooming': 'orange'}
         for i, (data, name) in enumerate(zip(timeline_data, videos[handle])):
-            for cat in behavior:
+            for cat in behaviour:
                 mask = data == cat
                 if mask.any():
                     plt.scatter(data[mask].index, [i + 1] * mask.sum(),
@@ -63,9 +65,9 @@ if comparisons:
 
         plt.yticks(list(range(1, len(videos[handle]) + 1)), videos[handle])
         plt.xlabel('Frame Number')
-        plt.title(f'Timeline of Behavior Classifications (Video {handle})')
-        plt.legend([plt.Line2D([],[],color=colors[c],marker='.',linestyle='',markersize=15) for c in behavior],
-            behavior,bbox_to_anchor=(1.005, 1))
+        plt.title(f'Timeline of behaviour Classifications (Video {handle})')
+        plt.legend([plt.Line2D([],[],color=colors[c],marker='.',linestyle='',markersize=15) for c in behaviour],
+            behaviour,bbox_to_anchor=(1.005, 1))
 
         plt.tight_layout()
         plt.savefig(f'output/timeline_{handle}_plot.png', bbox_inches='tight', dpi=300)
@@ -82,9 +84,35 @@ for handle in videos:
         categorical_df["behaviour"] = one_hot_encoded.idxmax(axis=1)
         videos_dataframes[handle].append(categorical_df)
 
-print(videos_dataframes)
 
+if agreement_confusion_matrix:
 
+    chunky1 = pd.Series()
+    chunky2 = pd.Series()
 
+    for handle in videos_dataframes:
+        chunky1 = pd.concat([chunky1, videos_dataframes[handle][0]["behaviour"]],axis = 0,ignore_index=True)
+        chunky2 = pd.concat([chunky2, videos_dataframes[handle][1]["behaviour"]],axis = 0,ignore_index=True)
+    
+    cm = confusion_matrix(chunky1, chunky2, labels = behaviour)
+    print(cm)
+
+    # Confusion Matrix Plot
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(
+        cm,
+        annot=True,           # Show numbers in cells
+        fmt='d',              # Format as integers
+        cmap='Blues',         # Color scheme
+        cbar_kws={'label': 'Count'},
+        xticklabels=behaviour,
+        yticklabels=behaviour
+    )
+    plt.title('Confusion Matrix', fontsize=16, fontweight='bold')
+    plt.ylabel("person_1", fontsize=12)
+    plt.xlabel("person_2", fontsize=12)
+    plt.tight_layout()
+    plt.savefig('output/confusion_matrix.png', dpi=300, bbox_inches='tight')
+    print(classification_report(chunky1, chunky2, labels = behaviour))
 
 
