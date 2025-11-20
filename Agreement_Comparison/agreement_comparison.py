@@ -8,8 +8,9 @@ from sklearn.metrics import cohen_kappa_score, classification_report, confusion_
 
 behaviour = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 
-comparisons = False
+comparisons = True
 agreement_confusion_matrix = True
+agreement_confusion_matrix_final = True
 
 videos = { "1" : ["Nata", "Nataliia"],
            "2" : ["Nata", "Nataliia"],
@@ -34,12 +35,22 @@ videos = { "1" : ["Nata", "Nataliia"],
            "21" : ["Daniele", "Nataliia"]
         }
 
+videos_final = {"1" : ["Nataliia"]}
+
 videos_dataframes = {}
+videos_final_dataframes = {}
+
+## ONE HOT ENCODED ##
 
 for handle in videos:
     videos_dataframes[handle] = []
     for person in videos[handle]:
         videos_dataframes[handle].append(pd.read_csv("./data_final/"+handle+"_"+person+".csv").iloc[:,1:])
+
+for handle in videos_final:
+    videos_final_dataframes[handle] = []
+    for person in videos_final[handle]:
+        videos_final_dataframes[handle].append(pd.read_csv("./data_final_final/"+handle+"_final_"+person+".csv").iloc[:,1:])
 
 ### PRINT COMPARISONS ###
 if comparisons:
@@ -73,8 +84,8 @@ if comparisons:
         plt.savefig(f'output/timeline_{handle}_plot.png', bbox_inches='tight', dpi=300)
         plt.close()
 
-### PRINT CONFUSION MATRIX: PERSON1 ON COLUMN, PERSON2 ON ROW. FROM THIS WE CAN DO STATISTICS LIKE WE DO FOR MODEL. IT WILL BE GOOD FOR COMPARING. ###
 
+## NOT ONE HOT ENCODED ##
 
 for handle in videos:
     videos_dataframes[handle] = []
@@ -84,6 +95,15 @@ for handle in videos:
         categorical_df["behaviour"] = one_hot_encoded.idxmax(axis=1)
         videos_dataframes[handle].append(categorical_df)
 
+for handle in videos_final:
+    videos_final_dataframes[handle] = []
+    for person in videos_final[handle]:
+        one_hot_encoded = pd.read_csv("./data_final_final/"+handle+"_final_"+person+".csv").iloc[:,1:]
+        categorical_df = pd.DataFrame()
+        categorical_df["behaviour"] = one_hot_encoded.idxmax(axis=1)
+        videos_final_dataframes[handle].append(categorical_df)
+
+### PRINT CONFUSION MATRIX: PERSON1 ON COLUMN, PERSON2 ON ROW. FROM THIS WE CAN DO STATISTICS LIKE WE DO FOR MODEL. IT WILL BE GOOD FOR COMPARING. ###
 
 if agreement_confusion_matrix:
 
@@ -112,7 +132,37 @@ if agreement_confusion_matrix:
     plt.ylabel("person_1", fontsize=12)
     plt.xlabel("person_2", fontsize=12)
     plt.tight_layout()
-    plt.savefig('output/confusion_matrix.png', dpi=300, bbox_inches='tight')
+    plt.savefig('output/person_1_vs_person_2_confusion_matrix.png', dpi=300, bbox_inches='tight')
     print(classification_report(chunky1, chunky2, labels = behaviour))
 
+
+if agreement_confusion_matrix_final:
+
+    chunky1 = pd.Series()
+    chunky2 = pd.Series()
+
+    for handle in videos_final_dataframes:
+        chunky1 = pd.concat([chunky1, videos_final_dataframes[handle][0]["behaviour"]],axis = 0,ignore_index=True)
+        chunky2 = pd.concat([chunky2, videos_dataframes[handle][1]["behaviour"]],axis = 0,ignore_index=True)
+    
+    cm = confusion_matrix(chunky1, chunky2, labels = behaviour)
+    print(cm)
+
+    # Confusion Matrix Plot
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(
+        cm,
+        annot=True,           # Show numbers in cells
+        fmt='d',              # Format as integers
+        cmap='Blues',         # Color scheme
+        cbar_kws={'label': 'Count'},
+        xticklabels=behaviour,
+        yticklabels=behaviour
+    )
+    plt.title('Confusion Matrix', fontsize=16, fontweight='bold')
+    plt.ylabel("person_1", fontsize=12)
+    plt.xlabel("person_2", fontsize=12)
+    plt.tight_layout()
+    plt.savefig('output/person_1_vs_person_2_confusion_matrix.png', dpi=300, bbox_inches='tight')
+    print(classification_report(chunky1, chunky2, labels = behaviour))
 
