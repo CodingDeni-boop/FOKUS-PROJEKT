@@ -1,4 +1,5 @@
 from pipeline_code.generate_features import triangulate
+from pipeline_code.generate_features import features
 import joblib as job
 import time
 
@@ -10,7 +11,7 @@ import time
 ######      ######
 
 
-fc = triangulate(
+features_collection = triangulate(
     collection_path = "./pipeline_inputs/collection",
     fps = 30,
 
@@ -22,6 +23,27 @@ fc = triangulate(
     smoothing_mouse = 3,
     smoothing_oft = 20
     )
+
+a = features(features_collection, 
+             distance = (("neck","earl"),
+                        ("neck","earr"),
+                        ("neck","bcl"),
+                        ("neck","bcr"),
+                        ("bcl","hipl"),
+                        ("bcr","hipr"),
+                        ("hipl","tailbase"),
+                        ("hipr","tailbase"),
+                        ("headcentre","neck"),
+                        ("neck","bodycentre"),
+                        ("bodycentre","tailbase"),
+                        ("headcentre","earl"),
+                        ("headcentre","earr"),
+                        ("bodycentre","bcl"),
+                        ("bodycentre","bcr"),
+                        ("bodycentre","hipl"),
+                        ("bodycentre","hipr")
+                        )  
+)
 
 job.dump(fc, f"pipeline_saved_processes/Feature_Collection_{int(time.localtime()[2])}-{int(time.localtime()[1])}-{int(time.localtime()[0])}_{int(time.localtime()[3])}:{int(time.localtime()[4])}")
 

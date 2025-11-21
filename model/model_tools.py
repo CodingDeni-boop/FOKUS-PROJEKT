@@ -44,6 +44,8 @@ def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int 
     """
     Just like train test split from sklearn, but cooler. \n
     - test_videos : how many videos in the test set?
+
+    returns X_train, X_test, y_train, y_test
     """
 
     rd.seed(random_state)

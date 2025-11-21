@@ -86,24 +86,19 @@ def triangulate(collection_path : str,
     # Distance
 
 
-def generate_features(features_collection : FeaturesCollection, 
+def features(features_collection : FeaturesCollection, 
                       distance = tuple[tuple],
                       ):
     
     all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailbase")
-    
 
     print("calculating distance...")
 
-    pairs_of_points_for_lines = pd.DataFrame({
-        "point1": ["neck", "neck", "neck", "neck", "bcl",  "bcr",  "hipl",     "hipr",     "headcentre",  "neck",       "bodycentre", "headcentre", "headcentre", "bodycentre", "bodycentre", "bodycentre", "bodycentre"],
-        "point2": ["earl", "earr", "bcl",  "bcr",  "hipl", "hipr", "tailbase", "tailbase",  "neck",       "bodycentre", "tailbase",   "earl",       "earr",       "bcl",        "bcr",        "hipl",       "hipr"]
-    })
-
-    for i in range(0,pairs_of_points_for_lines.shape[0]):
-        fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "x").store()
-        fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "y").store()
-        fc.distance_on_axis(pairs_of_points_for_lines.iloc[i, 0], pairs_of_points_for_lines.iloc[i, 1], "z").store()
+    for pair_of_points in distance:
+        features_collection.distance_on_axis(pair_of_points[0], pair_of_points[1], "x").store()
+        features_collection.distance_on_axis(pair_of_points[0], pair_of_points[1], "y").store()
+        features_collection.distance_on_axis(pair_of_points[0], pair_of_points[1], "z").store()
+    
 
     # Azimuth / Angles
 
@@ -262,6 +257,4 @@ def generate_features(features_collection : FeaturesCollection,
     combined_features.to_csv("./../model/features_lite.csv")
 
     print("!file saved!")
-
-
 

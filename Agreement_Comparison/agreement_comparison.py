@@ -133,7 +133,6 @@ if agreement_confusion_matrix:
     plt.xlabel("person_2", fontsize=12)
     plt.tight_layout()
     plt.savefig('output/person_1_vs_person_2_confusion_matrix.png', dpi=300, bbox_inches='tight')
-    print(classification_report(chunky1, chunky2, labels = behaviour))
 
 
 if agreement_confusion_matrix_final:
@@ -149,7 +148,7 @@ if agreement_confusion_matrix_final:
     print(cm)
 
     # Confusion Matrix Plot
-    plt.figure(figsize=(10, 8))
+    fig1 = plt.figure(figsize=(10, 8))
     sns.heatmap(
         cm,
         annot=True,           # Show numbers in cells
@@ -163,6 +162,6 @@ if agreement_confusion_matrix_final:
     plt.ylabel("person_1", fontsize=12)
     plt.xlabel("person_2", fontsize=12)
     plt.tight_layout()
-    plt.savefig('output/person_1_vs_person_2_confusion_matrix.png', dpi=300, bbox_inches='tight')
-    print(classification_report(chunky1, chunky2, labels = behaviour))
+    plt.savefig('output/person_1_vs_person_2_confusion_matrix_final.png', dpi=300, bbox_inches='tight')
+    plt.close(fig1)
 
