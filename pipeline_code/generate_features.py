@@ -1,21 +1,16 @@
 import pandas as pd
-from math import isnan
-import numpy as np
-import py3r.behaviour as py3r
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
-import json
-from py3r.behaviour.features.features import Features
 from py3r.behaviour.features.features_collection import FeaturesCollection
-from py3r.behaviour.features.features_result import FeaturesResult
 from py3r.behaviour.tracking.tracking_collection import TrackingCollection
 from py3r.behaviour.tracking.tracking_mv import TrackingMV
+from natsort import natsorted
 
 
 
 def triangulate(collection_path : str, 
                 fps : int, 
                 rescale_points : tuple[str], 
-                rescale_distance = float, 
+                rescale_distance : float, 
                 filter_threshold : int = 0.9,
                 construction_points : dict[str : dict["between_points" : tuple[str], "mouse_or_oft" : str]] = None,
                 smoothing = True,
@@ -79,182 +74,114 @@ def triangulate(collection_path : str,
     if smoothing:
         triangulated_tracking_collection.smooth(smoothing_dict)
 
-    fc = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
+    features_collection = FeaturesCollection.from_tracking_collection(triangulated_tracking_collection)
 
-    return fc
+    return features_collection
 
     # Distance
 
-
 def features(features_collection : FeaturesCollection, 
-                      distance = tuple[tuple],
+                      distance : dict[tuple : str] = [],
+                      angle : dict[tuple[str] : str] = [],
+                      speed : tuple[str] = [],
+                      distance_to_boundary : tuple[str] = [],
+                      is_point_recognized : tuple[str] = [],
+                      volume : dict[tuple : tuple[tuple]] = [],
+                      standard_deviation : tuple[str] = [],
+                      f_b_fill = True,
+                      embedding_length = list(range(0,1)),
+                      output_path = str
                       ):
-    
-    all_relevant_points = ("nose", "headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailbase")
 
+    # Distance
     print("calculating distance...")
 
-    for pair_of_points in distance:
-        features_collection.distance_on_axis(pair_of_points[0], pair_of_points[1], "x").store()
-        features_collection.distance_on_axis(pair_of_points[0], pair_of_points[1], "y").store()
-        features_collection.distance_on_axis(pair_of_points[0], pair_of_points[1], "z").store()
-    
+    for handle in distance:
+        for dim in distance[handle]:
+            features_collection.distance_on_axis(handle[0], handle[1], dim).store()
 
     # Azimuth / Angles
-
     print("calculating angles...")
 
-    pairs_of_points_for_angles = pd.DataFrame({
-        "point1": ["bodycentre","bodycentre","bodycentre","tailbase",   "tailbase",  "tailbase",  "tailbase",  "tailbase",  "bodycentre","bodycentre"],
-        "point2": ["neck",      "neck",       "neck",      "bodycentre","bodycentre","bodycentre","bodycentre","bodycentre","tailbase","tailbase"],
-        "point3": ["neck",      "neck",       "neck",      "bodycentre","tailbase","tailbase",    "hipl",       "hipr",     "tailbase","tailcentre"],
-        "point4": ["headcentre","earl",       "earr",      "neck",      "hipl",     "hipr",       "bcl",        "bcr",      "tailcentre","tailtip"]
-    })
+    for handle in angle:
+        radians_or_sincos : str = angle[handle]
+        if radians_or_sincos == "radians":
+            features_collection.angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
+            features_collection.angle(handle[0],handle[1],handle[2],handle[3],plane=("y","z")).store()
 
-    for i in range(0,pairs_of_points_for_angles.shape[0]):
-        fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
-        #fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
-        #fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("x","y")).store()
-        fc.angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z"))
-        #fc.sin_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
-        #fc.cos_of_angle(pairs_of_points_for_angles.iloc[i,0],pairs_of_points_for_angles.iloc[i,1],pairs_of_points_for_angles.iloc[i,2],pairs_of_points_for_angles.iloc[i,3],plane=("y","z")).store()
+        elif radians_or_sincos == "sincos":
+            features_collection.sin_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
+            features_collection.cos_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
+            features_collection.sin_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("y","z")).store()
+            features_collection.cos_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("y","z")).store()
+
+        else:
+            raise KeyError(f"only sincos or radians are accepted as argument of angles. You typed: {radians_or_sincos}")
 
     # Speed
-
     print("calculating speed...")
 
-    """
-    first_F = next(iter(fc.features_dict.values()))
-    cols = first_F.tracking.data.columns
-
-    for col in cols:
-        if col.endswith(".x"):
-            p = col[:-2]
-            fc.speed(p, dims=("x","y","z")).store()
-    """
-
-    for point in all_relevant_points:
-        fc.speed(point, dims=("x","y","z")).store()
+    for point in speed:
+        features_collection.speed(point, dims=("x","y","z")).store()
 
     #Distances to boundary
-
     print("calculating distance to boundary...")
 
-    all_relevant_points = ("headcentre", "earl", "earr", "neck", "bcl", "bcr", "bodycentre", "hipl", "hipr", "tailcentre")
-    for point in all_relevant_points:
-        fc.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
-
-
-    #Heights
-
-    print("calculating height...")
-
-    for point in all_relevant_points:
-        fc.height(point).store()
+    for point in distance_to_boundary:
+        features_collection.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"]).store()
 
     # is it BALL?
-
     print("calculating ball...")
 
-    fc.is_recognized("nose").store()
-    fc.is_recognized("tailbase").store()
+    for point in is_point_recognized:
+        features_collection.is_recognized(point).store()
 
     #Volume
-
     print("calculating volume...")
 
-    fc.volume(points = ["neck", "bodycentre", "bcl", "bcr"], faces = [[0, 1, 2], [2, 1, 3], [0, 3, 1], [0, 2, 3]]).store()
-    fc.volume(points = ["bodycentre", "hipl", "tailbase", "hipr"], faces = [[0, 3, 2], [3, 1, 2], [0, 2 , 1], [0, 1, 3]]).store()
-    fc.volume(points = ["neck", "bcl", "hipl", "bodycentre"], faces = [[0, 1, 3], [1, 2, 3], [3, 2, 0], [0, 2, 1]]).store()
-    fc.volume(points = ["neck", "bcr", "hipr", "bodycentre"], faces = [[0, 3, 1], [1, 3, 2], [3, 0, 2], [0, 1, 2]]).store()
+    for handle in volume:
+        faces : tuple[tuple] = volume[handle]
+        features_collection.volume(points = handle, faces = faces).store()
 
     #Standard deviation
     print("calculating standard deviation...")
 
-    fc.standard_dev("headcentre.z").store()
-    fc.standard_dev("earl.z").store()
-    fc.standard_dev("earr.z").store()
-    fc.standard_dev("bodycentre.z").store()
-    fc.standard_dev("Volume_of_neck_bodycentre_bcl_bcr").store()
-    fc.standard_dev("Volume_of_bodycentre_hipl_tailbase_hipr").store()
-    fc.standard_dev("Volume_of_neck_bcl_hipl_bodycentre").store()
-    fc.standard_dev("Volume_of_neck_bcr_hipr_bodycentre").store()
+    for thing in standard_deviation:
+        features_collection.standard_dev(thing).store()
 
     ############################################### Missing data handling
 
-    print("Missing data filling (forward/backward)...")
+    if f_b_fill:
+        print("Missing data filling (forward/backward)...")
 
-    # Forward fill then backward fill missing data
-    for file in fc.keys():
-        feature_obj = fc[file]
-        df = feature_obj.data
+        # Forward fill then backward fill missing data
+        for file in features_collection.keys():
+            feature_obj = features_collection[file]
+            df = feature_obj.data
 
-        # Forward fill, then backward fill remaining NAs
-        df = df.ffill().bfill()
+            # Forward fill, then backward fill remaining NAs
+            df = df.ffill().bfill()
 
-        feature_obj.data = df
-    '''
-    # Linear fill of missing data
-    for file in fc.keys():
-        feature_obj = fc[file]
-        df = feature_obj.data
-
-        len = df.shape[0]
-        ncol = df.shape[1]
-
-        for col in range(ncol):
-            # first we make sure theres no nas at the start or at the end
-
-            i = 0
-            while (isnan(df[i][col])):
-                i += 1
-            for j in range(i):
-                df[j][col] = df[i][col]
-            i = len
-            while (isnan(df[i][col])):
-                i -= 1
-            for j in (i + 1, len):
-                df[j][col] = df[i][col]
-
-            # now we go through and linearly fill gaps
-
-            for pos in range(len):
-                if (isnan(df[pos][col])):  # if it is unknown
-                    startvalue = df[pos - 1][col]  # mark the last known value
-                    i = pos
-                    while (isnan(df[i][col])):
-                        i += 1
-                    stopvalue = df[i][col]  # mark the next known value
-                    step = (stopvalue - startvalue) / (i - pos + 1)  # fit a line between startvalue and stopvalue
-                    i = pos
-                    while (isnan(df[i][col])):
-                        df[i][col] = (i - pos + 1) * step  # fill
-                        i += 1
-                    pos = i  # go to where the next known value was. this makes it run in O(n)
-        feature_obj.data = df
-    '''
-
+            feature_obj.data = df
 
     print("Embedding...")
 
-    #Embed
     embedding = {}
-    for column in fc[0].data.columns:
-        embedding[column] =  list(range(0, 1))
-    fc = fc.embedding_df(embedding)
+    for column in features_collection[0].data.columns:
+        embedding[column] =  list(embedding_length)
+    features_collection = features_collection.embedding_df(embedding)
 
     # Extract features
     feature_dict = {}
-    for file in fc.keys():
-        feature_obj = fc[file]
-        feature_dict[file] = feature_obj
+    for handle in natsorted(features_collection):
+        feature_obj = features_collection[handle]
+        feature_dict[handle] = feature_obj
 
     combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
 
-
     print("saving...")
-
-    combined_features.to_csv("./../model/features_lite.csv")
-
+    combined_features.to_csv(output_path)
     print("!file saved!")
+
+    return combined_features
 

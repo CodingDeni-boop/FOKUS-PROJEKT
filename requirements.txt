@@ -7,5 +7,5 @@ scipy
 ultralytics
 trimesh
 imblearn
-moviepy
-vedo
+opencv-python
+natsort
