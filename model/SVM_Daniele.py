@@ -48,4 +48,26 @@ save_model_as_pkl(name = "poly_3_not_undersampled", model=svm,columns=X_train.co
 end=time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
 
+pipe = Pipeline({
+        ("filter", SelectKBest()),
+        ("SVM", SVC(class_weight="balanced", probability=True))
+    })
 
+hyperparameters={
+    "filter__k" : [500, 1000, 1250, 1500, 1750],
+    "SVM__C" : [10,100,125,150,175],
+    "SVM__kernel" : ["linear", "poly", "rbf", "sigmoid"]
+}
+
+grid = GridSearchCV(
+    estimator=pipe,
+    param_grid=hyperparameters,
+    scoring="f1",     
+    cv=5,                 
+    verbose=2,
+    n_jobs=-1             
+)
+grid.fit(y=y,X=X)
+bestFit = grid.best_estimator_
+bestHyperparameters = grid.best_params_
+print(f"The best hyperparameters selected were:   {bestHyperparameters}")

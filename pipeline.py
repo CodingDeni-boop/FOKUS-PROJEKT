@@ -4,8 +4,9 @@ from pipeline_code.generate_labels import labels
 from pipeline_code.fix_frames import drop_non_analyzed_videos
 from pipeline_code.fix_frames import drop_last_frame
 from pipeline_code.model_wrapper import ModelWrapper
+from pipeline_code.model_wrapper import GridWrapper
 from sklearn.svm import SVC
-
+from sklearn.pipeline import Pipeline
 import joblib as job
 import time
 import pandas as pd
@@ -17,7 +18,7 @@ import os
 
 start=time.time()
 
-X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
+X_path = "./pipeline_saved_processes/dataframes/X.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
 
 ### checks if X and y already exists, and if not, they get computed
@@ -126,7 +127,7 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
                 
                 f_b_fill = True,
 
-                embedding_length = list(range(0,1)),
+                embedding_length = list(range(-15,16)),
 
                 output_path = X_path
                     )
@@ -144,19 +145,59 @@ else:
 X = drop_non_analyzed_videos(X = X,y = y)
 X, y = drop_last_frame(X = X, y = y)
 
-wrapped_SVM = ModelWrapper(X, y, SVC, train_test_random_seed = 42)
-print(wrapped_SVM)
+"""
+wrapped_SVM = ModelWrapper(X, y, SVC(), train_test_test_videos = 2, random_state = 42, scaling = True, undersampling = True)
+wrapped_SVM.fit()
+wrapped_SVM.predict()
+wrapped_SVM.save(output_path = "./pipeline_saved_processes/models/SVM.pkl")
 
+wrapped_SVM_loaded = ModelWrapper.load(input_path = "./pipeline_saved_processes/models/SVM.pkl")
+print(wrapped_SVM_loaded)
+"""
 
+pipe = Pipeline([
+        ("SVM", SVC(class_weight="balanced", probability=True))
+    ])
 
+param_grid=[
+    {
+        "SVM__kernel": ["linear"],
+        "SVM__C": [0.01,0.1,1, 10],
+    },
+    {
+        "SVM__kernel": ["poly"],
+        "SVM__C": [0.01,0.1,1, 10],
+        "SVM__degree": [2,3,4, 5, 9],
+        "SVM__coef0": [0,1],
+    },
+    {
+        "SVM__kernel": ["rbf"],
+        "SVM__C": [0.01,0.1,1, 10],
+        "SVM__gamma" : [1, 0.1, 0.01, 0.001, 0.0001]
+    },
+    {
+        "SVM__kernel": ["sigmoid"],
+        "SVM__C": [0.01,0.1,1, 10],
+        "SVM__coef0": [0, 1],
+    }
+                ]
 
+wrapped_SVM_grid = GridWrapper(X = X, y = y,
+                 estimator = pipe,
+                 param_grid = param_grid,
+                 scoring = "f1_macro",
+                 cv = 5,
+                 n_jobs = 4,
+                 train_test_test_videos = 3, 
+                 random_state = 42, 
+                 scaling = True, 
+                 undersampling = True)
 
+wrapped_SVM_grid.search()
+print(wrapped_SVM_grid.predict())
+wrapped_SVM_grid.save("./pipeline_saved_processes/models/SVM_grid_search_try.pkl")
 
-
-
-
-
-job.dump(features, f"pipeline_saved_processes/Feature_Collection_{int(time.localtime()[2])}-{int(time.localtime()[1])}-{int(time.localtime()[0])}_{int(time.localtime()[3])}:{int(time.localtime()[4])}")
+#job.dump(features, f"pipeline_saved_processes/Feature_Collection_{int(time.localtime()[2])}-{int(time.localtime()[1])}-{int(time.localtime()[0])}_{int(time.localtime()[3])}:{int(time.localtime()[4])}")
 
 end=time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")

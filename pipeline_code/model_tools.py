@@ -1,12 +1,6 @@
-import os
-import shutil
 import pandas as pd
 import random as rd
 from imblearn.under_sampling import RandomUnderSampler
-import joblib
-import json
-from sklearn.model_selection import GridSearchCV
-from sklearn.svm import SVC
 
 def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int ,random_state=None):
 
@@ -24,13 +18,11 @@ def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int 
         raise ValueError("X index name doesn't match y index name")
     index = X_index
     test_index = rd.sample(list(index),test_videos)
-    train_index = index.drop(test_index)
+    train_index = list(index.drop(test_index))
 
-    X_train, X_test, y_train, y_test = X.loc[train_index],X.loc[test_index],y.loc[train_index],y.loc[test_index]
-    print(f"videos selected for test are: {test_index}")
-    return X_train, X_test, y_train, y_test
+    return train_index, test_index
 
-def undersample(X_train : pd.DataFrame, y_train : pd.DataFrame,random_state=None):
+def undersample(X_train : pd.DataFrame, y_train : pd.DataFrame,random_state = None):
     """
     resamples with RandomUnderSampler\n
     - X_train : pd.DataFrame
