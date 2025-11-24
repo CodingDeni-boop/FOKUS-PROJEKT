@@ -55,7 +55,7 @@ def smooth_predictions(predictions, min_frames):
 
     return smoothed
 
-def evaluate_model(model : object, X_train : pd.DataFrame(), y_train: pd.DataFrame(), X_test: pd.DataFrame(), y_test: pd.DataFrame(), min_frames=None ):
+def evaluate_model(model : object, X_train : pd.DataFrame, y_train: pd.DataFrame, X_test: pd.DataFrame, y_test: pd.DataFrame, min_frames=None ):
     y_pred = model.predict(X_test)
     y_pred_proba = model.predict_proba(X_test)
 

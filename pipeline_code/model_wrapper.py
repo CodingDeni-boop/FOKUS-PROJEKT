@@ -3,11 +3,12 @@ from sklearn.model_selection import GridSearchCV
 import pandas as pd
 import numpy as np
 from pipeline_code.model_tools import video_train_test_split
-from pipeline_code.model_tools import undersample
+from pipeline_code.model_tools import smooth_prediction
 from sklearn.preprocessing import StandardScaler
 from imblearn.under_sampling import RandomUnderSampler
 import joblib as job
 from sklearn.pipeline import Pipeline
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 class ModelWrapper:
 
@@ -17,7 +18,8 @@ class ModelWrapper:
                  train_test_test_videos : int = 3,
                  random_state = None,
                  scaling : bool = True,
-                 undersampling : bool = False):
+                 undersampling : bool = False,
+                 labels : tuple = ("background", "supportedrear", "unsupportedrear", "grooming")):
         
         self.identity = "WrappedModel"
         self.meta = {}
@@ -26,6 +28,9 @@ class ModelWrapper:
         self.train_index, self.test_index = video_train_test_split(X, y, test_videos = train_test_test_videos, random_state = random_state)
         self.X_train, self.X_test, self.y_train, self.y_test = X.loc[self.train_index],X.loc[self.test_index],y.loc[self.train_index],y.loc[self.test_index]
         self.meta["has_DataFrame"] = True
+        self.meta["fitted_on"] = None
+        self.meta["prediction"] = None
+        self.meta["evaluation"] = None
         if scaling:
             num_features = self.X_train.select_dtypes(include=[np.number]).columns.tolist()
             scaler = StandardScaler()
@@ -54,20 +59,49 @@ class ModelWrapper:
     def __str__(self):
         return f"{self.identity} for: {self.model} with {len(self.features)} input features\n train set '{self.train_index}'\n test set '{self.test_index}'\n modifications: {self.meta}"
     
+    def check_if_DataFrame(self):
+        if self.meta["has_DataFrame"] == False:
+            raise KeyError("Object was instanced without DataFrame and cannot fit or predict.")
+    
+    def check_if_fitted(self):
+        if self.meta["fitted_on"] == None:
+            self.fit()
+        
+    def check_if_predicted(self):
+        if self.meta["prediction"] == None:
+            self.predict()
+    
+    def check_if_evaluated(self):
+        if self.meta["evaluation"] == None:
+            self.evaluate()
+
     def fit(self):
+        self.check_if_DataFrame()
         raveled_y_train = self.y_train.values.ravel()
         self.model.fit(X = self.X_train, y = raveled_y_train)
         self.meta["fitted_on"] = self.train_index
 
-    def predict(self):
+    def predict(self, smooth_prediction_frames : int = None):
+        self.check_if_DataFrame()
         predictions_dictionary = {}
         for video_id in self.test_index:
             print(f"running prediction for video {video_id}")
             prediction = self.model.predict(self.X_test.loc[video_id])
+            if smooth_prediction_frames != None:
+                prediction = smooth_prediction(prediction = prediction, min_frames = smooth_prediction_frames)
             predictions_dictionary[video_id] = pd.Series(prediction)
         self.y_pred = pd.DataFrame(pd.concat(predictions_dictionary.values(), keys = predictions_dictionary.keys(), names = ['video_id', 'frame']))
-        self.meta["prediction"] = {"y_pred" : self.y_pred, "y_true" : self.y_test,"video_id" : self.test_index}
+        self.meta["prediction"] = {"y_pred" : self.y_pred, "y_true" : self.y_test,"video_id" : self.test_index, "smoothed" : False}
+        if smooth_prediction_frames != None:
+            self.meta["prediction"]["smoothed"] = smooth_prediction_frames
         return self.y_pred
+
+    def evaluate(self):
+        self.check_if_predicted()
+        self.accuracy = accuracy_score(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"])
+        self.confusion_matrix = confusion_matrix(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"], labels = self.labels)
+        self.classification_report = classification_report(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"], labels = self.labels, output_dict = True)
+        self.meta["evaluation"] = {"accuracy" : self.accuracy, "confusion_matrix" : self.confusion_matrix, "classification_report" : self.classification_report}
 
     def save(self, output_path : str):
         print("saving...")
@@ -89,7 +123,8 @@ class GridWrapper(ModelWrapper):
                  train_test_test_videos : int = 3,
                  random_state = None,
                  scaling : bool = True,
-                 undersampling : bool = False):
+                 undersampling : bool = False,
+                 labels : tuple = ("background", "supportedrear", "unsupportedrear", "grooming")):
         
         super().__init__(X = X,
                  y = y,
@@ -97,7 +132,8 @@ class GridWrapper(ModelWrapper):
                  train_test_test_videos = train_test_test_videos,
                  random_state = random_state,
                  scaling = scaling,
-                 undersampling = undersampling)
+                 undersampling = undersampling,
+                 labels = labels)
         
         self.grid = GridSearchCV(estimator = estimator,
             param_grid = param_grid,
@@ -124,7 +160,8 @@ class GridWrapper(ModelWrapper):
             train_test_test_videos = self.train_test_test_videos,
             random_state = self.random_state,
             scaling = self.scaling,
-            undersampling = self.undersampling)
+            undersampling = self.undersampling,
+            labels = self.labels)
         
         return wrappedmodel
         

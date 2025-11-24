@@ -31,3 +31,49 @@ def undersample(X_train : pd.DataFrame, y_train : pd.DataFrame,random_state = No
     """
     rus = RandomUnderSampler(random_state=random_state)
     return rus.fit_resample(X_train,y_train)
+
+def smooth_prediction(prediction, min_frames):
+    
+    #Remove behavior prediction outliers shorter than min_frames.
+
+       # predictions: Array of predicted labels
+      #  min_frames: Minimum number of consecutive frames for a behavior to be valid
+
+    #Returns:
+      #  Smoothed predictions array
+    
+    if len(prediction) < min_frames:
+        return prediction
+
+    smoothed = prediction.copy()
+    i = 0
+
+    while i < len(smoothed):
+        current_label = smoothed[i]
+        # Find the length of the current behavior segment
+        segment_start = i
+        while i < len(smoothed) and smoothed[i] == current_label:
+            i += 1
+        segment_length = i - segment_start
+
+        # If segment is shorter than min_frames, replace with neighboring behavior
+        if segment_length < min_frames:
+            # Determine replacement label from neighbors
+            prev_label = smoothed[segment_start - 1] if segment_start > 0 else None
+            next_label = smoothed[i] if i < len(smoothed) else None
+
+            # Choose the label that appears in neighbors (prefer previous)
+            if prev_label is not None and next_label is not None and prev_label == next_label:
+                replacement = prev_label
+            elif prev_label is not None:
+                replacement = prev_label
+            elif next_label is not None:
+                replacement = next_label
+            else:
+                # Keep original if no neighbors available
+                continue
+
+            # Replace the short segment
+            smoothed[segment_start:i] = replacement
+
+    return smoothed
