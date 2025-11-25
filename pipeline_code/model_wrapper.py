@@ -49,14 +49,14 @@ class ModelWrapper:
     def load(cls, input_path : str, X : pd.DataFrame = None, y : pd.DataFrame = None):
 
         obj = job.load(input_path)
-        if obj.meta["has_DataFrame"] == True:
+        if X is not None and y is not None:
             obj.X_train, obj.X_test, obj.y_train, obj.y_test = X.loc[obj.train_index],X.loc[obj.test_index],y.loc[obj.train_index].values.ravel(),y.loc[obj.test_index].values.ravel()
             #columns in loaded dataframe
             obj.meta["has_DataFrame"] = True
         else:
             print("Object was instanced without DataFrame")
-            object.meta["has_DataFrame"] = False
-        return object
+            obj.meta["has_DataFrame"] = False
+        return obj
     
     def __str__(self):
         return f"{self.identity} for: {self.model} with {len(self.features)} input features\n train set '{self.train_index}'\n test set '{self.test_index}'\n modifications: {self.meta}"
