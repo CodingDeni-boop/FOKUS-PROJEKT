@@ -199,5 +199,5 @@ else:
 
     #job.dump(features, f"pipeline_saved_processes/Feature_Collection_{int(time.localtime()[2])}-{int(time.localtime()[1])}-{int(time.localtime()[0])}_{int(time.localtime()[3])}:{int(time.localtime()[4])}")
 
-    end = time.time()
-    print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
+end = time.time()
+print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
