@@ -84,6 +84,7 @@ class ModelWrapper:
         self.class_weights = {cls: total_samples / (n_classes * count) for cls, count in class_counts.items()}
         self.sample_weights = np.array([self.class_weights[y] for y in self.y_train])
         self.meta["weights"] = {"sample_weights" : self.sample_weights, "class_weights" : self.sample_weights}
+        return self.sample_weights
 
     def fit(self, **kwargs):
         self.check_if_DataFrame()

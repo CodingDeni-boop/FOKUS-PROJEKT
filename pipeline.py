@@ -190,7 +190,7 @@ if not os.path.isfile(SVM_grid_search_path):
                     undersampling = True,
                     labels = ("background", "supportedrear", "unsupportedrear", "grooming"))
 
-    wrapped_SVM_grid.search()
+    wrapped_SVM_grid.fit_grid()
     print(wrapped_SVM_grid.predict())
     wrapped_SVM_grid.save(SVM_grid_search_path)
 
