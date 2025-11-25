@@ -19,7 +19,7 @@ import os
 
 start = time.time()
 
-X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
+X_path = "./pipeline_saved_processes/dataframes/X.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
 SVM_grid_search_path = "./pipeline_saved_processes/models/SVM_grid_search.pkl"
 
@@ -191,13 +191,17 @@ if not os.path.isfile(SVM_grid_search_path):
                     labels = ("background", "supportedrear", "unsupportedrear", "grooming"))
 
     wrapped_SVM_grid.fit_grid()
-    print(wrapped_SVM_grid.predict())
+    wrapped_SVM_grid.predict()
     wrapped_SVM_grid.save(SVM_grid_search_path)
-
 else:
     wrapped_SVM_grid = GridWrapper.load(SVM_grid_search_path, X, y)
 
+wrapped_SVM_grid.evaluate()
+
+
     #job.dump(features, f"pipeline_saved_processes/Feature_Collection_{int(time.localtime()[2])}-{int(time.localtime()[1])}-{int(time.localtime()[0])}_{int(time.localtime()[3])}:{int(time.localtime()[4])}")
+
 
 end = time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
+

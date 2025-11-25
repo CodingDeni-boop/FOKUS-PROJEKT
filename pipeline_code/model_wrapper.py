@@ -105,10 +105,9 @@ class ModelWrapper:
         self.meta["prediction_train"] = {"y_pred" : self.y_pred_train, "y_true" : self.y_train,"video_id" : self.train_index, "smoothed" : False}
         if smooth_prediction_frames != None:
             self.meta["prediction"]["smoothed"] = smooth_prediction_frames
-        
-
-
         return self.y_pred_test
+    
+
 
     def evaluate(self):
         self.check_if_predicted()
@@ -134,6 +133,8 @@ class ModelWrapper:
         print(self.confusion_matrix_test)
         print(classification_report(self.meta["prediction_test"]["y_true"], self.meta["prediction_test"]["y_pred"], labels = self.labels))
 
+    def unwrap_model(self):
+        return self.model
 
     def save(self, output_path : str):
         print("saving...")
