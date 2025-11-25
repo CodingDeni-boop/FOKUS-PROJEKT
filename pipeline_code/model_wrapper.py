@@ -48,11 +48,11 @@ class ModelWrapper:
     @classmethod
     def load(cls, input_path : str, X : pd.DataFrame = None, y : pd.DataFrame = None):
 
-        object = job.load(input_path)
-        if X != None and y != None:
-            object.X_train, object.X_test, object.y_train, object.y_test = X.loc[object.train_index],X.loc[object.test_index],y.loc[object.train_index].values.ravel(),y.loc[object.test_index].values.ravel()
+        obj = job.load(input_path)
+        if obj.meta["has_DataFrame"] == True:
+            obj.X_train, obj.X_test, obj.y_train, obj.y_test = X.loc[obj.train_index],X.loc[obj.test_index],y.loc[obj.train_index].values.ravel(),y.loc[obj.test_index].values.ravel()
             #columns in loaded dataframe
-            object.meta["has_DataFrame"] = True
+            obj.meta["has_DataFrame"] = True
         else:
             print("Object was instanced without DataFrame")
             object.meta["has_DataFrame"] = False
@@ -115,6 +115,7 @@ class ModelWrapper:
         self.confusion_matrix = confusion_matrix(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"], labels = self.labels)
         self.classification_report = classification_report(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"], labels = self.labels, output_dict = True)
         self.meta["evaluation"] = {"accuracy" : self.accuracy, "confusion_matrix" : self.confusion_matrix, "classification_report" : self.classification_report}
+        return classification_report(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"])
 
     def save(self, output_path : str):
         print("saving...")
