@@ -3,6 +3,7 @@ from pipeline_code.generate_features import features
 from pipeline_code.generate_labels import labels
 from pipeline_code.fix_frames import drop_non_analyzed_videos
 from pipeline_code.fix_frames import drop_last_frame
+from pipeline_code.fix_frames import drop_nas
 from pipeline_code.model_wrapper import ModelWrapper
 from pipeline_code.model_wrapper import GridWrapper
 from sklearn.svm import SVC
@@ -144,6 +145,7 @@ else:
 
     y = pd.read_csv(y_path, index_col=["video_id", "frame"])
 
+X, y = drop_nas(X = X,y = y)
 X = drop_non_analyzed_videos(X = X,y = y)
 X, y = drop_last_frame(X = X, y = y)
 

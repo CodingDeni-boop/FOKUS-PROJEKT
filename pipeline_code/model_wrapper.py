@@ -40,7 +40,7 @@ class ModelWrapper:
         
         if undersampling:
             rus = RandomUnderSampler(random_state=random_state)
-            rus.fit_resample(self.X_train,self.y_train)
+            self.X_train, self.y_train = rus.fit_resample(self.X_train,self.y_train)
             self.meta["undersampler"] = rus
 
     @classmethod

@@ -28,3 +28,8 @@ def drop_last_frame(X : pd.DataFrame,y : pd.DataFrame):
 
     return X, y
 
+def drop_nas(X : pd.DataFrame,y : pd.DataFrame):
+    valid_mask = X.notna().all(axis=1)
+    X = X[valid_mask]
+    y = y[valid_mask]
+    return X, y
