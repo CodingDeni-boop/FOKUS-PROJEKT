@@ -25,6 +25,7 @@ class ModelWrapper:
         self.meta = {}
         self.model = model
         self.features = X.columns
+        self.labels = labels
         self.train_index, self.test_index = video_train_test_split(X, y, test_videos = train_test_test_videos, random_state = random_state)
         self.X_train, self.X_test, self.y_train, self.y_test = X.loc[self.train_index],X.loc[self.test_index],y.loc[self.train_index],y.loc[self.test_index]
         self.meta["has_DataFrame"] = True
