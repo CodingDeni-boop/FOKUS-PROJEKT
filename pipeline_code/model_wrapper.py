@@ -77,12 +77,13 @@ class ModelWrapper:
             self.evaluate()
 
     def class_weights(self):
-        unique, counts = np.unique(self.y_train, return_counts=True)
+        raveled_y_train = self.y_train.values.ravel()
+        unique, counts = np.unique(raveled_y_train, return_counts=True)
         class_counts = dict(zip(unique, counts))
-        total_samples = len(self.y_train)
+        total_samples = len(raveled_y_train)
         n_classes = len(unique)
         self.class_weights = {cls: total_samples / (n_classes * count) for cls, count in class_counts.items()}
-        self.sample_weights = np.array([self.class_weights[y] for y in self.y_train])
+        self.sample_weights = np.array([self.class_weights[y] for y in raveled_y_train])
         self.meta["weights"] = {"sample_weights" : self.sample_weights, "class_weights" : self.class_weights}
         return self.sample_weights
 
