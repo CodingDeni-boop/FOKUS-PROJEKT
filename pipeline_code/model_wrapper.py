@@ -154,9 +154,9 @@ class GridWrapper(ModelWrapper):
         )
         self.identity = "WrappedGrid"
 
-    def search(self):
+    def fit_grid(self, **kwargs):
         raveled_y_train = self.y_train.values.ravel()
-        self.grid.fit(y = raveled_y_train,X = self.X_train)
+        self.grid.fit(y = raveled_y_train,X = self.X_train, **kwargs)
         self.model = self.grid.best_estimator_ # Now we have the best estimator
         self.hyperparameters = self.grid.best_params_
         self.meta["Grid_results"] = {"model" : self.model, "hyperparamters" : self.hyperparameters}
