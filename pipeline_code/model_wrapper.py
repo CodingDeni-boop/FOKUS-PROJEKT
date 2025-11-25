@@ -31,6 +31,7 @@ class ModelWrapper:
         self.meta["fitted_on"] = None
         self.meta["prediction"] = None
         self.meta["evaluation"] = None
+        self.meta["weights"] = None
         if scaling:
             num_features = self.X_train.select_dtypes(include=[np.number]).columns.tolist()
             scaler = StandardScaler()
@@ -84,10 +85,10 @@ class ModelWrapper:
         self.sample_weights = np.array([self.class_weights[y] for y in self.y_train])
         self.meta["weights"] = {"sample_weights" : self.sample_weights, "class_weights" : self.sample_weights}
 
-    def fit(self):
+    def fit(self, **kwargs):
         self.check_if_DataFrame()
         raveled_y_train = self.y_train.values.ravel()
-        self.model.fit(X = self.X_train, y = raveled_y_train)
+        self.model.fit(X = self.X_train, y = raveled_y_train, **kwargs)
         self.meta["fitted_on"] = self.train_index
 
     def predict(self, smooth_prediction_frames : int = None):
