@@ -70,8 +70,8 @@ class ModelWrapper:
             self.fit()
         
     def check_if_predicted(self):
-        if self.meta["prediction"] == None:
-            self.predict()
+        if self.meta["prediction_train"] == None or self.meta["prediction_test"] == None:
+            raise AttributeError("YOU TRIED TO EVALUATE WITHOUT PREDICTING!")
     
     def check_if_evaluated(self):
         if self.meta["evaluation"] == None:
@@ -105,6 +105,8 @@ class ModelWrapper:
         self.meta["prediction_train"] = {"y_pred" : self.y_pred_train, "y_true" : self.y_train,"video_id" : self.train_index, "smoothed" : False}
         if smooth_prediction_frames != None:
             self.meta["prediction"]["smoothed"] = smooth_prediction_frames
+        
+
 
         return self.y_pred_test
 
