@@ -19,7 +19,7 @@ import os
 
 start = time.time()
 
-X_path = "./pipeline_saved_processes/dataframes/X.csv"
+X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
 SVM_grid_search_path = "./pipeline_saved_processes/models/SVM_grid_search.pkl"
 
@@ -145,9 +145,9 @@ else:
 
     y = pd.read_csv(y_path, index_col=["video_id", "frame"])
 
-X, y = drop_nas(X = X,y = y)
 X = drop_non_analyzed_videos(X = X,y = y)
 X, y = drop_last_frame(X = X, y = y)
+X, y = drop_nas(X = X,y = y)
 
 if not os.path.isfile(SVM_grid_search_path):
 
