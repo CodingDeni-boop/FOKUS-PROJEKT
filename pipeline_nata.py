@@ -14,6 +14,7 @@ import pandas as pd
 from natsort import natsorted
 from sklearn.ensemble import HistGradientBoostingClassifier as HGB
 import os
+import matplotlib.pyplot as plt
 
 # THE AIM OF THIS IS TO MAKE THIS A SINGLE FILE, WHICH USES OUR REPOSITORY AS A SORT OF LIBRARY.
 # THIS IS AN ATTEMPT TO MAKE ORDER
@@ -152,12 +153,12 @@ X, y = drop_nas(X=X, y=y)
 if not os.path.isfile(HGB_grid_search_path):
 
     param_grid = {
-        'max_iter': [50],
-        'max_depth': [3],
-        #'learning_rate': [00.1, 0.05],
-        #'min_samples_leaf': [10, 20],
-       # 'l2_regularization': [0.0, 0.1],
-        'max_bins': [255]
+        'max_iter' : [100],  # equivalent to n_estimators
+        'max_depth' : [6],
+        'learning_rate' : [0.1],
+        'max_bins' : [255],  # default, can increase for more precision
+        'min_samples_leaf' : [20],
+        'l2_regularization' : [0.0]
     }
 
     wrapped_HGB_grid = GridWrapper(X = X, y = y,
@@ -182,4 +183,28 @@ else:
 
 wrapped_HGB_grid.evaluate()
 
+# Extract feature importances
+importances = wrapped_HGB_grid.model.feature_importances_
+feature_names = wrapped_HGB_grid.X_train.columns
+feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+
+# Rank features by importance
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+print(feature_importance_df.head(100))
+
+
+# Plot top 10 feature importances
+top_n_plot = 10
+top_features_plot = feature_importance_df.head(top_n_plot)
+plt.figure(figsize=(10, 12))
+plt.barh(range(top_n_plot), top_features_plot['Importance'], align='center')
+plt.yticks(range(top_n_plot), top_features_plot['Feature'])
+plt.xlabel('Importance', fontsize=12)
+plt.ylabel('Feature', fontsize=12)
+model_name =  "Histogram Gradient Boosting"
+plt.title(f'Top {top_n_plot} {model_name} Feature Importances', fontsize=14, fontweight='bold')
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.savefig('pipeline_outputs/feature_importances_HGB.png', dpi=300, bbox_inches='tight')
+plt.close()
 end = time.time()
