@@ -1,6 +1,7 @@
 import pandas as pd
 import random as rd
 from imblearn.under_sampling import RandomUnderSampler
+from sklearn.base import BaseEstimator
 
 def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int ,random_state=None):
 
@@ -77,3 +78,13 @@ def smooth_prediction(prediction, min_frames):
             smoothed[segment_start:i] = replacement
 
     return smoothed
+
+def iter_predict(model : BaseEstimator, index : list, X : pd.DataFrame, smooth_prediction_frames : int = None):
+    predictions_dictionary = {}
+    for video_id in index:
+        print(f"running prediction for video {video_id}")
+        prediction = model.predict(X.loc[video_id])
+        if smooth_prediction_frames != None:
+            prediction = smooth_prediction(prediction = prediction, min_frames = smooth_prediction_frames)
+        predictions_dictionary[video_id] = pd.Series(prediction)
+    return pd.DataFrame(pd.concat(predictions_dictionary.values(), keys = predictions_dictionary.keys(), names = ['video_id', 'frame']))

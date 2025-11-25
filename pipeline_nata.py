@@ -152,12 +152,12 @@ X, y = drop_nas(X=X, y=y)
 if not os.path.isfile(HGB_grid_search_path):
 
     param_grid = {
-        'HGB__max_iter': [50, 100],
-        'HGB__max_depth': [3, 6],
+        'max_iter': [50],
+        'max_depth': [3],
         #'learning_rate': [00.1, 0.05],
         #'min_samples_leaf': [10, 20],
        # 'l2_regularization': [0.0, 0.1],
-        'HGB__max_bins': [255]
+        'max_bins': [255]
     }
 
     wrapped_HGB_grid = GridWrapper(X = X, y = y,
@@ -173,17 +173,13 @@ if not os.path.isfile(HGB_grid_search_path):
                     labels = ("background", "supportedrear", "unsupportedrear", "grooming"))
 
     sample_weights =wrapped_HGB_grid.class_weights()
-
     wrapped_HGB_grid.fit_grid(sample_weight=sample_weights)
-    #wrapped_HGB_grid.search()
-    wrapped_HGB_grid.evaluate()
+    wrapped_HGB_grid.predict()
     wrapped_HGB_grid.save(HGB_grid_search_path)
-    print(wrapped_HGB_grid)
-
 
 else:
     wrapped_HGB_grid = GridWrapper.load(HGB_grid_search_path, X, y)
 
-
+wrapped_HGB_grid.evaluate()
 
 end = time.time()

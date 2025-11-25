@@ -3,7 +3,7 @@ from sklearn.model_selection import GridSearchCV
 import pandas as pd
 import numpy as np
 from pipeline_code.model_tools import video_train_test_split
-from pipeline_code.model_tools import smooth_prediction
+from pipeline_code.model_tools import iter_predict
 from sklearn.preprocessing import StandardScaler
 from imblearn.under_sampling import RandomUnderSampler
 import joblib as job
@@ -96,31 +96,49 @@ class ModelWrapper:
 
     def predict(self, smooth_prediction_frames : int = None):
         self.check_if_DataFrame()
-        predictions_dictionary = {}
-        for video_id in self.test_index:
-            print(f"running prediction for video {video_id}")
-            prediction = self.model.predict(self.X_test.loc[video_id])
-            if smooth_prediction_frames != None:
-                prediction = smooth_prediction(prediction = prediction, min_frames = smooth_prediction_frames)
-            predictions_dictionary[video_id] = pd.Series(prediction)
-        self.y_pred = pd.DataFrame(pd.concat(predictions_dictionary.values(), keys = predictions_dictionary.keys(), names = ['video_id', 'frame']))
-        self.meta["prediction"] = {"y_pred" : self.y_pred, "y_true" : self.y_test,"video_id" : self.test_index, "smoothed" : False}
+        self.y_pred_test = iter_predict(model = self.model, index = self.test_index, X = self.X_test, smooth_prediction_frames = smooth_prediction_frames)
+        self.meta["prediction_test"] = {"y_pred" : self.y_pred_test, "y_true" : self.y_test,"video_id" : self.test_index, "smoothed" : False}
         if smooth_prediction_frames != None:
             self.meta["prediction"]["smoothed"] = smooth_prediction_frames
-        return self.y_pred
+        
+        self.y_pred_train = iter_predict(model = self.model, index = self.train_index, X = self.X_train, smooth_prediction_frames = smooth_prediction_frames)
+        self.meta["prediction_train"] = {"y_pred" : self.y_pred_train, "y_true" : self.y_train,"video_id" : self.train_index, "smoothed" : False}
+        if smooth_prediction_frames != None:
+            self.meta["prediction"]["smoothed"] = smooth_prediction_frames
+
+        return self.y_pred_test
 
     def evaluate(self):
         self.check_if_predicted()
-        self.accuracy = accuracy_score(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"])
-        self.confusion_matrix = confusion_matrix(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"], labels = self.labels)
-        self.classification_report = classification_report(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"], labels = self.labels, output_dict = True)
-        self.meta["evaluation"] = {"accuracy" : self.accuracy, "confusion_matrix" : self.confusion_matrix, "classification_report" : self.classification_report}
-        return classification_report(self.meta["prediction"]["y_true"], self.meta["prediction"]["y_pred"])
+
+        self.accuracy_train = accuracy_score(self.meta["prediction_train"]["y_true"], self.meta["prediction_train"]["y_pred"])
+        self.confusion_matrix_train = confusion_matrix(self.meta["prediction_train"]["y_true"], self.meta["prediction_train"]["y_pred"], labels = self.labels)
+        self.classification_report_train = classification_report(self.meta["prediction_train"]["y_true"], self.meta["prediction_train"]["y_pred"], labels = self.labels, output_dict = True)
+        self.meta["evaluation_train"] = {"accuracy" : self.accuracy_train, "confusion_matrix" : self.confusion_matrix_train, "classification_report" : self.classification_report_train}
+
+        self.accuracy_test = accuracy_score(self.meta["prediction_test"]["y_true"], self.meta["prediction_test"]["y_pred"])
+        self.confusion_matrix_test = confusion_matrix(self.meta["prediction_test"]["y_true"], self.meta["prediction_test"]["y_pred"], labels = self.labels)
+        self.classification_report_test = classification_report(self.meta["prediction_test"]["y_true"], self.meta["prediction_test"]["y_pred"], labels = self.labels, output_dict = True)
+        self.meta["evaluation_test"] = {"accuracy" : self.accuracy_test, "confusion_matrix" : self.confusion_matrix_test, "classification_report" : self.classification_report_test}
+
+        print("\n=== Classification Report - TRAIN SET ===")
+        print(f"Train Accuracy: {(self.accuracy_train):.4f}")
+        print(classification_report(self.meta["prediction_train"]["y_true"], self.meta["prediction_train"]["y_pred"], labels = self.labels))
+        print(self.confusion_matrix_train)
+
+        print("\n=== Classification Report - TEST SET ===")
+        print(f"Test Accuracy: {(self.accuracy_test):.4f}")
+        print("\n=== Confusion Matrix ===")
+        print(self.confusion_matrix_test)
+        print(classification_report(self.meta["prediction_test"]["y_true"], self.meta["prediction_test"]["y_pred"], labels = self.labels))
+
 
     def save(self, output_path : str):
         print("saving...")
+        X_train, X_test, y_train, y_test = self.X_train, self.X_test, self.y_train, self.y_test
         del self.X_train, self.X_test, self.y_train, self.y_test
         job.dump(self, output_path)
+        self.X_train, self.X_test, self.y_train, self.y_test = X_train, X_test, y_train, y_test
         print("model saved")
     
 
