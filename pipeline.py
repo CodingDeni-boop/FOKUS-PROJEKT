@@ -7,11 +7,14 @@ from pipeline_code.fix_frames import drop_nas
 from pipeline_code.filter_and_preprocess import reduce_bits
 from pipeline_code.model_tools import video_train_test_split
 from pipeline_code.filter_and_preprocess import scale
-from pipeline_code.model_tools import predict_multiIndex
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_classif, mutual_info_classif
+import matplotlib.pyplot as plt
+import seaborn as sns
 from pipeline_code.Shelf import Shelf
 from sklearn.svm import SVC
+from pipeline_code.model_tools import predict_multiIndex
 from sklearn.model_selection import GridSearchCV
-from sklearn.feature_selection import SelectKBest
 import joblib as job
 import time
 import pandas as pd
@@ -28,6 +31,7 @@ y_path = "./pipeline_saved_processes/dataframes/y.csv"
 model_path = "./pipeline_saved_processes/models/try.pkl"
 
 uvfs_graph = True
+collinearity_graph = True
 
 
 ### checks if X and y already exists, and if not, they get computed
@@ -66,7 +70,7 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
                             ("bodycentre","bcr") : ("x","y","z"),
                             ("bodycentre","hipl") : ("x","y","z"),
                             ("bodycentre","hipr") : ("x","y","z"),
-                            ("headcentre","mid") : ("x","y","z"),
+                            ("headcentre","mid") : ("z"),
                             ("earl","mid") : ("z"),
                             ("earr","mid") : ("z"),
                             ("neck","mid") : ("z"),
@@ -155,18 +159,41 @@ else:
     X = pd.read_csv(X_path, index_col=["video_id", "frame"])
     y = pd.read_csv(y_path, index_col=["video_id", "frame"])
 
+### GRAPHS ###
 if uvfs_graph:
 
-    score_functions = ["chi2", "mutual_info_classif"]
+    score_functions = [f_classif, mutual_info_classif]
     for function in score_functions:
         uvfs = SelectKBest(score_func = function)
         uvfs.fit(X, y)
         scores = uvfs.scores_
         feature_names = X.columns
         importances = pd.DataFrame({"feature" : feature_names, "score" : scores})
+        importances.sort_values(by = "score", ascending = False, inplace = True)
+        importances["score"] = importances["score"]/importances["score"].max()
+        plt.figure(figsize=(15,25))
+        sns.barplot(data = importances, x = "score", y = "feature")
+        plt.title(f"{function.__name__} feature importance", fontsize = 30, pad = 42)
+        plt.ylabel("feature name", fontsize = 20, labelpad = 30)
+        plt.xlabel("score", fontsize = 20, labelpad = 30)
+        plt.subplots_adjust(left = 0.4)
+        plt.savefig(f"./pipeline_outputs/feature_importance_with_{function.__name__}_on_lite_dataframe")
+        print(f"{function.__name__} feature importance computed!")
+
+if collinearity_graph:
+    for scientist in ["pearson", "spearman", "kendall"]:
+        corr_matrix = X.corr(scientist)
+        plt.figure(figsize=(40,30))
+        sns.color_palette("colorblind")
+        sns.heatmap(corr_matrix, cmap = "viridis", vmin = -1, vmax = 1)
+        plt.title(f"{scientist} correlation", fontsize = 30, pad = 42)
+        plt.ylabel("feature name", fontsize = 20, labelpad = 30)
+        plt.xlabel("feature name", fontsize = 20, labelpad = 30)
+        plt.subplots_adjust(bottom = 0.23, left = 0.3)
+        plt.savefig(f"./pipeline_outputs/correalation_matrix_{scientist}.png")
+        print(f"{scientist} correlation computed!")
 
 
-"""
 if not os.path.isfile(model_path):
 
     X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
@@ -182,5 +209,3 @@ else:
 
 end = time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
-
-"""
