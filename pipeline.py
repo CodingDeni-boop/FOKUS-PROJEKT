@@ -5,12 +5,13 @@ from pipeline_code.fix_frames import drop_non_analyzed_videos
 from pipeline_code.fix_frames import drop_last_frame
 from pipeline_code.fix_frames import drop_nas
 from pipeline_code.filter_and_preprocess import reduce_bits
-from pipeline_code.filter_and_preprocess import Filter
-from pipeline_code.model_wrapper import ModelWrapper
-from pipeline_code.model_wrapper import GridWrapper
+from pipeline_code.model_tools import video_train_test_split
+from pipeline_code.filter_and_preprocess import scale
+from pipeline_code.model_tools import predict_multiIndex
+from pipeline_code.Shelf import Shelf
 from sklearn.svm import SVC
-from sklearn.feature_selection import VarianceThreshold
-from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+from sklearn.feature_selection import SelectKBest
 import joblib as job
 import time
 import pandas as pd
@@ -24,7 +25,9 @@ start = time.time()
 
 X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
-SVM_grid_search_path = "./pipeline_saved_processes/models/SVM_grid_search.pkl"
+model_path = "./pipeline_saved_processes/models/try.pkl"
+
+uvfs_graph = True
 
 
 ### checks if X and y already exists, and if not, they get computed
@@ -131,7 +134,7 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
                 
                 f_b_fill = True,
 
-                embedding_length = list(range(-15,16)),
+                embedding_length = list(range(0,1)),
                     )
 
     y = labels(labels_path = "./pipeline_inputs/labels",
@@ -140,6 +143,7 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
     X = drop_non_analyzed_videos(X = X,y = y)
     X, y = drop_last_frame(X = X, y = y)
     X, y = drop_nas(X = X,y = y)
+    X = reduce_bits(X)
 
     print("saving...")
     X.to_csv(X_path)
@@ -151,66 +155,32 @@ else:
     X = pd.read_csv(X_path, index_col=["video_id", "frame"])
     y = pd.read_csv(y_path, index_col=["video_id", "frame"])
 
-X = reduce_bits(X)
-filter = Filter(VarianceThreshold(threshold=0.2))
-filter.fit(X)
-filter.get_variance()
-filter.graph_variance("./pipeline_outputs/VarianceThresholdGraph.png")
-X = filter.transform(X)
+if uvfs_graph:
 
-if not os.path.isfile(SVM_grid_search_path):
+    score_functions = ["chi2", "mutual_info_classif"]
+    for function in score_functions:
+        uvfs = SelectKBest(score_func = function)
+        uvfs.fit(X, y)
+        scores = uvfs.scores_
+        feature_names = X.columns
+        importances = pd.DataFrame({"feature" : feature_names, "score" : scores})
 
-    pipe = Pipeline([
-            ("SVM", SVC(class_weight="balanced", probability=True))
-        ])
 
-    param_grid=[
-        {
-            "SVM__kernel": ["linear"],
-            "SVM__C": [0.01,0.1,1, 10],
-        },
-        {
-            "SVM__kernel": ["poly"],
-            "SVM__C": [0.01,0.1,1, 10],
-            "SVM__degree": [2,3,4, 5, 9],
-            "SVM__coef0": [0,1],
-        },
-        {
-            "SVM__kernel": ["rbf"],
-            "SVM__C": [0.01,0.1,1, 10],
-            "SVM__gamma" : [1, 0.1, 0.01, 0.001, 0.0001]
-        },
-        {
-            "SVM__kernel": ["sigmoid"],
-            "SVM__C": [0.01,0.1,1, 10],
-            "SVM__coef0": [0, 1],
-        }
-                    ]
+"""
+if not os.path.isfile(model_path):
 
-    wrapped_SVM_grid = GridWrapper(X = X, y = y,
-                    estimator = pipe,
-                    param_grid = param_grid,
-                    scoring = "f1_macro",
-                    cv = 5,
-                    n_jobs = 4,
-                    train_test_test_videos = 3, 
-                    random_state = 42, 
-                    scaling = True, 
-                    undersampling = True,
-                    labels = ("background", "supportedrear", "unsupportedrear", "grooming"))
+    X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
+    X_train, X_test = scale(X_train, X_test)
 
-    wrapped_SVM_grid.fit_grid()
-    wrapped_SVM_grid.predict()
-    wrapped_SVM_grid.save(SVM_grid_search_path)
+
+    model = GridSearchCV(SVC)
+    Shelf(X_train, X_test, model, model_path)
 else:
-    wrapped_SVM_grid = GridWrapper.load(SVM_grid_search_path, X, y)
+    X_train, X_test, y_train, y_test, model = Shelf.load(X, y, model_path)
 
-wrapped_SVM_grid.evaluate()
-
-
-    #job.dump(features, f"pipeline_saved_processes/Feature_Collection_{int(time.localtime()[2])}-{int(time.localtime()[1])}-{int(time.localtime()[0])}_{int(time.localtime()[3])}:{int(time.localtime()[4])}")
 
 
 end = time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
 
+"""

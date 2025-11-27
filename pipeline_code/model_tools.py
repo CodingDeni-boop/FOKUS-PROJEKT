@@ -20,8 +20,8 @@ def video_train_test_split(X : pd.DataFrame,y : pd.DataFrame ,test_videos : int 
     index = X_index
     test_index = rd.sample(list(index),test_videos)
     train_index = list(index.drop(test_index))
-
-    return train_index, test_index
+    X_train, X_test, y_train, y_test = X.loc[train_index],X.loc[test_index],y.loc[train_index],y.loc[test_index]
+    return X_train, X_test, y_train, y_test
 
 def undersample(X_train : pd.DataFrame, y_train : pd.DataFrame,random_state = None):
     """
@@ -79,7 +79,7 @@ def smooth_prediction(prediction, min_frames):
 
     return smoothed
 
-def iter_predict(model : BaseEstimator, index : list, X : pd.DataFrame, smooth_prediction_frames : int = None):
+def predict_multiIndex(model : BaseEstimator, index : list, X : pd.DataFrame, smooth_prediction_frames : int = None):
     predictions_dictionary = {}
     for video_id in index:
         print(f"running prediction for video {video_id}")
@@ -88,3 +88,4 @@ def iter_predict(model : BaseEstimator, index : list, X : pd.DataFrame, smooth_p
             prediction = smooth_prediction(prediction = prediction, min_frames = smooth_prediction_frames)
         predictions_dictionary[video_id] = pd.Series(prediction)
     return pd.DataFrame(pd.concat(predictions_dictionary.values(), keys = predictions_dictionary.keys(), names = ['video_id', 'frame']))
+
