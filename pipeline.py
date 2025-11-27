@@ -4,9 +4,12 @@ from pipeline_code.generate_labels import labels
 from pipeline_code.fix_frames import drop_non_analyzed_videos
 from pipeline_code.fix_frames import drop_last_frame
 from pipeline_code.fix_frames import drop_nas
+from pipeline_code.filter_and_preprocess import reduce_bits
+from pipeline_code.filter_and_preprocess import Filter
 from pipeline_code.model_wrapper import ModelWrapper
 from pipeline_code.model_wrapper import GridWrapper
 from sklearn.svm import SVC
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 import joblib as job
 import time
@@ -19,7 +22,7 @@ import os
 
 start = time.time()
 
-X_path = "./pipeline_saved_processes/dataframes/X.csv"
+X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
 SVM_grid_search_path = "./pipeline_saved_processes/models/SVM_grid_search.pkl"
 
@@ -41,7 +44,7 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
         smoothing_oft = 20
         )
 
-    X = features(features_collection, 
+    X : pd.DataFrame = features(features_collection, 
 
                 distance = {("neck","earl") : ("x","y","z"),
                             ("neck","earr") : ("x","y","z"),
@@ -108,9 +111,7 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
                                         "tailcentre"
                                         ),
 
-                is_point_recognized=("nose", 
-                                    "tailbase"
-                                    ),
+                is_point_recognized = (["nose"]),
                 
                 volume = {("neck", "bodycentre", "bcl", "bcr") : ((0, 1, 2), (2, 1, 3), (0, 3, 1), (0, 2, 3)),
                         ("bodycentre", "hipl", "tailbase", "hipr") : ((0, 3, 2), (3, 1, 2), (0, 2 , 1), (0, 1, 3)),
@@ -131,23 +132,31 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
                 f_b_fill = True,
 
                 embedding_length = list(range(-15,16)),
-
-                output_path = X_path
                     )
 
     y = labels(labels_path = "./pipeline_inputs/labels",
-            output_path = y_path
             )
+    
+    X = drop_non_analyzed_videos(X = X,y = y)
+    X, y = drop_last_frame(X = X, y = y)
+    X, y = drop_nas(X = X,y = y)
+
+    print("saving...")
+    X.to_csv(X_path)
+    y.to_csv(y_path)
+    print("!files saved!")
 
 else:
 
     X = pd.read_csv(X_path, index_col=["video_id", "frame"])
-
     y = pd.read_csv(y_path, index_col=["video_id", "frame"])
 
-X = drop_non_analyzed_videos(X = X,y = y)
-X, y = drop_last_frame(X = X, y = y)
-X, y = drop_nas(X = X,y = y)
+X = reduce_bits(X)
+filter = Filter(VarianceThreshold(threshold=0.2))
+filter.fit(X)
+filter.get_variance()
+filter.graph_variance("./pipeline_outputs/VarianceThresholdGraph.png")
+X = filter.transform(X)
 
 if not os.path.isfile(SVM_grid_search_path):
 

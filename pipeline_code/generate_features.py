@@ -89,8 +89,7 @@ def features(features_collection : FeaturesCollection,
                       volume : dict[tuple : tuple[tuple]] = [],
                       standard_deviation : tuple[str] = [],
                       f_b_fill = True,
-                      embedding_length = list(range(0,1)),
-                      output_path = str
+                      embedding_length = list(range(0,1))
                       ):
 
     # Distance
@@ -123,18 +122,18 @@ def features(features_collection : FeaturesCollection,
 
     for point in speed:
         features_collection.speed(point, dims=("x","y","z")).store()
-
-    #Distances to boundary
-    print("calculating distance to boundary...")
-
-    for point in distance_to_boundary:
-        features_collection.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"]).store()
-
+    
     # is it BALL?
     print("calculating ball...")
 
     for point in is_point_recognized:
         features_collection.is_recognized(point).store()
+
+    #Distances to boundary
+    print("calculating distance to boundary...")
+
+    for point in distance_to_boundary:
+        features_collection.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
 
     #Volume
     print("calculating volume...")
@@ -178,10 +177,6 @@ def features(features_collection : FeaturesCollection,
         feature_dict[handle] = feature_obj
 
     combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
-
-    print("saving...")
-    combined_features.to_csv(output_path)
-    print("!file saved!")
 
     return combined_features
 

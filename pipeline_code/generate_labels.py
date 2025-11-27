@@ -3,7 +3,6 @@ from natsort import natsorted
 import os
 
 def labels(labels_path : str,
-           output_path : str
            ):
 
     dictionary = {}
@@ -13,7 +12,5 @@ def labels(labels_path : str,
         dictionary[name.replace(".csv","")] = df.idxmax(axis = 1)
 
     y = pd.concat(dictionary.values(), keys=dictionary.keys(), names=["video_id", "frame"])
-    y.to_csv(output_path)
-    print("!labels_saved!")
 
     return y
