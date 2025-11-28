@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.base import BaseEstimator
 import joblib as job
+from pipeline_code.filter_and_preprocess import scale
 
 class Shelf:
     def __init__(self,  
@@ -57,7 +58,8 @@ class Shelf:
         X_train = X.loc[obj.train_index][obj.features]
         X_test = X.loc[obj.test_index][obj.features]
         y_train = y.loc[obj.train_index]
-        y_test = y.loc[obj.train_index]
+        y_test = y.loc[obj.test_index]
+        X_train, X_test = scale(X_train, X_test)
 
         if not ReturnMultiIndex:
             y_train = y_train.values.ravel()
