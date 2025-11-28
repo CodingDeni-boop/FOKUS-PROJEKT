@@ -59,3 +59,4 @@ def collinearity_then_uvfs(X_train : pd.DataFrame,
         X_test.drop(columns = todrop["feature"],inplace=True)
     
     return X_train, X_test
+

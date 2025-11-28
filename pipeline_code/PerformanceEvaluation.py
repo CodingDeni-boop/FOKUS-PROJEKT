@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from sklearn.base import BaseEstimator
 
 def smooth_predictions(predictions, min_frames):
     
@@ -53,9 +53,8 @@ def smooth_predictions(predictions, min_frames):
 
     return smoothed
 
-def evaluate_model(model : object, X_train : pd.DataFrame, y_train: pd.DataFrame, X_test: pd.DataFrame, y_test: pd.DataFrame, min_frames=None ):
+def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.DataFrame, X_test: pd.DataFrame, y_test: pd.DataFrame, min_frames=None, conf_matrix_path : str = "pipeline_outputs/conf_matrix.png" ):
     y_pred = model.predict(X_test)
-    y_pred_proba = model.predict_proba(X_test)
 
     # Apply smoothing to remove outliers below 20 frames
     if min_frames is not None:
@@ -97,7 +96,7 @@ def evaluate_model(model : object, X_train : pd.DataFrame, y_train: pd.DataFrame
     plt.ylabel('True Label', fontsize=12)
     plt.xlabel('Predicted Label', fontsize=12)
     plt.tight_layout()
-    plt.savefig('Eval_output/confusion_matrix.png', dpi=300, bbox_inches='tight')
+    plt.savefig(conf_matrix_path, dpi=300, bbox_inches='tight')
 
     ########################################### Feature Importance #########################################################
 """

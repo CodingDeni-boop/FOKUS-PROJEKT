@@ -33,6 +33,7 @@ start = time.time()
 X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
 model_path = "./pipeline_saved_processes/models/lite_SVM_grid.pkl"
+conf_matrix_path = "pipeline_outputs/SVM/conf_matrix_lite_SVM_grid.png"
 
 
 ### checks if X and y already exists, and if not, they get computed
@@ -190,10 +191,10 @@ if not os.path.isfile(model_path):
     param_grid = [
     {
         "kernel": ["poly"],
-        "C": [0.1, 1, 10],
+        "C": [0.01, 0.05, 0.1, 1, 10],
         "degree": [2, 3, 4, 5],
         "gamma": ["scale", "auto", 0.01, 0.1], 
-        "coef0": [0, 0.1, 0.5]
+        "coef0": [0, 0.5, 1]
     },
     {
         "kernel": ["rbf"],
@@ -215,14 +216,16 @@ if not os.path.isfile(model_path):
 else:
     X_train, X_test, y_train, y_test, grid = Shelf.load(X, y, model_path)
 
+best_hyperparameters = grid.best_params_
 model = grid.best_estimator_
-evaluate_model(model, X_train, y_train, X_test, y_test)
+print(best_hyperparameters)
+evaluate_model(model, X_train, y_train, X_test, y_test, min_frames = None ,conf_matrix_path = conf_matrix_path)
 
 
 X_path = "./pipeline_saved_processes/dataframes/X_emb11.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
 model_path = "./pipeline_saved_processes/models/emb11_SVM_grid.pkl"
-
+conf_matrix_path = "pipeline_outputs/SVM/conf_matrix_emb11_SVM_grid.png"
 
 ### checks if X and y already exists, and if not, they get computed
 
@@ -408,7 +411,7 @@ else:
 X_path = "./pipeline_saved_processes/dataframes/X.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
 model_path = "./pipeline_saved_processes/models/complete_SVM_grid.pkl"
-
+conf_matrix_path = "pipeline_outputs/SVM/conf_matrix_complete_SVM_grid.png"
 
 ### checks if X and y already exists, and if not, they get computed
 
