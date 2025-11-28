@@ -16,7 +16,7 @@ import seaborn as sns
 from pipeline_code.Shelf import Shelf
 from sklearn.svm import SVC
 from imblearn.under_sampling import RandomUnderSampler
-from sklearn.linear_model import LogisticRegression
+from pipeline_code.PerformanceEvaluation import evaluate_model
 from pipeline_code.model_tools import predict_multiIndex
 from sklearn.model_selection import GridSearchCV
 import joblib as job
@@ -215,7 +215,9 @@ if not os.path.isfile(model_path):
 else:
     X_train, X_test, y_train, y_test, grid = Shelf.load(X, y, model_path)
 
-f1_score(y_test,grid.best_estimator_.predict(X_test))
+model = grid.best_estimator_
+evaluate_model(model, X_train, y_train, X_test, y_test)
+
 
 X_path = "./pipeline_saved_processes/dataframes/X_emb11.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
@@ -400,7 +402,8 @@ if not os.path.isfile(model_path):
 
     Shelf(X_train, X_test, grid, model_path)
 else:
-    X_train, X_test, y_train, y_test, model = Shelf.load(X, y, model_path)
+    X_train, X_test, y_train, y_test, grid = Shelf.load(X, y, model_path)
+
 
 X_path = "./pipeline_saved_processes/dataframes/X.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"

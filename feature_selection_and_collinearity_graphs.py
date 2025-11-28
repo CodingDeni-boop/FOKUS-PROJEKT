@@ -164,84 +164,112 @@ else:
     X = pd.read_csv(X_path, index_col=["video_id", "frame"])
     y = pd.read_csv(y_path, index_col=["video_id", "frame"])
 
-if not os.path.isfile(model_path):
+### GRAPHS ###
+if uvfs_graph:
 
-    behaviours = ["background", "supportedrear", "unsupportedrear", "grooming"]
+    score_functions = [f_classif, mutual_info_classif]
+    for function in score_functions:
+        uvfs = SelectKBest(score_func = function)
+        uvfs.fit(X, y)
+        scores = uvfs.scores_
+        feature_names = X.columns
+        importances = pd.DataFrame({"feature" : feature_names, "score" : scores})
+        importances.sort_values(by = "score", ascending = False, inplace = True)
+        importances["score"] = importances["score"]/importances["score"].max()
+        plt.figure(figsize=(15,25))
+        sns.barplot(data = importances, x = "score", y = "feature")
+        plt.title(f"{function.__name__} feature importance", fontsize = 30, pad = 42)
+        plt.ylabel("feature name", fontsize = 20, labelpad = 30)
+        plt.xlabel("score", fontsize = 20, labelpad = 30)
+        plt.subplots_adjust(left = 0.4)
+        plt.savefig(f"./pipeline_outputs/feature_importance_with_{function.__name__}_on_lite_dataframe")
+        print(f"{function.__name__} feature importance computed!")
 
-    X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
-    X_train, X_test = scale(X_train, X_test)
-    rus = RandomUnderSampler()
-    X_train, y_train = rus.fit_resample(X_train, y_train)
-    raveled_y_train = y_train.values.ravel()
-    raveled_y_test = y_test.values.ravel()
+if collinearity_graph:
+    for scientist in ["pearson", "spearman", "kendall"]:
+        corr_matrix = X.corr(scientist)
+        plt.figure(figsize=(40,30))
+        sns.color_palette("colorblind")
+        sns.heatmap(corr_matrix, cmap = "viridis", vmin = -1, vmax = 1)
+        plt.title(f"{scientist} correlation", fontsize = 30, pad = 42)
+        plt.ylabel("feature name", fontsize = 20, labelpad = 30)
+        plt.xlabel("feature name", fontsize = 20, labelpad = 30)
+        plt.subplots_adjust(bottom = 0.23, left = 0.3)
+        plt.savefig(f"./pipeline_outputs/correalation_matrix_{scientist}.png")
+        print(f"{scientist} correlation computed!")
 
-    model = LogisticRegression()
+behaviours = ["background", "supportedrear", "unsupportedrear", "grooming"]
 
-    data = {"k" : [],
-            "behaviour" : [],
-            "f1_score" : []}
+X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
+X_train, X_test = scale(X_train, X_test)
+rus = RandomUnderSampler()
+X_train, y_train = rus.fit_resample(X_train, y_train)
+raveled_y_train = y_train.values.ravel()
+raveled_y_test = y_test.values.ravel()
+
+model = LogisticRegression()
+
+data = {"k" : [],
+        "behaviour" : [],
+        "f1_score" : []}
+
+uvfs = SelectKBest(score_func = f_classif).set_output(transform="pandas")
+uvfs.fit(X_train, y_train)
+scores = uvfs.scores_
+feature_names = X_train.columns
+importances = pd.DataFrame({"feature" : feature_names, "score" : scores})
+importances.sort_values(by = "score", ascending = False, inplace = True)
+importances["score"] = importances["score"]/importances["score"].max()
+
+coll_X_train, coll_X_test = collinearity_then_uvfs(X_train = X_train, 
+                                X_test = X_test, 
+                                y_train = y_train, 
+                                collinearity_threshold = 0.95,
+                                feature_importance_dataframe = importances)
+
+uvfs.fit(coll_X_train, y_train)
     
-    uvfs = SelectKBest(score_func = f_classif).set_output(transform="pandas")
-    uvfs.fit(X_train, y_train)
-    scores = uvfs.scores_
-    feature_names = X_train.columns
-    importances = pd.DataFrame({"feature" : feature_names, "score" : scores})
-    importances.sort_values(by = "score", ascending = False, inplace = True)
-    importances["score"] = importances["score"]/importances["score"].max()
+total_columns = len(X_train.columns)
+k_set = pd.Series(
+    [total_columns,
+    total_columns*0.9,
+    total_columns*0.8,
+    total_columns*0.7,
+    total_columns*0.6,
+    total_columns*0.5,
+    total_columns*0.4,
+    total_columns*0.3,
+    total_columns*0.2,
+    total_columns*0.1]).astype(int)
 
-    coll_X_train, coll_X_test = collinearity_then_uvfs(X_train = X_train, 
-                                    X_test = X_test, 
-                                    y_train = y_train, 
-                                    collinearity_threshold = 0.95,
-                                    feature_importance_dataframe = importances)
-    
-    uvfs.fit(coll_X_train, y_train)
-        
-    total_columns = len(X_train.columns)
-    k_set = pd.Series(
-        [total_columns,
-        total_columns*0.9,
-        total_columns*0.8,
-        total_columns*0.7,
-        total_columns*0.6,
-        total_columns*0.5,
-        total_columns*0.4,
-        total_columns*0.3,
-        total_columns*0.2,
-        total_columns*0.1]).astype(int)
-    
-    for k in k_set:
-        uvfs.set_params(k = k)
-        coll_filt_X_train = uvfs.transform(coll_X_train)
-        coll_filt_X_test = uvfs.transform(coll_X_test)
-        model.fit(coll_filt_X_train, raveled_y_train)
-        y_pred = model.predict(coll_filt_X_test)
-        f1_per_class = f1_score(
-            y_true=y_test,
-            y_pred=y_pred,
-            average=None
-        )
+for k in k_set:
+    uvfs.set_params(k = k)
+    coll_filt_X_train = uvfs.transform(coll_X_train)
+    coll_filt_X_test = uvfs.transform(coll_X_test)
+    model.fit(coll_filt_X_train, raveled_y_train)
+    y_pred = model.predict(coll_filt_X_test)
+    f1_per_class = f1_score(
+        y_true=y_test,
+        y_pred=y_pred,
+        average=None
+    )
 
-        for behaviour, f1 in zip(behaviours, f1_per_class):
-            data["k"].append(k)
-            data["behaviour"].append(behaviour)
-            data["f1_score"].append(f1)
+    for behaviour, f1 in zip(behaviours, f1_per_class):
+        data["k"].append(k)
+        data["behaviour"].append(behaviour)
+        data["f1_score"].append(f1)
 
-    data = pd.DataFrame(data)
+data = pd.DataFrame(data)
 
-    for behaviour in behaviours:
-        df = data[data["behaviour"] == behaviour]
-        plt.figure(figsize = (20,12))
-        sns.lineplot(x = "k", y = "f1_score", data = df, palette = "colorblind", alpha = 0.7)
-        plt.savefig(f"./pipeline_outputs/feature_selection_plot_{behaviour}")
-    
+for behaviour in behaviours:
+    df = data[data["behaviour"] == behaviour]
     plt.figure(figsize = (20,12))
-    sns.lineplot(x = "k", y = "f1_score", data = data, hue = "behaviour", palette = "colorblind", alpha = 0.7)
-    plt.savefig(f"./pipeline_outputs/feature_selection_plot_all_behaviours")
+    sns.lineplot(x = "k", y = "f1_score", data = df, palette = "colorblind", alpha = 0.7)
+    plt.savefig(f"./pipeline_outputs/feature_selection_plot_{behaviour}")
 
-    #Shelf(X_train, X_test, model, model_path)
-else:
-    X_train, X_test, y_train, y_test, model = Shelf.load(X, y, model_path)
+plt.figure(figsize = (20,12))
+sns.lineplot(x = "k", y = "f1_score", data = data, hue = "behaviour", palette = "colorblind", alpha = 0.7)
+plt.savefig(f"./pipeline_outputs/feature_selection_plot_all_behaviours")
 
 end = time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
