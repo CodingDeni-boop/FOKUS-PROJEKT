@@ -36,7 +36,7 @@ class Shelf:
         job.dump(self, self.path)
     
     @classmethod
-    def load(cls, X : pd.DataFrame, y : pd.DataFrame, path : str, ReturnMultiIndex : bool = True, return_object : bool = False):
+    def load(cls, X : pd.DataFrame, y : pd.DataFrame, path : str, ReturnMultiIndex : bool = True, return_extra : bool = False):
         """
         Docstring for load
         
@@ -65,8 +65,8 @@ class Shelf:
             y_train = y_train.values.ravel()
             y_test = y_test.values.ravel()
         
-        if return_object:
-            return obj
+        if return_extra:
+            return X_train, X_test, y_train, y_test, obj.model, obj.extra
         
         return X_train, X_test, y_train, y_test, obj.model
 

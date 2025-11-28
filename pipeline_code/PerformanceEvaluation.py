@@ -97,6 +97,7 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
     plt.xlabel('Predicted Label', fontsize=12)
     plt.tight_layout()
     plt.savefig(conf_matrix_path, dpi=300, bbox_inches='tight')
+    plt.close()
 
     ########################################### Feature Importance #########################################################
 """

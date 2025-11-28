@@ -167,8 +167,6 @@ if not os.path.isfile(model_path):
 
     X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
     X_train, X_test = scale(X_train, X_test)
-    rus = RandomUnderSampler(sampling_strategy = "majority")
-    X_train, y_train = rus.fit_resample(X_train, y_train)
     uvfs = SelectKBest(score_func = f_classif).set_output(transform="pandas")
     uvfs.fit(X_train, y_train)
     scores = uvfs.scores_
@@ -177,11 +175,14 @@ if not os.path.isfile(model_path):
     importances.sort_values(by = "score", ascending = False, inplace = True)
     importances["score"] = importances["score"]/importances["score"].max()
 
-    coll_X_train, coll_X_test = collinearity_then_uvfs(X_train = X_train, 
+    X_train, X_test = collinearity_then_uvfs(X_train = X_train, 
                                     X_test = X_test, 
                                     y_train = y_train, 
                                     collinearity_threshold = 0.95,
                                     feature_importance_dataframe = importances)
+    
+    rus = RandomUnderSampler(sampling_strategy = "majority")
+    X_train, y_train = rus.fit_resample(X_train, y_train)
     
     raveled_y_train = y_train.values.ravel()
     raveled_y_test = y_test.values.ravel()
@@ -191,22 +192,17 @@ if not os.path.isfile(model_path):
     param_grid = [
     {
         "kernel": ["poly"],
-        "C": [0.01, 0.05, 0.1, 1, 10],
-        "degree": [2, 3, 4, 5],
+        "C": [0.01, 0.05, 1, 100],
+        "degree": [2, 3, 4],
         "gamma": ["scale", "auto", 0.01, 0.1], 
-        "coef0": [0, 0.5, 1]
-    },
-    {
-        "kernel": ["rbf"],
-        "C": [0.1, 1, 10, 100],
-        "gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1]
+        "coef0": [0, 1]
     }
     ]
 
     grid = GridSearchCV(estimator = SVC(), 
                          param_grid = param_grid,
                          scoring="f1_macro",
-                         cv=None,
+                         cv=4,
                          verbose=2,
                          n_jobs=-1)
     
@@ -382,14 +378,14 @@ if not os.path.isfile(model_path):
     param_grid = [
     {
         "kernel": ["poly"],
-        "C": [0.1, 1, 10],
+        "C": [0.01, 0.05, 0.1, 1, 10],
         "degree": [2, 3, 4, 5],
         "gamma": ["scale", "auto", 0.01, 0.1], 
-        "coef0": [0, 0.1, 0.5]
+        "coef0": [0, 0.5, 1]
     },
     {
         "kernel": ["rbf"],
-        "C": [0.1, 1, 10, 100],
+        "C": [0.01, 0.1, 1, 10, 100],
         "gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1]
     }
     ]
@@ -568,14 +564,14 @@ if not os.path.isfile(model_path):
     param_grid = [
     {
         "kernel": ["poly"],
-        "C": [0.1, 1, 10],
+        "C": [0.01, 0.05, 0.1, 1, 10],
         "degree": [2, 3, 4, 5],
         "gamma": ["scale", "auto", 0.01, 0.1], 
-        "coef0": [0, 0.1, 0.5]
+        "coef0": [0, 0.5, 1]
     },
     {
         "kernel": ["rbf"],
-        "C": [0.1, 1, 10, 100],
+        "C": [0.01, 0.1, 1, 10, 100],
         "gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1]
     }
     ]
