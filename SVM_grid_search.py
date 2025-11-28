@@ -6,15 +6,16 @@ from pipeline_code.fix_frames import drop_last_frame
 from pipeline_code.fix_frames import drop_nas
 from pipeline_code.filter_and_preprocess import reduce_bits
 from pipeline_code.model_tools import video_train_test_split
-from pipeline_code.filter_and_preprocess import scale
-from pipeline_code.filter_and_preprocess import collinearity_then_uvfs
 from sklearn.feature_selection import SelectKBest
+from sklearn.preprocessing import StandardScaler
+from pipeline_code.filter_and_preprocess import SmartCollinearityFilter
 from sklearn.feature_selection import f_classif, mutual_info_classif
 from sklearn.metrics import f1_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pipeline_code.Shelf import Shelf
 from sklearn.svm import SVC
+from imblearn.pipeline import Pipeline              ###!!! IMBLEARN PIPELINE REQUIRED FOR UNDERSAMPLING !!!###
 from imblearn.under_sampling import RandomUnderSampler
 from pipeline_code.PerformanceEvaluation import evaluate_model
 from pipeline_code.model_tools import predict_multiIndex
@@ -166,6 +167,63 @@ if not os.path.isfile(model_path):
     behaviours = ["background", "supportedrear", "unsupportedrear", "grooming"]
 
     X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
+
+    pipe = Pipeline(steps = [("scaler", StandardScaler()),
+                             ("collinearity", SmartCollinearityFilter()),
+                             ("uvfs", SelectKBest(k = "all")),
+                             ("undersampler", RandomUnderSampler(random_state = 42)),
+                             ("SVM", SVC())
+                             ])
+
+    param_grid = [
+    {
+        "SVM__kernel": ["poly"],
+        "SVM__C": [0.01, 0.05, 1, 100],
+        "SVM__degree": [2, 3, 4],
+        "SVM__gamma": ["scale", "auto", 0.01, 0.1], 
+        "SVM__coef0": [0, 1]
+    }
+    ]
+
+    grid = GridSearchCV(estimator = pipe, 
+                         param_grid = param_grid,
+                         scoring="f1_macro",
+                         cv=4,
+                         verbose=2,
+                         n_jobs=-1)
+    
+    y_train_ravel = y_train.values.ravel()
+    grid.fit(X_train, y_train_ravel)
+
+    Shelf(X_train, X_test, grid, model_path)
+else:
+
+    X_train, X_test, y_train, y_test, grid = Shelf.load(X, y, model_path)
+
+best_hyperparameters = grid.best_params_
+pipe = grid.best_estimator_
+print(best_hyperparameters)
+
+evaluate_model(pipe, X_train, y_train, X_test, y_test, min_frames = None ,conf_matrix_path = conf_matrix_path)
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+if not os.path.isfile(model_path):
+
+    behaviours = ["background", "supportedrear", "unsupportedrear", "grooming"]
+
+    X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
     X_train, X_test = scale(X_train, X_test)
     uvfs = SelectKBest(score_func = f_classif).set_output(transform="pandas")
     uvfs.fit(X_train, y_train)
@@ -210,12 +268,32 @@ if not os.path.isfile(model_path):
 
     Shelf(X_train, X_test, grid, model_path)
 else:
+
     X_train, X_test, y_train, y_test, grid = Shelf.load(X, y, model_path)
 
 best_hyperparameters = grid.best_params_
 model = grid.best_estimator_
 print(best_hyperparameters)
 evaluate_model(model, X_train, y_train, X_test, y_test, min_frames = None ,conf_matrix_path = conf_matrix_path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 X_path = "./pipeline_saved_processes/dataframes/X_emb11.csv"
@@ -354,7 +432,7 @@ if not os.path.isfile(model_path):
 
     X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
     X_train, X_test = scale(X_train, X_test)
-    rus = RandomUnderSampler(sampling_strategy = "majority")
+    rus = MultiIndexRUS(sampling_strategy = "majority")
     X_train, y_train = rus.fit_resample(X_train, y_train)
     uvfs = SelectKBest(score_func = f_classif).set_output(transform="pandas")
     uvfs.fit(X_train, y_train)
@@ -372,8 +450,6 @@ if not os.path.isfile(model_path):
     
     raveled_y_train = y_train.values.ravel()
     raveled_y_test = y_test.values.ravel()
-
-    print(raveled_y_train.size)
 
     param_grid = [
     {
@@ -401,8 +477,9 @@ if not os.path.isfile(model_path):
 
     Shelf(X_train, X_test, grid, model_path)
 else:
-    X_train, X_test, y_train, y_test, grid = Shelf.load(X, y, model_path)
 
+    X_train, X_test, y_train, y_test, grid = Shelf.load(X, y, model_path)
+    
 
 X_path = "./pipeline_saved_processes/dataframes/X.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
@@ -591,3 +668,4 @@ else:
 
 end = time.time()
 print("time elapsed:", f"{int((end-start)//3600)}h {int(((end-start)%3600)//60)}m {int((end-start)%60)}s")
+"""
