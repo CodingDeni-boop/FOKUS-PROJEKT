@@ -29,6 +29,10 @@ from sklearn.inspection import permutation_importance
 from pipeline_code.PerformanceEvaluation import evaluate_model
 import json
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from pipeline_code.FeatureSelection import permutation_importance
+from pipeline_code.FeatureSelection import feature_importance
+import joblib
 
 
 # THE AIM OF THIS IS TO MAKE THIS A SINGLE FILE, WHICH USES OUR REPOSITORY AS A SORT OF LIBRARY.
@@ -38,7 +42,7 @@ start = time.time()
 
 X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
-model_path = "./pipeline_saved_processes/models/lite_HGB_grid.pkl"
+model_path = "./pipeline_saved_processes/models/lite_RF_tuned.pkl"
 
 ### checks if X and y already exists, and if not, they get computed
 
@@ -169,7 +173,7 @@ else:
 
 if not os.path.isfile(model_path):
 
-    behaviours = ["background", "supportedrear", "unsupportedrear", "grooming"]
+    #behaviours = ["background", "supportedrear", "unsupportedrear", "grooming"]
 
     # Load data
 
@@ -180,38 +184,16 @@ if not os.path.isfile(model_path):
     y_train = y_train.values.ravel()
     y_test = y_test.values.ravel()
 
-    # Calculate class weights for multi-class imbalanced data
-    unique, counts = np.unique(y_train, return_counts=True)
-    class_counts = dict(zip(unique, counts))
-    print(f"Class distribution in training: {class_counts}")
-
-    # For multi-class, calculate sample weights
-    total_samples = len(y_train)
-    n_classes = len(unique)
-    class_weights = {cls: total_samples / (n_classes * count) for cls, count in class_counts.items()}
-    sample_weights = np.array([class_weights[y] for y in y_train])
-    print(f"Class weights: {class_weights}")
-
-    # Undersample majority class
-    #rus = RandomUnderSampler(sampling_strategy="majority")
-    #X_train, y_train = rus.fit_resample(X_train, y_train)
 
     ### Tuned Model
 
-    print("Histogram-Based Gradient Boosting Classifier")
-    model = HistGradientBoostingClassifier(
-        random_state=42,
-        max_iter=100,  # equivalent to n_estimators
-        max_depth=6,
-        learning_rate=0.1,
-        max_bins=255,  # default, can increase for more precision
-        min_samples_leaf=20,
-        l2_regularization=0.0,
-        early_stopping=False,
-        verbose=0
-    )
+    print("Random Forest Classifier")
 
-    model.fit(X_train, y_train, sample_weight=sample_weights)
+    model = RandomForestClassifier(random_state=12, class_weight='balanced_subsample', n_jobs=2, n_estimators=75,
+                                max_depth=10, min_samples_split=10, min_samples_leaf=16, max_features='log2')
+
+
+    model.fit(X_train, y_train)
 
     print("With smoothing")
     evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=20)
@@ -222,10 +204,43 @@ if not os.path.isfile(model_path):
     Shelf(X_train, X_test, model , model_path)
 
 else:
-    X_train, X_test, y_train, y_test, grid = Shelf.load(X, y, model_path)
+    X_train, X_test, y_train, y_test, model = Shelf.load(X, y, model_path)
 
-X_path = "./pipeline_saved_processes/dataframes/X_no_emb.csv"
-y_path = "./pipeline_saved_processes/dataframes/y.csv"
-model_path = "./pipeline_saved_processes/models/no_emb_HGB_grid.pkl"
+#feature_importance_df = permutation_importance(model, X_train, X_test, y_train, y_test)
+
+feature_importance_df = feature_importance(model, X_train)
+
+
+# Train second RF model with only selected features
+print("\nTraining second RF model with selected features...")
+selected_features = feature_importance_df['Feature'].tolist()
+
+# Filter X to keep only selected features
+X_train_sel = X_train[selected_features]
+X_test_sel = X_test[selected_features]
+
+
+# Train model with selected features
+print(f"Training RF with {len(selected_features)} selected features...")
+model_selected = joblib.load(model_path)
+
+model_selected.fit(X_train_sel, y_train)
+
+print("Evaluating model with selected features:")
+
+print("With smoothing")
+evaluate_model(model_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=20)
+
+print("Without smoothing")
+evaluate_model(model_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=0)
+
+RF_selected_path = "./pipeline_saved_processes/models/RF_selected_features.pkl"
+
+# Save the model
+Shelf(X_train_sel, X_test_sel, model_selected, RF_selected_path)
+
+
+
+
 
 
