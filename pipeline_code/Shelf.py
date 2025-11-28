@@ -31,7 +31,7 @@ class Shelf:
         self.model = model
         self.path = path
 
-        self.extra = [kwargs]
+        self.extra = kwargs
 
         job.dump(self, self.path)
     
