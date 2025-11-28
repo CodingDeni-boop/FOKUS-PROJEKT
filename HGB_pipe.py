@@ -19,7 +19,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from sklearn.linear_model import LogisticRegression
 from pipeline_code.model_tools import predict_multiIndex
 from sklearn.model_selection import GridSearchCV
-import joblib as job
+import joblib
 import time
 import pandas as pd
 from natsort import natsorted
@@ -29,6 +29,7 @@ from sklearn.inspection import permutation_importance
 from pipeline_code.PerformanceEvaluation import evaluate_model
 import json
 import numpy as np
+
 
 
 # THE AIM OF THIS IS TO MAKE THIS A SINGLE FILE, WHICH USES OUR REPOSITORY AS A SORT OF LIBRARY.
@@ -197,7 +198,7 @@ if not os.path.isfile(model_path):
     #X_train, y_train = rus.fit_resample(X_train, y_train)
 
     ### Tuned Model
-
+    """
     print("Histogram-Based Gradient Boosting Classifier")
     model = HistGradientBoostingClassifier(
         random_state=42,
@@ -218,6 +219,45 @@ if not os.path.isfile(model_path):
 
     print("Without smoothing")
     evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
+"""
+
+    # Grid Search
+
+    param_grid = {
+        'max_iter': [50, 100, 150, 200],
+        'max_depth': [3, 6, 9, 12],
+        'learning_rate': [00.1, 0.05, 0.1, 0.2],
+        'min_samples_leaf': [10, 20, 30, 40],
+        'l2_regularization': [0.0, 0.1, 0.5, 1.0],
+        'max_bins': [255, 128]
+    }
+
+    base_model = HistGradientBoostingClassifier(
+        random_state=42,
+        early_stopping=False,
+        verbose=0
+    )
+
+    grid_search = GridSearchCV(
+        base_model,
+        param_grid,
+        cv=5,
+        scoring='f1_macro',
+        n_jobs=2,
+        verbose=2
+    )
+
+    grid_search.fit(X_train, y_train, sample_weight=sample_weights)
+
+    model = grid_search.best_estimator_
+    print("Best parameters:", grid_search.best_params_)
+
+    print("With smoothing")
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=20)
+
+    print("Without smoothing")
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
+
 
     Shelf(X_train, X_test, model , model_path, model_weights = sample_weights)
 
