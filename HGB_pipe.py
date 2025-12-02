@@ -221,7 +221,7 @@ if not os.path.isfile(model_path):
     print("Best parameters:", best_params)
 
     print("With smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=20)
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10)
 
     print("Without smoothing")
     evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
@@ -316,7 +316,7 @@ if not os.path.isfile(HGB_selected_path):
     print("Evaluating model with selected features:")
 
     print("With smoothing")
-    evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=20)
+    evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=10)
 
     print("Without smoothing")
     evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=0)
