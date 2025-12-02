@@ -34,9 +34,9 @@ from sklearn.preprocessing import StandardScaler
 
 start = time.time()
 
-X_path = "./pipeline_saved_processes/dataframes/X.csv"
+X_path = "./pipeline_saved_processes/dataframes/X_chunk.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
-model_path = "./pipeline_saved_processes/models/HGB_emb.pkl"
+model_path = "./pipeline_saved_processes/models/HGB_chunk.pkl"
 
 # checks if X and y already exists, and if not, they get computed
 
@@ -249,8 +249,8 @@ if 'sample_weights' not in locals():
 print("Calculating permutation importance...")
 result = permutation_importance(
     model,
-    X_test,
-    y_test,
+    X_train,
+    y_train,
     n_repeats=10,
     random_state=42,
     n_jobs=2
@@ -280,7 +280,7 @@ model_name =  "Histogram Gradient Boosting"
 plt.title(f'Top {top_n_plot} {model_name} Feature Importances', fontsize=14, fontweight='bold')
 plt.gca().invert_yaxis()
 plt.tight_layout()
-plt.savefig('pipeline_outputs/feature_importances_HGB.png', dpi=300, bbox_inches='tight')
+plt.savefig('pipeline_outputs/feature_importances_HGB_chunk.png', dpi=300, bbox_inches='tight')
 plt.close()
 
 
@@ -288,7 +288,7 @@ plt.close()
 print("\nTraining second HGB model with selected features...")
 selected_features = feature_importance_df['Feature'].tolist()
 
-HGB_selected_path = "./pipeline_saved_processes/models/HGB_selected_features.pkl"
+HGB_selected_path = "./pipeline_saved_processes/models/HGB_chunk_selected_features.pkl"
 
 if not os.path.isfile(HGB_selected_path):
     # Filter X to keep only selected features
