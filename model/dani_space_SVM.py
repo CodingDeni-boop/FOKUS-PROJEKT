@@ -65,7 +65,7 @@ bestHyperparameters = grid.best_params_
 print(f"The best hyperparameters selected were:   {bestHyperparameters}") 
 
 save_grid_as_pkl(name = "onlypoly_lite", grid=grid,columns=X_train.columns,random_state=42)
-
+evaluate_model(bestFit, X_train, y_train, X_test, y_test)
 
 
 end=time.time()
