@@ -13,6 +13,27 @@ def reduce_bits(X : pd.DataFrame):
     X[float64_cols] = X[float64_cols].astype('float32')
     return X
 
+def collinearity_filter(X: pd.DataFrame, threshold=0.95):
+    """
+    Pure collinearity filtering based only on feature correlations.
+    Does not use target variable, so safe to apply before train/test split.
+
+    For each group of correlated features, keeps the first one and drops the rest.
+    """
+    correlation_matrix = X.corr().abs()
+
+    # Get upper triangle of correlation matrix
+    upper_tri = correlation_matrix.where(
+        np.triu(np.ones(correlation_matrix.shape), k=1).astype(bool)
+    )
+
+    # Find features with correlation greater than threshold
+    to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > threshold)]
+
+    print(f"Dropping {len(to_drop)} highly correlated features (threshold={threshold})")
+
+    return X.drop(columns=to_drop)
+
 def scale(X_train, X_test):
     num_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
     scaler = StandardScaler()
@@ -74,3 +95,7 @@ class SmartCollinearityFilter:
             all_cols_to_drop.extend(todrop["feature"].iloc[1:].tolist())
         X = X.drop(columns=list(set(all_cols_to_drop)), errors="ignore")
         return X
+
+    def fit_transform(self, X: pd.DataFrame, y: pd.DataFrame):
+        self.fit(X, y)
+        return self.transform(X)

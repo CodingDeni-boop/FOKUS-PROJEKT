@@ -6,8 +6,7 @@ from pipeline_code.fix_frames import drop_last_frame
 from pipeline_code.fix_frames import drop_nas
 from pipeline_code.filter_and_preprocess import reduce_bits
 from pipeline_code.model_tools import video_train_test_split
-from pipeline_code.filter_and_preprocess import scale
-from pipeline_code.filter_and_preprocess import collinearity_then_uvfs
+from pipeline_code.filter_and_preprocess import collinearity_filter
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif, mutual_info_classif
 from sklearn.metrics import f1_score
@@ -29,19 +28,17 @@ from sklearn.inspection import permutation_importance
 from pipeline_code.PerformanceEvaluation import evaluate_model
 import json
 import numpy as np
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
-
-
-# THE AIM OF THIS IS TO MAKE THIS A SINGLE FILE, WHICH USES OUR REPOSITORY AS A SORT OF LIBRARY.
-# THIS IS AN ATTEMPT TO MAKE ORDER
 
 start = time.time()
 
-X_path = "./pipeline_saved_processes/dataframes/X.csv"
+X_path = "./pipeline_saved_processes/dataframes/X_chunk.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
-model_path = "./pipeline_saved_processes/models/HGB_emb.pkl"
+model_path = "./pipeline_saved_processes/models/HGB_chunk.pkl"
 
-### checks if X and y already exists, and if not, they get computed
+# checks if X and y already exists, and if not, they get computed
 
 if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
 
@@ -147,7 +144,7 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
 
                                f_b_fill=True,
 
-                               embedding_length=list(range(0, 1)),
+                               embedding_length=list(range(-15, 16, 3))
                                )
 
     y = labels(labels_path="./pipeline_inputs/labels",
@@ -168,14 +165,13 @@ else:
     X = pd.read_csv(X_path, index_col=["video_id", "frame"])
     y = pd.read_csv(y_path, index_col=["video_id", "frame"])
 
+# Apply pure collinearity filtering (no target variable used)
+X = collinearity_filter(X, threshold=0.95)
+
 if not os.path.isfile(model_path):
 
-    #behaviours = ["background", "supportedrear", "unsupportedrear", "grooming"]
-
-    # Load data
-
+    # Split data (collinearity filtering already applied)
     X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
-    X_train, X_test = scale(X_train, X_test)
 
     # Ravel
     y_train = y_train.values.ravel()
@@ -193,53 +189,24 @@ if not os.path.isfile(model_path):
     sample_weights = np.array([class_weights[y] for y in y_train])
     print(f"Class weights: {class_weights}")
 
-    # Undersample majority class
-    #rus = RandomUnderSampler(sampling_strategy="majority")
-    #X_train, y_train = rus.fit_resample(X_train, y_train)
-
-    ### Tuned Model
-    """
-    print("Histogram-Based Gradient Boosting Classifier")
-    model = HistGradientBoostingClassifier(
-        random_state=42,
-        max_iter=100,  # equivalent to n_estimators
-        max_depth=6,
-        learning_rate=0.1,
-        max_bins=255,
-        min_samples_leaf=20,
-        l2_regularization=0.0,
-        early_stopping=False,
-        verbose=0
-    )
-
-    model.fit(X_train, y_train, sample_weight=sample_weights)
-
-    print("With smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=20)
-
-    print("Without smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
-"""
+    # Create pipeline with preprocessing steps
+    pipeline = Pipeline([
+        ('scaler', StandardScaler()),
+        ('classifier', HistGradientBoostingClassifier(random_state=42, early_stopping=False, verbose=0))
+    ])
 
     # Grid Search
-
     param_grid = {
-        'max_iter': [50, 100, 150, 200],
-        'max_depth': [3, 6, 9, 12],
-        'learning_rate': [00.1, 0.05, 0.1, 0.2],
-        'min_samples_leaf': [10, 20, 30, 40],
-        'l2_regularization': [0.0, 0.1, 0.5, 1.0],
-        'max_bins': [255, 128]
+        'classifier__max_iter': [50, 100, 150],
+        'classifier__max_depth': [2, 3, 4, 5],
+        'classifier__learning_rate': [0.01, 0.05, 0.1],
+        'classifier__min_samples_leaf': [20, 40],
+        'classifier__l2_regularization': [0.0, 0.1, 0.5],
+        'classifier__max_bins': [255]
     }
 
-    base_model = HistGradientBoostingClassifier(
-        random_state=42,
-        early_stopping=False,
-        verbose=0
-    )
-
     grid_search = GridSearchCV(
-        base_model,
+        pipeline,
         param_grid,
         cv=5,
         scoring='f1_macro',
@@ -247,50 +214,98 @@ if not os.path.isfile(model_path):
         verbose=2
     )
 
-    grid_search.fit(X_train, y_train, sample_weight=sample_weights)
+    grid_search.fit(X_train, y_train, classifier__sample_weight=sample_weights)
 
     model = grid_search.best_estimator_
-    print("Best parameters:", grid_search.best_params_)
+    best_params = grid_search.best_params_
+    print("Best parameters:", best_params)
 
     print("With smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=20)
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10)
 
     print("Without smoothing")
     evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
 
-
-    Shelf(X_train, X_test, model , model_path, model_weights = sample_weights)
+    # Save model, class weights, and best parameters
+    Shelf(X_train, X_test, model, model_path, model_weights=class_weights, best_params=best_params)
 
 else:
     X_train, X_test, y_train, y_test, model, extra = Shelf.load(X, y, model_path, return_extra=True)
-    print(extra)
+    class_weights = extra.get('model_weights', extra)
+    best_params = extra.get('best_params', {})
+    print(f"Loaded class weights: {class_weights}")
+    print(f"Loaded best parameters: {best_params}")
 
-    sample_weights = extra
+# Ensure y_train and y_test are raveled for both branches
+if not isinstance(y_train, np.ndarray):
+    y_train = y_train.values.ravel()
+    y_test = y_test.values.ravel()
 
+# Calculate sample weights (for both new training and loaded model)
+if 'sample_weights' not in locals():
+    sample_weights = np.array([class_weights[y] for y in y_train])
 
+# Extract feature importances using built-in HGB feature_importances_ / permutation_importance
+feature_importance_path = './pipeline_saved_processes/selected_features/HGB_chunk_selected_features_built.csv'
 
-# Extract feature importances using Permutation Importance
-print("Calculating permutation importance...")
-result = permutation_importance(
-    model,
-    X_test,
-    y_test,
-    n_repeats=10,
-    random_state=42,
-    n_jobs=2
-)
-importances = result.importances_mean
-feature_names = X_train.columns
-feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+# Built-in Feature Importances
+if os.path.isfile(feature_importance_path):
+    print("Loading existing feature importances...")
+    feature_importance_df = pd.read_csv(feature_importance_path)
+    print(f"Features with importance > 0: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
+else:
+    print("Calculating feature importances...")
+    # Extract classifier from pipeline and get built-in feature importances
+    classifier = model.named_steps['classifier']
+    importances = classifier.feature_importances_
+    feature_names = X_train.columns
+    feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
 
-# Rank features by importance
-feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+    # Rank features by importance
+    feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
 
-# Filter features with importance > 0
-feature_importance_df = feature_importance_df[feature_importance_df['Importance'] > 0]
-print(f"Features with importance > 0: {len(feature_importance_df)}")
-print(feature_importance_df.head(20))
+    # Calculate cumulative importance and filter to top 80%
+    feature_importance_df['Cumulative_Importance'] = feature_importance_df['Importance'].cumsum() / feature_importance_df['Importance'].sum()
+    feature_importance_df = feature_importance_df[feature_importance_df['Cumulative_Importance'] <= 0.80]
+    print(f"Features contributing to top 80% cumulative importance: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
 
+    # Save selected features
+    feature_importance_df.to_csv('./pipeline_saved_processes/selected_features/HGB_chunk_selected_features_built.csv', index=False)
+
+"""
+# Permutation Importance
+if os.path.isfile(feature_importance_path):
+    print("Loading existing permutation importance...")
+    feature_importance_df = pd.read_csv(feature_importance_path)
+    print(f"Features with importance > 0: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
+else:
+    print("Calculating permutation importance...")
+    result = permutation_importance(
+        model,
+        X_train,
+        y_train,
+        n_repeats=10,
+        random_state=42,
+        n_jobs=2
+    )
+    importances = result.importances_mean
+    feature_names = X_train.columns
+    feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+
+    # Rank features by importance
+    feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+
+    # Filter features with importance > 0
+    feature_importance_df = feature_importance_df[feature_importance_df['Importance'] > 0]
+    print(f"Features with importance > 0: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
+
+    # Save selected features
+    feature_importance_df.to_csv('./pipeline_saved_processes/selected_features/HGB_chunk_selected_features.csv', index=False)
+"""
 
 # Plot top 20 feature importances
 top_n_plot = 20
@@ -304,50 +319,48 @@ model_name =  "Histogram Gradient Boosting"
 plt.title(f'Top {top_n_plot} {model_name} Feature Importances', fontsize=14, fontweight='bold')
 plt.gca().invert_yaxis()
 plt.tight_layout()
-plt.savefig('pipeline_outputs/feature_importances_HGB.png', dpi=300, bbox_inches='tight')
+plt.savefig('pipeline_outputs/feature_importances_HGB_chunk.png', dpi=300, bbox_inches='tight')
 plt.close()
-
-"""
 
 # Train second HGB model with only selected features
 print("\nTraining second HGB model with selected features...")
 selected_features = feature_importance_df['Feature'].tolist()
 
-# Filter X to keep only selected features
-X_train_sel = X_train[selected_features]
-X_test_sel = X_test[selected_features]
+HGB_selected_path = "./pipeline_saved_processes/models/HGB_chunk_selected_features_built.pkl"
 
-HGB_selected_path = "./pipeline_saved_processes/models/HGB_selected_features.pkl"
+if not os.path.isfile(HGB_selected_path):
+    # Filter X to keep only selected features
+    X_train_sel = X_train[selected_features]
+    X_test_sel = X_test[selected_features]
 
-# Train model with selected features
-print(f"Training HGB with {len(selected_features)} selected features...")
-model_selected = HistGradientBoostingClassifier(
-    random_state=42,
-    max_iter=100,
-    max_depth=6,
-    learning_rate=0.1,
-    max_bins=255,
-    min_samples_leaf=20,
-    l2_regularization=0.0,
-    early_stopping=False,
-    verbose=0
-)
+    # Extract best hyperparameters from grid search (remove 'classifier__' prefix)
+    best_clf_params = {k.replace('classifier__', ''): v for k, v in best_params.items()}
+    print(f"Using best parameters from grid search: {best_clf_params}")
 
-model_selected.fit(X_train_sel, y_train, sample_weight=sample_weights)
+    # Create pipeline with selected features using best hyperparameters
+    print(f"Training HGB with {len(selected_features)} selected features...")
+    pipeline_selected = Pipeline([
+        ('scaler', StandardScaler()),
+        ('classifier', HistGradientBoostingClassifier(
+            random_state=42,
+            early_stopping=False,
+            verbose=0,
+            **best_clf_params
+        ))
+    ])
 
-print("Evaluating model with selected features:")
+    pipeline_selected.fit(X_train_sel, y_train, classifier__sample_weight=sample_weights)
 
-print("With smoothing")
-evaluate_model(model_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=20)
+    print("Evaluating model with selected features:")
 
-print("Without smoothing")
-evaluate_model(model_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=0)
+    print("With smoothing")
+    evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=10)
 
-# Save the model
-Shelf(X_train_sel, X_test_sel, model_selected, HGB_selected_path)
+    print("Without smoothing")
+    evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=0)
 
-
-"""
+    # Save the model
+    Shelf(X_train_sel, X_test_sel, pipeline_selected, HGB_selected_path, model_weights=class_weights)
 
 
 

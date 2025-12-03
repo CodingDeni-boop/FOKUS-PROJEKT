@@ -8,6 +8,29 @@ import seaborn as sns
 from sklearn.base import BaseEstimator
 import numpy as np
 
+
+def count_behavior_instances(predictions, behavior_label):
+    """
+    Count the number of behavior instances by detecting transitions to the behavior.
+    A new instance is counted each time the behavior starts (transition from another label to this label).
+
+    Args:
+        predictions: Array of predicted labels
+        behavior_label: The specific behavior to count
+
+    Returns:
+        Number of instances of the behavior
+    """
+
+    # Create binary array: 1 where prediction matches behavior, 0 otherwise
+    behavior_mask = (predictions == behavior_label).astype(int)
+
+    # Detect transitions: count where diff > 0.5 (i.e., transition from 0 to 1)
+    changes = np.diff(behavior_mask, prepend=0)
+    instances = (changes > 0.5).sum()
+
+    return instances
+
 def smooth_predictions(predictions, min_frames):
     
     #Remove behavior prediction outliers shorter than min_frames.
@@ -101,18 +124,17 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
     plt.savefig(conf_matrix_path, dpi=300, bbox_inches='tight')
     plt.close()
 
-    ########################################### Feature Importance #########################################################
-"""
-    if hasattr(X_train, 'columns'):
-        feature_names = X_train.columns
-        importance_df = pd.DataFrame({
-            'feature': feature_names,
-            'importance': model.feature_importances_
-        }).sort_values('importance', ascending=False)
+    ################################### BEHAVIOR INSTANCE COUNTS ###############################################################
 
-        print("\n=== Feature Importance ===")
-        print(importance_df)
-    else:
-        print("\n=== Feature Importance ===")
-        print("Feature names not available")
-"""
+    print("\n=== Behavior Instance Counts ===")
+    behaviors = np.unique(y_test)
+
+    print(f"{'Behavior':<20} {'True Count':<15} {'Predicted Count':<15}")
+    print("="*50)
+    for behavior in behaviors:
+        true_count = count_behavior_instances(y_test, behavior)
+        pred_count = count_behavior_instances(y_pred, behavior)
+        print(f"{behavior:<20} {true_count:<15} {pred_count:<15}")
+
+    ########################################### Feature Importance #########################################################
+
