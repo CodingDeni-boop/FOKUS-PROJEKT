@@ -245,28 +245,67 @@ if not isinstance(y_train, np.ndarray):
 if 'sample_weights' not in locals():
     sample_weights = np.array([class_weights[y] for y in y_train])
 
-# Extract feature importances using Permutation Importance
-print("Calculating permutation importance...")
-result = permutation_importance(
-    model,
-    X_train,
-    y_train,
-    n_repeats=10,
-    random_state=42,
-    n_jobs=2
-)
-importances = result.importances_mean
-feature_names = X_train.columns
-feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+# Extract feature importances using built-in HGB feature_importances_ / permutation_importance
+feature_importance_path = './pipeline_saved_processes/selected_features/HGB_chunk_selected_features_built.csv'
 
-# Rank features by importance
-feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+# Built-in Feature Importances
+if os.path.isfile(feature_importance_path):
+    print("Loading existing feature importances...")
+    feature_importance_df = pd.read_csv(feature_importance_path)
+    print(f"Features with importance > 0: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
+else:
+    print("Calculating feature importances...")
+    # Extract classifier from pipeline and get built-in feature importances
+    classifier = model.named_steps['classifier']
+    importances = classifier.feature_importances_
+    feature_names = X_train.columns
+    feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
 
-# Filter features with importance > 0
-feature_importance_df = feature_importance_df[feature_importance_df['Importance'] > 0]
-print(f"Features with importance > 0: {len(feature_importance_df)}")
-print(feature_importance_df.head(20))
+    # Rank features by importance
+    feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
 
+    # Calculate cumulative importance and filter to top 80%
+    feature_importance_df['Cumulative_Importance'] = feature_importance_df['Importance'].cumsum() / feature_importance_df['Importance'].sum()
+    feature_importance_df = feature_importance_df[feature_importance_df['Cumulative_Importance'] <= 0.80]
+    print(f"Features contributing to top 80% cumulative importance: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
+
+    # Save selected features
+    feature_importance_df.to_csv('./pipeline_saved_processes/selected_features/HGB_chunk_selected_features_built.csv', index=False)
+
+"""
+# Permutation Importance
+if os.path.isfile(feature_importance_path):
+    print("Loading existing permutation importance...")
+    feature_importance_df = pd.read_csv(feature_importance_path)
+    print(f"Features with importance > 0: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
+else:
+    print("Calculating permutation importance...")
+    result = permutation_importance(
+        model,
+        X_train,
+        y_train,
+        n_repeats=10,
+        random_state=42,
+        n_jobs=2
+    )
+    importances = result.importances_mean
+    feature_names = X_train.columns
+    feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+
+    # Rank features by importance
+    feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+
+    # Filter features with importance > 0
+    feature_importance_df = feature_importance_df[feature_importance_df['Importance'] > 0]
+    print(f"Features with importance > 0: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
+
+    # Save selected features
+    feature_importance_df.to_csv('./pipeline_saved_processes/selected_features/HGB_chunk_selected_features.csv', index=False)
+"""
 
 # Plot top 20 feature importances
 top_n_plot = 20
@@ -283,12 +322,11 @@ plt.tight_layout()
 plt.savefig('pipeline_outputs/feature_importances_HGB_chunk.png', dpi=300, bbox_inches='tight')
 plt.close()
 
-
 # Train second HGB model with only selected features
 print("\nTraining second HGB model with selected features...")
 selected_features = feature_importance_df['Feature'].tolist()
 
-HGB_selected_path = "./pipeline_saved_processes/models/HGB_chunk_selected_features.pkl"
+HGB_selected_path = "./pipeline_saved_processes/models/HGB_chunk_selected_features_built.pkl"
 
 if not os.path.isfile(HGB_selected_path):
     # Filter X to keep only selected features
