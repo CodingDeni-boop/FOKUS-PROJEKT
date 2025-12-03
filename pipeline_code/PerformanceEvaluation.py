@@ -111,7 +111,7 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
     sns.heatmap(
         cmn,
         annot=True,           # Show numbers in cells
-        fmt='d',              # Format as integers
+        fmt='g',              # Format as integers
         cmap='Blues',         # Color scheme
         xticklabels=model.classes_,  # Label x-axis with class names
         yticklabels=model.classes_,  # Label y-axis with class names
@@ -136,5 +136,4 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
         pred_count = count_behavior_instances(y_pred, behavior)
         print(f"{behavior:<20} {true_count:<15} {pred_count:<15}")
 
-    ########################################### Feature Importance #########################################################
 
