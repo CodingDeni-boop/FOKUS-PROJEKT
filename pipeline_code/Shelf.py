@@ -58,6 +58,10 @@ class Shelf:
             [obj.train_index.levels[0].astype(int),
             obj.train_index.levels[1]], 
             level=[0, 1])
+        obj.test_index = obj.train_index.set_levels(
+            [obj.test_index.levels[0].astype(int),
+            obj.test_index.levels[1]],
+            level=[0, 1])
 
         X_train = X.loc[obj.train_index][obj.features]
         X_test = X.loc[obj.test_index][obj.features]
