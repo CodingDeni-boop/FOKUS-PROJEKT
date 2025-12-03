@@ -252,17 +252,23 @@ else:
     print(f"Loaded class weights: {class_weights}")
     print(f"Loaded best parameters: {best_params}")
 
-# Ensure y_train and y_test are raveled for both branches
-if not isinstance(y_train, np.ndarray):
-    y_train = y_train.values.ravel()
-    y_test = y_test.values.ravel()
+    # Ensure y_train and y_test are raveled for evaluation
+    if not isinstance(y_train, np.ndarray):
+        y_train = y_train.values.ravel()
+        y_test = y_test.values.ravel()
 
-# Print performance evaluation for loaded model (only if model was loaded)
-if os.path.isfile(model_path) and 'model' in locals():
+    # Print performance evaluation for loaded model
     print("\n=== Performance Evaluation for Loaded Model ===")
     print("With smoothing")
     evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10)
 
+    print("Without smoothing")
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
+
+# Ensure y_train and y_test are raveled for both branches
+if not isinstance(y_train, np.ndarray):
+    y_train = y_train.values.ravel()
+    y_test = y_test.values.ravel()
 
 # Calculate sample weights (for both new training and loaded model)
 if 'sample_weights' not in locals():
