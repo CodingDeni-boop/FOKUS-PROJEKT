@@ -6,6 +6,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.base import BaseEstimator
+import numpy as np
 
 def smooth_predictions(predictions, min_frames):
     
@@ -77,14 +78,15 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
 
     ################################### CONFUSION MATRIX ###############################################################
 
-    print("\n=== Confusion Matrix ===")
+    print("\n=== Normalised Confusion Matrix ===")
     cm = confusion_matrix(y_test, y_pred)
-    print(cm)
+    cmn = cm.astype('float') / cm.sum(axis=0)[:, np.newaxis]
+    print(cmn)
 
     # Confusion Matrix Plot
     plt.figure(figsize=(10, 8))
     sns.heatmap(
-        cm,
+        cmn,
         annot=True,           # Show numbers in cells
         fmt='d',              # Format as integers
         cmap='Blues',         # Color scheme

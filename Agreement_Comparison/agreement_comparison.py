@@ -10,7 +10,7 @@ behaviour = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 
 comparisons = True
 agreement_confusion_matrix = True
-agreement_confusion_matrix_final = True
+agreement_confusion_matrix_final = False
 
 videos = { "1" : ["Nata", "Nataliia"],
            "2" : ["Nata", "Nataliia"],
@@ -116,13 +116,15 @@ if agreement_confusion_matrix:
     
     cm = confusion_matrix(chunky1, chunky2, labels = behaviour)
     print(cm)
+    cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    cmn = np.round(cmn, 2)
+    print(cmn)
 
     # Confusion Matrix Plot
     plt.figure(figsize=(10, 8))
     sns.heatmap(
-        cm,
+        cmn,
         annot=True,           # Show numbers in cells
-        fmt='d',              # Format as integers
         cmap='Blues',         # Color scheme
         cbar_kws={'label': 'Count'},
         xticklabels=behaviour,
@@ -145,7 +147,8 @@ if agreement_confusion_matrix_final:
         chunky2 = pd.concat([chunky2, videos_dataframes[handle][1]["behaviour"]],axis = 0,ignore_index=True)
     
     cm = confusion_matrix(chunky1, chunky2, labels = behaviour)
-    print(cm)
+    cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
 
     # Confusion Matrix Plot
     fig1 = plt.figure(figsize=(10, 8))

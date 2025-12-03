@@ -19,7 +19,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 N_input = X_train.shape[1]
 N_features = y.shape[1]
 
-
 # Assuming MLData is a dictionary with parameters
 # You'll need to define N_input and N_features values
 # Example: N_input = 100, N_features = 4

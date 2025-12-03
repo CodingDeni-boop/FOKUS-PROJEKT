@@ -9,3 +9,4 @@ trimesh
 imblearn
 opencv-python
 natsort
+keras

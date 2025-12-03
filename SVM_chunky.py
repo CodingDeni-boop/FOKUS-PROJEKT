@@ -36,8 +36,8 @@ import os
 
 X_path = "./pipeline_saved_processes/dataframes/X_31.csv"
 y_path = "./pipeline_saved_processes/dataframes/y_31.csv"
-model_path = "./pipeline_saved_processes/models/SVM_31_huge_poly.pkl"
-conf_matrix_path = "pipeline_outputs/SVM/SVM_31_huge_poly.png"
+model_path = "./pipeline_saved_processes/models/SVM_31_huge_poly2.pkl"
+conf_matrix_path = "pipeline_outputs/SVM/SVM_31_huge_poly2.png"
 
 
 ### checks if X and y already exists, and if not, they get computed
@@ -189,9 +189,10 @@ if not os.path.isfile(model_path):
     Shelf(X_train, X_test, pipe, model_path)
 else:
 
+    print("loading model...")
     X_train, X_test, y_train, y_test, pipe = Shelf.load(X, y, model_path)
 
 
 
-
+print("evaluating model...")
 evaluate_model(pipe, X_train, y_train, X_test, y_test)
