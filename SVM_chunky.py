@@ -176,7 +176,7 @@ if not os.path.isfile(model_path):
                              #("collinearity_filter" , SmartCollinearityFilter(threshold = 0.95)),
                              #("undersampler", RandomUnderSampler(sampling_strategy = "majority")),
                              ("uvfs" , SelectKBest(score_func = f_classif, k = 2000)),
-                             ("kernel", PolynomialCountSketch(degree = 3, n_components = 6000, coef0 = 1)),
+                             ("kernel", Nystroem(degree = 3, n_components = 6000, coef0 = 1)),
                              ("LinearSVM", SGDClassifier(loss = "hinge", penalty = "l2", class_weight = "balanced", max_iter = 25000)),
                              #("SVM", SVC(C = 1, kernel = "poly", coef0 = 1))
                             ], verbose = True)

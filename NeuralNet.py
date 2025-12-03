@@ -12,6 +12,8 @@ from pipeline_code.filter_and_preprocess import reduce_bits
 from pipeline_code.model_tools import video_train_test_split
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.dataloader import DataLoader
+from sklearn.preprocessing import StandardScaler
+from torch import nn
 
 if torch.backends.mps.is_available():
     mps_device = torch.device("mps")
@@ -149,30 +151,53 @@ else:
     X = pd.read_csv(X_path, index_col=["video_id", "frame"])
     y = pd.read_csv(y_path, index_col=["video_id", "frame"])
 
+X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
+scaler = StandardScaler().set_output(transform = "pandas")
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
 class OFTDataset(Dataset):
 
-    def __init__():
-        super.__init__()
+    def __init__(self, X : pd.DataFrame, y : pd.DataFrame, transform = None, target_transform = None):
+        self.transform = transform
+        self.target_transform = target_transform
+
+            ##  TRANSFORM y SO THAT 0 = background, 1 = supportedrear, 2 = unsupportedrear, 3 = grooming ##
+        y_coded = np.zeros_like(y)
+        y_coded[y == "supportedrear"] = 1
+        y_coded[y == "unsupportedrear"] = 2
+        y_coded[y == "grooming"] = 3
+        y_coded = y_coded.transpose().squeeze().astype("int8")
+        del y
+
+        self.X = torch.from_numpy(X.to_numpy(dtype = "float32"))
+        self.y = torch.from_numpy(y_coded)
+        assert len(self.X) == len(self.y)
+
+    def __len__(self):
+        return len(self.y)
     
-    def __len__():
-        super.__len__()
-    
-    def __getitem__():
-        super.__getitem__()
+    def __getitem__(self, idx):
 
-training_data = []
-test_data = []
+        frame_X = self.X[idx, :]
+        frame_y = self.y[idx]
 
+        if self.transform:
+            frame_X = self.transform(frame_X)
+        if self.target_transform:
+            frame_y = self.target_transform(frame_y)
 
-train_dataloader = DataLoader(training_data)
-test_dataloader = DataLoader(training_data)
-
+        return frame_X, frame_y
 
 
+training_set = OFTDataset(X_train, y_train)
+test_set = OFTDataset(X_test, y_test)
+train_dataloader = DataLoader(training_set, batch_size=64, shuffle=True)        ## SHUFFLES FRAMES, TRY TO NOT SHUFFLE AND SEE IF CHANGES
+test_dataloader = DataLoader(test_set, batch_size=64, shuffle=True)
 
+train_features, train_label = next(iter(train_dataloader))
+train_features : torch.Tensor
+train_label : torch.Tensor
 
-
-
-
+class NeuralNet(nn.Module)
 
