@@ -54,6 +54,11 @@ class Shelf:
 
 
         obj : Shelf = job.load(path)
+        obj.train_index = obj.train_index.set_levels(
+            [obj.train_index.levels[0].astype(int),
+            obj.train_index.levels[1]], 
+            level=[0, 1])
+
         X_train = X.loc[obj.train_index][obj.features]
         X_test = X.loc[obj.test_index][obj.features]
         y_train = y.loc[obj.train_index]
