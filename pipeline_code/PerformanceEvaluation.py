@@ -111,7 +111,7 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
     sns.heatmap(
         cmn,
         annot=True,           # Show numbers in cells
-        fmt='g',              # Format as integers
+        fmt='.2f',              # Format as integers
         cmap='Blues',         # Color scheme
         xticklabels=model.classes_,  # Label x-axis with class names
         yticklabels=model.classes_,  # Label y-axis with class names

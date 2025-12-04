@@ -37,7 +37,7 @@ start = time.time()
 X_path = "./pipeline_saved_processes/dataframes/X_chunk.csv"
 X_filtered_path = "./pipeline_saved_processes/dataframes/X_chunk_filtered.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
-model_path = "./pipeline_saved_processes/models/HGB_chunk_2.pkl"
+model_path = "pipeline_saved_processes/models/HGB_chunk_final_2.pkl"
 
 # checks if X and y already exists, and if not, they get computed
 
@@ -210,10 +210,10 @@ if not os.path.isfile(model_path):
     # Grid Search
     param_grid = {
         'classifier__max_iter': [125],
-        'classifier__max_depth': [4],
+        'classifier__max_depth': [5],
         'classifier__learning_rate': [0.1],
         'classifier__min_samples_leaf': [60], #the higher, the less overfitting, 80
-        'classifier__l2_regularization': [0.0],
+        'classifier__l2_regularization': [0.01],
         'classifier__max_bins': [255],
         'classifier__max_leaf_nodes': [31]  # Limits tree complexity, 63
 
@@ -237,13 +237,12 @@ if not os.path.isfile(model_path):
     best_params = grid_search.best_params_
     print("Best parameters:", best_params)
 
-    print("With smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10)
+    print("\nWith smoothing")
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10, conf_matrix_path = "pipeline_outputs/conf_matrix_final_2_model_1.png")
 
 
     # Save model, class weights, and best parameters
     Shelf(X_train, X_test, model, model_path, model_weights=class_weights, best_params=best_params)
-
 
 else:
     X_train, X_test, y_train, y_test, model, extra = Shelf.load(X, y, model_path, return_extra=True)
@@ -259,11 +258,9 @@ else:
 
     # Print performance evaluation for loaded model
     print("\n=== Performance Evaluation for Loaded Model ===")
-    print("With smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10)
+    print("\nWith smoothing")
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10, conf_matrix_path = "pipeline_outputs/conf_matrix_final_2_model_1.png")
 
-    print("Without smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=0)
 
 # Ensure y_train and y_test are raveled for both branches
 if not isinstance(y_train, np.ndarray):
@@ -276,43 +273,43 @@ if 'sample_weights' not in locals():
 
 
 # Extract feature importances using  permutation_importance
-feature_importance_path = './pipeline_saved_processes/selected_features/HGB_chunk_2_selected_features.csv'
+feature_importance_path = './pipeline_saved_processes/selected_features/HGB_final_2_selected_features.csv'
 
 
 # Permutation Importance
 if os.path.isfile(feature_importance_path):
- print("Loading existing permutation importance...")
- feature_importance_df = pd.read_csv(feature_importance_path)
- print(f"Features with importance > 0: {len(feature_importance_df)}")
- print(feature_importance_df.head(20))
+    print("Loading existing permutation importance...")
+    feature_importance_df = pd.read_csv(feature_importance_path)
+    print(f"Features with importance > 0: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
 else:
- print("Calculating permutation importance...")
- result = permutation_importance(
+    print("Calculating permutation importance...")
+    result = permutation_importance(
      model,
      X_train,
      y_train,
-     n_repeats=1,
+     n_repeats=5,
      random_state=42,
      n_jobs=2
- )
- importances = result.importances_mean
- feature_names = X_train.columns
- feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+    )
+    importances = result.importances_mean
+    feature_names = X_train.columns
+    feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
 
- # Rank features by importance
- feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+    # Rank features by importance
+    feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
 
- # Filter features with importance > 0
- feature_importance_df = feature_importance_df[feature_importance_df['Importance'] > 0]
- print(f"Features with importance > 0: {len(feature_importance_df)}")
- print(feature_importance_df.head(20))
+    # Filter features with importance > 0.0001
+    feature_importance_df = feature_importance_df[feature_importance_df['Importance'] > 0.0001]
+    print(f"Features with importance > 0.0001: {len(feature_importance_df)}")
+    print(feature_importance_df.head(20))
 
- # Save selected features
- feature_importance_df.to_csv('./pipeline_saved_processes/selected_features/HGB_chunk_selected_features.csv', index=False)
+    # Save selected features
+    feature_importance_df.to_csv('./pipeline_saved_processes/selected_features/HGB_final_2_selected_features.csv', index=False)
 
 
-# Plot top 20 feature importances
-top_n_plot = 20
+# Plot top 300 feature importances
+top_n_plot = 300
 top_features_plot = feature_importance_df.head(top_n_plot)
 plt.figure(figsize=(10, 12))
 plt.barh(range(len(top_features_plot)), top_features_plot['Importance'], align='center')
@@ -323,27 +320,27 @@ model_name =  "Histogram Gradient Boosting"
 plt.title(f'Top {top_n_plot} {model_name} Feature Importances', fontsize=14, fontweight='bold')
 plt.gca().invert_yaxis()
 plt.tight_layout()
-plt.savefig('pipeline_outputs/feature_importances_HGB_chunk.png', dpi=300, bbox_inches='tight')
+plt.savefig('pipeline_outputs/feature_importances_HGB_final_2.png', dpi=300, bbox_inches='tight')
 plt.close()
 
 # Train second HGB model with only selected features
-print("\nTraining second HGB model with selected features...")
+print("\nSecond HGB model with selected features...")
 selected_features = feature_importance_df['Feature'].tolist()
 
-HGB_selected_path = "./pipeline_saved_processes/models/HGB_chunk_selected_features.pkl"
+HGB_selected_path = "pipeline_saved_processes/models/HGB_final_2_selected_features.pkl"
 
 if not os.path.isfile(HGB_selected_path):
- # Filter X to keep only selected features
- X_train_sel = X_train[selected_features]
- X_test_sel = X_test[selected_features]
+    # Filter X to keep only selected features
+    X_train_sel = X_train[selected_features]
+    X_test_sel = X_test[selected_features]
 
- # Extract best hyperparameters from grid search (remove 'classifier__' prefix)
- best_clf_params = {k.replace('classifier__', ''): v for k, v in best_params.items()}
- print(f"Using best parameters from grid search: {best_clf_params}")
+    # Extract best hyperparameters from grid search (remove 'classifier__' prefix)
+    best_clf_params = {k.replace('classifier__', ''): v for k, v in best_params.items()}
+    print(f"Using best parameters from grid search: {best_clf_params}")
 
- # Create pipeline with selected features using best hyperparameters
- print(f"Training HGB with {len(selected_features)} selected features...")
- pipeline_selected = Pipeline([
+    # Create pipeline with selected features using best hyperparameters
+    print(f"Training HGB with {len(selected_features)} selected features...")
+    pipeline_selected = Pipeline([
      ('scaler', StandardScaler()),
      ('classifier', HistGradientBoostingClassifier(
          random_state=42,
@@ -351,18 +348,27 @@ if not os.path.isfile(HGB_selected_path):
          verbose=0,
          **best_clf_params
      ))
- ])
+    ])
 
- pipeline_selected.fit(X_train_sel, y_train, classifier__sample_weight=sample_weights)
+    pipeline_selected.fit(X_train_sel, y_train, classifier__sample_weight=sample_weights)
 
- print("Evaluating model with selected features:")
+    print("Evaluating model with selected features:")
 
- print("With smoothing")
- evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=10)
+    print("\nWith smoothing")
+    evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=10, conf_matrix_path = "pipeline_outputs/conf_matrix_final_2_model_2.png")
 
+    # Save the model
+    Shelf(X_train_sel, X_test_sel, pipeline_selected, HGB_selected_path, model_weights=class_weights)
 
- # Save the model
- Shelf(X_train_sel, X_test_sel, pipeline_selected, HGB_selected_path, model_weights=class_weights)
+else:
+    # Load the second model with selected features
+    X_train_sel, X_test_sel, y_train_sel, y_test_sel, pipeline_selected, extra_sel = Shelf.load(X, y, HGB_selected_path, return_extra=True)
 
+    # Ensure y arrays are raveled
+    if not isinstance(y_train_sel, np.ndarray):
+        y_train_sel = y_train_sel.values.ravel()
+        y_test_sel = y_test_sel.values.ravel()
 
-
+    print("\n=== Performance Evaluation for Loaded Second Model (Selected Features) ===")
+    print("\nWith smoothing")
+    evaluate_model(pipeline_selected, X_train_sel, y_train_sel, X_test_sel, y_test_sel, min_frames=10, conf_matrix_path = "pipeline_outputs/conf_matrix_final_2_model_2.png")
