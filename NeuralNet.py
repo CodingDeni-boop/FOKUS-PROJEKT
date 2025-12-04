@@ -10,10 +10,12 @@ from pipeline_code.fix_frames import drop_last_frame
 from pipeline_code.fix_frames import drop_nas
 from pipeline_code.filter_and_preprocess import reduce_bits
 from pipeline_code.model_tools import video_train_test_split
+from pipeline_code.PerformanceEvaluation import evaluate_model
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.dataloader import DataLoader
 from sklearn.preprocessing import StandardScaler
 from torch import nn
+from sklearn.metrics import classification_report
 
 if torch.backends.mps.is_available():
     mps_device = torch.device("mps")
@@ -21,8 +23,8 @@ if torch.backends.mps.is_available():
 else:
     print ("MPS device not found.")
 
-X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
-y_path = "./pipeline_saved_processes/dataframes/y_lite.csv"
+X_path = "./pipeline_saved_processes/dataframes/X_31.csv"
+y_path = "./pipeline_saved_processes/dataframes/y_31.csv"
 model_path = "./pipeline_saved_processes/models/SVM_lite_poly.pkl"
 conf_matrix_path = "pipeline_outputs/SVM/SVM_lite_poly.png"
 
@@ -195,9 +197,109 @@ test_set = OFTDataset(X_test, y_test)
 train_dataloader = DataLoader(training_set, batch_size=64, shuffle=True)        ## SHUFFLES FRAMES, TRY TO NOT SHUFFLE AND SEE IF CHANGES
 test_dataloader = DataLoader(test_set, batch_size=64, shuffle=True)
 
-train_features, train_label = next(iter(train_dataloader))
-train_features : torch.Tensor
-train_label : torch.Tensor
 
-class NeuralNet(nn.Module)
+class NeuralNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.linear1 = nn.Linear(114*31, 1024*5)
+        self.relu1 = nn.ReLU()
+        self.dropout1 = nn.Dropout(0.3)
+        self.linear2 = nn.Linear(1024*5, 512*5)
+        self.relu2 = nn.ReLU()
+        self.dropout2 = nn.Dropout(0.3)
+        self.linear3 = nn.Linear(512*5, 512)
+        self.relu3 = nn.ReLU()
+        self.linear4 = nn.Linear(512, 4)
+    
+    def forward(self, x):
+        
+        x = self.linear1(x)
+        x = self.relu1(x)
+        x = self.dropout1(x)
+        
+        x = self.linear2(x)
+        x = self.relu2(x)
+        x = self.dropout2(x)
+        
+        x = self.linear3(x)
+        x = self.relu3(x)
+        
+        x = self.linear4(x)
+        
+        return x
+    
 
+network1 = NeuralNet().to(mps_device)
+print(network1)
+
+def train_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossEntropyLoss, optimizer : torch.optim.RMSprop):
+    size = len(dataloader.dataset)
+ 
+    network.train()
+    total_samples = 0
+
+    for batch, (X, y) in enumerate(dataloader):
+        X, y = X.to(mps_device), y.to(mps_device)
+
+        pred = network(X)
+        loss = loss_fn(pred, y)
+
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+
+        total_samples += X.shape[0]  # count actual samples processed
+
+        if batch % 100 == 0:
+            print(f"loss: {loss.item():>7f}  [{total_samples:>5d}/{size:>5d}]")
+
+
+def test_loop(dataloader, model, loss_fn):
+    model.eval()
+    size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    test_loss, correct = 0, 0
+
+    with torch.no_grad():
+        for X, y in dataloader:
+            X, y = X.to(mps_device), y.to(mps_device)
+            pred = model(X)
+            test_loss += loss_fn(pred, y).item()
+            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+
+    test_loss /= num_batches
+    correct /= size
+    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    return pred
+
+epochs = 5
+batch_size = 128
+learning_rate = 1e-4
+class_weights = torch.tensor([1.0, 8.0, 15.0, 15.0]).to(mps_device)
+loss_function = nn.CrossEntropyLoss(class_weights)
+optimizer = torch.optim.RMSprop(network1.parameters(), lr = learning_rate)
+
+for t in range(epochs):
+    print(f"Epoch {t+1}\n-------------------------------")
+    train_loop(train_dataloader, network1, loss_function, optimizer)
+    test_loop(test_dataloader, network1, loss_function).cpu().numpy()
+print("Done!")
+
+
+
+network1.eval()
+with torch.no_grad():
+    X_test = torch.from_numpy(X_test.to_numpy(dtype = "float32"))
+    X_test = X_test.to(mps_device)
+    logits = network1(X_test)
+    predictions = logits.argmax(dim=1).cpu().numpy()
+    y_true = y_test
+
+    y_pred = np.empty_like(predictions, dtype = object)
+    print(y_pred.size)
+    y_pred[predictions == 0] = "background"
+    y_pred[predictions == 1] = "supportedrear"
+    y_pred[predictions == 2] = "unsupportedrear"
+    y_pred[predictions == 3] = "grooming"
+
+    print(classification_report(y_true, y_pred))
