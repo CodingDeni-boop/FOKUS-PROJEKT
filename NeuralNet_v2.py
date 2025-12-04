@@ -16,6 +16,8 @@ from torch.utils.data.dataloader import DataLoader
 from sklearn.preprocessing import StandardScaler
 from torch import nn
 from sklearn.metrics import classification_report
+from pipeline_code.NeuralNet_tools import split_dataframe
+from pipeline_code.NeuralNet_tools import OFTDataset
 
 if torch.backends.mps.is_available():
     mps_device = torch.device("mps")
@@ -23,14 +25,14 @@ if torch.backends.mps.is_available():
 else:
     print ("MPS device not found.")
 
-X_path = "./pipeline_saved_processes/dataframes/X_31.csv"
-y_path = "./pipeline_saved_processes/dataframes/y_31.csv"
-model_path = "./pipeline_saved_processes/models/SVM_lite_poly.pkl"
-conf_matrix_path = "pipeline_outputs/SVM/SVM_lite_poly.png"
+X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
+y_path = "./pipeline_saved_processes/dataframes/y_lite.csv"
+NeuralNet_data_path = "./pipeline_saved_processes/dataframes/NeuralNet_data"
+recompute_data = False
 
 ### checks if X and y already exists, and if not, they get computed
 
-if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
+if recompute_data:
 
     features_collection = triangulate(
         collection_path = "./pipeline_inputs/collection",
@@ -142,173 +144,30 @@ if not (os.path.isfile(X_path) and os.path.isfile(y_path)):
     X, y = drop_last_frame(X = X, y = y)
     X, y = drop_nas(X = X,y = y)
     X = reduce_bits(X)
-
     print("saving...")
-    X.to_csv(X_path)
-    y.to_csv(y_path)
-    print("!files saved!")
+    split_dataframe(X, y, NeuralNet_data_path)
+    print("saved!")
+    del X
+    del y
+    del features_collection
 
-else:
+# create train test split
+train_set = [2, 3, 4, 6, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21]
+test_set = [1, 7, 8, 14]
 
-    X = pd.read_csv(X_path, index_col=["video_id", "frame"])
-    y = pd.read_csv(y_path, index_col=["video_id", "frame"])
-
-X_train, X_test, y_train, y_test = video_train_test_split(X, y, 4, 42)
+# create train test split
 scaler = StandardScaler().set_output(transform = "pandas")
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+for name in train_set:
+    X = pd.read_csv(NeuralNet_data_path + f"/X/{name}.csv")
+    scaler.partial_fit(X)
+    del X
 
-class OFTDataset(Dataset):
-
-    def __init__(self, X : pd.DataFrame, y : pd.DataFrame, transform = None, target_transform = None):
-        self.transform = transform
-        self.target_transform = target_transform
-
-            ##  TRANSFORM y SO THAT 0 = background, 1 = supportedrear, 2 = unsupportedrear, 3 = grooming ##
-        y_coded = np.zeros_like(y)
-        y_coded[y == "supportedrear"] = 1
-        y_coded[y == "unsupportedrear"] = 2
-        y_coded[y == "grooming"] = 3
-        y_coded = y_coded.transpose().squeeze().astype("int8")
-        del y
-
-        self.X = torch.from_numpy(X.to_numpy(dtype = "float32"))
-        self.y = torch.from_numpy(y_coded)
-        assert len(self.X) == len(self.y)
-
-    def __len__(self):
-        return len(self.y)
-    
-    def __getitem__(self, idx):
-
-        frame_X = self.X[idx, :]
-        frame_y = self.y[idx]
-
-        if self.transform:
-            frame_X = self.transform(frame_X)
-        if self.target_transform:
-            frame_y = self.target_transform(frame_y)
-
-        return frame_X, frame_y
-
-
-training_set = OFTDataset(X_train, y_train)
-test_set = OFTDataset(X_test, y_test)
-train_dataloader = DataLoader(training_set, batch_size=64, shuffle=False)        ## SHUFFLES FRAMES, TRY TO NOT SHUFFLE AND SEE IF CHANGES
-test_dataloader = DataLoader(test_set, batch_size=64, shuffle=False)
-
-
-class NeuralNet(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.linear1 = nn.Linear(114*31, 128*31)
-        self.relu1 = nn.ReLU()
-        self.linear2 = nn.Linear(128*31, 64*5)
-        self.batchnorm2 = nn.BatchNorm1d(64*5)
-        self.dropout2 = nn.Dropout(0.3)
-        self.linear3 = nn.Linear(64*5, 4)
-    
-    def forward(self, x):
-        
-        x = self.linear1(x)
-        x = self.relu1(x)
-        
-        x = self.linear2(x)
-        x = self.batchnorm2(x)
-        x = self.dropout2(x)
-        
-        x = self.linear3(x)
-
-        return x
-    
-
-network1 = NeuralNet().to(mps_device)
-print(network1)
-
-def train_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossEntropyLoss, optimizer : torch.optim.RMSprop):
-    size = len(dataloader.dataset)
- 
-    network.train()
-    total_samples = 0
-
-    for batch, (X, y) in enumerate(dataloader):
-        X, y = X.to(mps_device), y.to(mps_device)
-
-        pred = network(X)
-        loss = loss_fn(pred, y)
-
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-
-        total_samples += X.shape[0]  # count actual samples processed
-
-        if batch % 100 == 0:
-            print(f"loss: {loss.item():>7f}  [{total_samples:>5d}/{size:>5d}]")
-
-
-def test_loop(dataloader, model, loss_fn):
-    model.eval()
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    test_loss, correct = 0, 0
-
-    with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(mps_device), y.to(mps_device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-
-    test_loss /= num_batches
-    correct /= size
-    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-    return pred
-
-epochs = 5
-batch_size = 128
-learning_rate = 1e-4
-class_weights = torch.tensor([1.0, 8.5, 43, 29]).to(mps_device)
-loss_function = nn.CrossEntropyLoss(class_weights)
-optimizer = torch.optim.RMSprop(network1.parameters(), lr = learning_rate)
-
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    train_loop(train_dataloader, network1, loss_function, optimizer)
-    test_loop(test_dataloader, network1, loss_function).cpu().numpy()
-print("Done!")
-
-
-
-network1.eval()
-with torch.no_grad():
-    X_test = torch.from_numpy(X_test.to_numpy(dtype = "float32"))
-    X_test = X_test.to(mps_device)
-    logits = network1(X_test)
-    predictions = logits.argmax(dim=1).cpu().numpy()
-    y_true = y_test
-
-    y_pred = np.empty_like(predictions, dtype = object)
-    print(y_pred.size)
-    y_pred[predictions == 0] = "background"
-    y_pred[predictions == 1] = "supportedrear"
-    y_pred[predictions == 2] = "unsupportedrear"
-    y_pred[predictions == 3] = "grooming"
-
-    print(classification_report(y_true, y_pred))
-
-
-
-"""
+training_set = OFTDataset(path = NeuralNet_data_path, video_names = train_set, scaler = scaler)
+test_set = OFTDataset(path = NeuralNet_data_path, video_names = test_set, scaler = scaler)
+train_dataloader = DataLoader(training_set, batch_size=1, shuffle=True)
+test_dataloader = DataLoader(test_set, batch_size=1, shuffle=True)
 
 
 
 
-
-
-
-
-"""
-
-
-
+print(next(iter(train_dataloader))[0].size())
