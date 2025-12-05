@@ -37,7 +37,7 @@ start = time.time()
 X_path = "./pipeline_saved_processes/dataframes/X_chunk.csv"
 X_filtered_path = "./pipeline_saved_processes/dataframes/X_chunk_filtered.csv"
 y_path = "./pipeline_saved_processes/dataframes/y.csv"
-model_path = "pipeline_saved_processes/models/HGB_chunk_final_2.pkl"
+model_path = "pipeline_saved_processes/models/HGB_chunk_final.pkl"
 
 # checks if X and y already exists, and if not, they get computed
 
@@ -180,7 +180,7 @@ else:
 if not os.path.isfile(model_path):
 
     # Split data (collinearity filtering already applied)
-    X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=5, random_state =20)
+    X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=5, random_state =17)
 
     # Get video groups for cross-validation
     groups_train = X_train.index.get_level_values("video_id")
@@ -210,10 +210,10 @@ if not os.path.isfile(model_path):
     # Grid Search
     param_grid = {
         'classifier__max_iter': [125],
-        'classifier__max_depth': [5],
+        'classifier__max_depth': [4],
         'classifier__learning_rate': [0.1],
         'classifier__min_samples_leaf': [60], #the higher, the less overfitting, 80
-        'classifier__l2_regularization': [0.01],
+        'classifier__l2_regularization': [0.00],
         'classifier__max_bins': [255],
         'classifier__max_leaf_nodes': [31]  # Limits tree complexity, 63
 
