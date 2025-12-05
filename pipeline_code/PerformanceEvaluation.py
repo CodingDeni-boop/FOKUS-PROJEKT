@@ -102,24 +102,29 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
     ################################### CONFUSION MATRIX ###############################################################
 
     print("\n=== Normalised Confusion Matrix ===")
-    cm = confusion_matrix(y_test, y_pred)
-    cmn = cm.astype('float') / cm.sum(axis=0)[:, np.newaxis]
+    # Get labels in the order used by confusion_matrix
+    labels = np.unique(np.concatenate([y_test, y_pred]))
+    cm = confusion_matrix(y_test, y_pred, labels=labels)
+    cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    # Print with labels for debugging
+    print("Labels order:", labels)
     print(cmn)
 
     # Confusion Matrix Plot
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(8, 6))
     sns.heatmap(
         cmn,
         annot=True,           # Show numbers in cells
-        fmt='.2f',              # Format as integers
+        fmt='.2f',              # Format as percentages
         cmap='Blues',         # Color scheme
-        xticklabels=model.classes_,  # Label x-axis with class names
-        yticklabels=model.classes_,  # Label y-axis with class names
-        cbar_kws={'label': 'Count'}
+        xticklabels=labels,   # Label x-axis with class names in correct order
+        yticklabels=labels,   # Label y-axis with class names in correct order
+        cbar_kws={'label': 'Proportion'}
     )
-    plt.title('Confusion Matrix', fontsize=16, fontweight='bold')
-    plt.ylabel('True Label', fontsize=12)
-    plt.xlabel('Predicted Label', fontsize=12)
+    plt.title('Confusion Matrix ', fontsize=16, fontweight='bold')
+    plt.ylabel('True Label', fontsize=12, labelpad=15)
+    plt.xlabel('Predicted Label', fontsize=12, labelpad=15)
     plt.tight_layout()
     plt.savefig(conf_matrix_path, dpi=300, bbox_inches='tight')
     plt.close()
