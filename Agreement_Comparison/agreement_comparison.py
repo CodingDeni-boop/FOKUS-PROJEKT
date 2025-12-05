@@ -9,8 +9,8 @@ from sklearn.metrics import cohen_kappa_score, classification_report, confusion_
 behaviour = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 
 comparisons = False
-agreement_confusion_matrix = False
-agreement_confusion_matrix_final = False
+agreement_confusion_matrix = True
+agreement_confusion_matrix_final = True
 scatter_plot = True
 
 
@@ -153,7 +153,7 @@ if agreement_confusion_matrix_final:
 
 
     # Confusion Matrix Plot
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(8, 5))
     sns.heatmap(
         cm,
         annot=True,           # Show numbers in cells
@@ -163,9 +163,9 @@ if agreement_confusion_matrix_final:
         xticklabels=behaviour,
         yticklabels=behaviour
     )
-    plt.title('Confusion Matrix', fontsize=16, fontweight='bold')
-    plt.ylabel("person_1", fontsize=12)
-    plt.xlabel("person_2", fontsize=12)
+    plt.title('Confusion Matrix', fontsize=18, fontweight='bold')
+    plt.ylabel("person_1", fontsize=15)
+    plt.xlabel("person_2", fontsize=15)
     plt.tight_layout()
     plt.savefig('output/person_1_vs_person_2_confusion_matrix.png', dpi=300, bbox_inches='tight')
     print(classification_report(chunky1, chunky2, labels = behaviour))
@@ -187,7 +187,7 @@ if scatter_plot:
     behaviors_to_plot = ['supportedrear', 'unsupportedrear', 'grooming']
 
     # Create 1x3 subplot figure
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
     # Create one subplot for each behavior (excluding background)
     for idx, beh in enumerate(behaviors_to_plot):
@@ -222,15 +222,16 @@ if scatter_plot:
             if max_val > 0:
                 ax.plot([0, max_val], [0, max_val], 'k--', alpha=0.3, label='Perfect Agreement')
 
-        ax.set_xlabel('Person 1 Instance Count', fontsize=10)
-        ax.set_ylabel('Person 2 Instance Count', fontsize=10)
-        ax.set_title(f'{beh}', fontsize=12, fontweight='bold')
-        ax.legend(fontsize=8)
+        ax.set_xlabel('Person 1 Instance Count', fontsize=14)
+        ax.set_ylabel('Person 2 Instance Count', fontsize=14)
+        ax.set_title(f'{beh}', fontsize=17, fontweight='bold', pad=10)
+        ax.legend(fontsize=10.5)
         ax.grid(True, alpha=0.3)
+        ax.set_aspect('equal', adjustable='box')
 
         print(f"\nTOTAL {beh}: Person 1 = {sum(person1_counts)}, Person 2 = {sum(person2_counts)}")
 
-    plt.suptitle('Behaviour Instance Count Comparison: Person 1 vs Person 2', fontsize=16, fontweight='bold')
+    plt.suptitle('Behaviour Instance Count Comparison: Person 1 vs Person 2', fontsize=20, fontweight='bold', y=1)
     plt.tight_layout()
     plt.savefig('output/scatterplot_all_behaviours.png', dpi=300, bbox_inches='tight')
     plt.close()
