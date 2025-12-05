@@ -32,12 +32,13 @@ import pandas as pd
 import numpy as np
 from natsort import natsorted
 import os
+from sklearn.linear_model import LogisticRegression
 
 
 X_path = "./pipeline_saved_processes/dataframes/X_lite.csv"
 y_path = "./pipeline_saved_processes/dataframes/y_lite.csv"
-model_path = "./pipeline_saved_processes/models/SVM_lite_poly.pkl"
-conf_matrix_path = "pipeline_outputs/SVM/SVM_lite_poly.png"
+model_path = "./pipeline_saved_processes/models/Dummy_LogReg.pkl"
+conf_matrix_path = "pipeline_outputs/dummy.png"
 
 
 ### checks if X and y already exists, and if not, they get computed
@@ -176,9 +177,10 @@ if not os.path.isfile(model_path):
                              #("collinearity_filter" , SmartCollinearityFilter(threshold = 0.95)),
                              #("undersampler", RandomUnderSampler(sampling_strategy = "majority")),
                              #("uvfs" , SelectKBest(score_func = f_classif, k = 2000)),
-                             ("kernel", PolynomialCountSketch(degree = 3, n_components = 3000, coef0 = 1)),
-                             ("LinearSVM", LinearSVC(C = 0.05, max_iter = 25000)),
+                             #("kernel", PolynomialCountSketch(degree = 3, n_components = 3000, coef0 = 1)),
+                             #("LinearSVM", LinearSVC(C = 0.05, max_iter = 25000)),
                              #("SVM", SVC(C = 1, kernel = "poly", coef0 = 1))
+                             ("logreg", LogisticRegression()) 
                             ], verbose = True)
     
     y_train_ravel = y_train.values.ravel()
