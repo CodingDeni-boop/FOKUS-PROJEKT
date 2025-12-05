@@ -8,9 +8,9 @@ from sklearn.metrics import cohen_kappa_score, classification_report, confusion_
 
 behaviour = ['background', 'supportedrear', 'unsupportedrear', 'grooming']
 
-comparisons = False
+comparisons = True
 agreement_confusion_matrix = True
-agreement_confusion_matrix_final = True
+agreement_confusion_matrix_final = False
 scatter_plot = True
 
 
@@ -123,18 +123,19 @@ if agreement_confusion_matrix:
     print(cmn)
 
     # Confusion Matrix Plot
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(8, 6))
     sns.heatmap(
         cmn,
         annot=True,           # Show numbers in cells
         cmap='Blues',         # Color scheme
         cbar_kws={'label': 'Count'},
         xticklabels=behaviour,
-        yticklabels=behaviour
+        yticklabels=behaviour,
+        square=True
     )
-    plt.title('Confusion Matrix', fontsize=16, fontweight='bold')
-    plt.ylabel("person_1", fontsize=12)
-    plt.xlabel("person_2", fontsize=12)
+    plt.title('Confusion Matrix', fontsize=16, fontweight='bold', pad=20)
+    plt.ylabel("person_1", fontsize=12, labelpad=20)
+    plt.xlabel("person_2", fontsize=12, labelpad=20)
     plt.tight_layout()
     plt.savefig('output/person_1_vs_person_2_confusion_matrix.png', dpi=300, bbox_inches='tight')
 
@@ -153,7 +154,7 @@ if agreement_confusion_matrix_final:
 
 
     # Confusion Matrix Plot
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(8, 8))
     sns.heatmap(
         cm,
         annot=True,           # Show numbers in cells
@@ -161,11 +162,12 @@ if agreement_confusion_matrix_final:
         cmap='Blues',         # Color scheme
         cbar_kws={'label': 'Count'},
         xticklabels=behaviour,
-        yticklabels=behaviour
+        yticklabels=behaviour,
+        square=True
     )
-    plt.title('Confusion Matrix', fontsize=18, fontweight='bold')
-    plt.ylabel("person_1", fontsize=15)
-    plt.xlabel("person_2", fontsize=15)
+    plt.title('Confusion Matrix', fontsize=18, fontweight='bold', pad=20)
+    plt.ylabel("person_1", fontsize=15, labelpad=20)
+    plt.xlabel("person_2", fontsize=15, labelpad=20)
     plt.tight_layout()
     plt.savefig('output/person_1_vs_person_2_confusion_matrix.png', dpi=300, bbox_inches='tight')
     print(classification_report(chunky1, chunky2, labels = behaviour))

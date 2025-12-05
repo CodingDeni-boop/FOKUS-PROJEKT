@@ -18,20 +18,21 @@ wedges, texts, autotexts = ax.pie(
     autopct='%1.1f%%',
     startangle=90,
     colors=colors[:len(unique_classes)],
-    textprops={'fontsize': 12, 'weight': 'bold'},
-    radius=0.7
+    textprops={'fontsize': 15, 'weight': 'bold'},
+    radius=0.7,
+    pctdistance=0.75
 )
 
 # Make percentage text more legible
 for autotext in autotexts:
     autotext.set_color('white')
-    autotext.set_fontsize(14)
+    autotext.set_fontsize(17)
     autotext.set_weight('bold')
 
 # Add legend
-ax.legend(wedges, unique_classes, title="Behaviours", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1), fontsize=12)
+ax.legend(wedges, unique_classes, title="Behaviours", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1), fontsize=16, title_fontsize=18)
 
-plt.title('Class Distribution in Dataset', fontsize=16, fontweight='bold', pad=20)
+plt.title('Class Distribution in Dataset', fontsize=19, fontweight='bold', pad=20)
 plt.axis('equal')
 plt.tight_layout()
 plt.savefig('pipeline_outputs/class_imbalance_pie_chart.png', dpi=300, bbox_inches='tight')
@@ -64,7 +65,7 @@ test_scores = [test_f1[b] for b in behaviors]
 x_pos = np.arange(len(behaviors))
 width = 0.35
 
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 bars1 = plt.bar(x_pos - width/2, train_scores, width, label='Train', color='#A8DADC')
 bars2 = plt.bar(x_pos + width/2, test_scores, width, label='Test', color='#E8C5A0')
 
@@ -73,20 +74,21 @@ for bar in bars1:
     height = bar.get_height()
     plt.text(bar.get_x() + bar.get_width()/2., height,
              f'{height:.2f}',
-             ha='center', va='bottom', fontsize=10, fontweight='bold')
+             ha='center', va='bottom', fontsize=13, fontweight='bold')
 
 for bar in bars2:
     height = bar.get_height()
     plt.text(bar.get_x() + bar.get_width()/2., height,
              f'{height:.2f}',
-             ha='center', va='bottom', fontsize=10, fontweight='bold')
+             ha='center', va='bottom', fontsize=13, fontweight='bold')
 
-plt.title('F1 Score per Behavior Class (Train vs Test)', fontsize=14, fontweight='bold')
-plt.ylabel('F1 Score', fontsize=12)
-plt.xlabel('Behaviour Class', fontsize=12)
-plt.xticks(x_pos, behaviors, rotation=0, ha='center')
+plt.title('F1 Score per Behavior Class (Train vs Test)', fontsize=16, fontweight='bold', pad=20)
+plt.ylabel('F1 Score', fontsize=16, labelpad=15)
+plt.xlabel('Behaviour Class', fontsize=16, labelpad=15)
+plt.xticks(x_pos, behaviors, rotation=0, ha='center', fontsize=14)
+plt.yticks(fontsize=14)
 plt.ylim([0, 1.05])
-plt.legend(fontsize=12)
+plt.legend(fontsize=13)
 plt.grid(True, axis='y', linestyle='--', alpha=0.7)
 plt.tight_layout()
 plt.savefig('pipeline_outputs/f1_scores_model_1_barplot.png', dpi=300, bbox_inches='tight')
