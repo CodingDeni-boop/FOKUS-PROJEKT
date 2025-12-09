@@ -62,6 +62,8 @@ class Shelf:
             [obj.test_index.levels[0].astype(int),
             obj.test_index.levels[1]],
             level=[0, 1])
+    
+        print(f"Test set videos are:    {obj.test_index.get_level_values(0).unique().to_numpy()}")
 
         X_train = X.loc[obj.train_index][obj.features]
         X_test = X.loc[obj.test_index][obj.features]
