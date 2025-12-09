@@ -34,10 +34,13 @@ from sklearn.preprocessing import StandardScaler
 
 start = time.time()
 
-X_path = "./pipeline_saved_processes/dataframes/X_chunk.csv"
-X_filtered_path = "./pipeline_saved_processes/dataframes/X_chunk_filtered.csv"
-y_path = "./pipeline_saved_processes/dataframes/y.csv"
-model_path = "pipeline_saved_processes/models/HGB_chunk_final.pkl"
+# Define dataset version (e.g., "actual", "actual_1", "actual_2")
+DATASET_VERSION = "try_1"
+
+X_path = f"./pipeline_saved_processes/dataframes/X_actual.csv"
+X_filtered_path = f"./pipeline_saved_processes/dataframes/X_actual_filtered.csv"
+y_path = f"./pipeline_saved_processes/dataframes/y_actual.csv"
+model_path = f"pipeline_saved_processes/models/HGB_{DATASET_VERSION}.pkl"
 
 # checks if X and y already exists, and if not, they get computed
 
@@ -180,7 +183,7 @@ else:
 if not os.path.isfile(model_path):
 
     # Split data (collinearity filtering already applied)
-    X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=5, random_state =17)
+    X_train, X_test, y_train, y_test = video_train_test_split(X, y, test_videos=10, random_state =20)
 
     # Get video groups for cross-validation
     groups_train = X_train.index.get_level_values("video_id")
@@ -238,7 +241,7 @@ if not os.path.isfile(model_path):
     print("Best parameters:", best_params)
 
     print("\nWith smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10, conf_matrix_path = "pipeline_outputs/conf_matrix_final_2_model_1.png")
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10, conf_matrix_path = f"pipeline_outputs/conf_matrix_{DATASET_VERSION}_model_1.png")
 
 
     # Save model, class weights, and best parameters
@@ -259,7 +262,7 @@ else:
     # Print performance evaluation for loaded model
     print("\n=== Performance Evaluation for Loaded Model ===")
     print("\nWith smoothing")
-    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10, conf_matrix_path = "pipeline_outputs/conf_matrix_final_2_model_1.png")
+    evaluate_model(model, X_train, y_train, X_test, y_test, min_frames=10, conf_matrix_path = f"pipeline_outputs/conf_matrix_{DATASET_VERSION}_model_1.png")
 
 
 # Ensure y_train and y_test are raveled for both branches
@@ -273,7 +276,7 @@ if 'sample_weights' not in locals():
 
 
 # Extract feature importances using  permutation_importance
-feature_importance_path = './pipeline_saved_processes/selected_features/HGB_final_2_selected_features.csv'
+feature_importance_path = f'./pipeline_saved_processes/selected_features/HGB_{DATASET_VERSION}_selected_features.csv'
 
 
 # Permutation Importance
@@ -305,7 +308,7 @@ else:
     print(feature_importance_df.head(20))
 
     # Save selected features
-    feature_importance_df.to_csv('./pipeline_saved_processes/selected_features/HGB_final_2_selected_features.csv', index=False)
+    feature_importance_df.to_csv(f'./pipeline_saved_processes/selected_features/HGB_{DATASET_VERSION}_selected_features.csv', index=False)
 
 
 # Plot top 300 feature importances
@@ -320,14 +323,14 @@ model_name =  "Histogram Gradient Boosting"
 plt.title(f'Top {top_n_plot} {model_name} Feature Importances', fontsize=14, fontweight='bold')
 plt.gca().invert_yaxis()
 plt.tight_layout()
-plt.savefig('pipeline_outputs/feature_importances_HGB_final_2.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'pipeline_outputs/feature_importances_HGB_{DATASET_VERSION}.png', dpi=300, bbox_inches='tight')
 plt.close()
 
 # Train second HGB model with only selected features
 print("\nSecond HGB model with selected features...")
 selected_features = feature_importance_df['Feature'].tolist()
 
-HGB_selected_path = "pipeline_saved_processes/models/HGB_final_2_selected_features.pkl"
+HGB_selected_path = f"pipeline_saved_processes/models/HGB_{DATASET_VERSION}_selected_features.pkl"
 
 if not os.path.isfile(HGB_selected_path):
     # Filter X to keep only selected features
@@ -355,7 +358,7 @@ if not os.path.isfile(HGB_selected_path):
     print("Evaluating model with selected features:")
 
     print("\nWith smoothing")
-    evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=10, conf_matrix_path = "pipeline_outputs/conf_matrix_final_2_model_2.png")
+    evaluate_model(pipeline_selected, X_train_sel, y_train, X_test_sel, y_test, min_frames=10, conf_matrix_path = f"pipeline_outputs/conf_matrix_{DATASET_VERSION}_model_2.png")
 
     # Save the model
     Shelf(X_train_sel, X_test_sel, pipeline_selected, HGB_selected_path, model_weights=class_weights)
@@ -371,4 +374,4 @@ else:
 
     print("\n=== Performance Evaluation for Loaded Second Model (Selected Features) ===")
     print("\nWith smoothing")
-    evaluate_model(pipeline_selected, X_train_sel, y_train_sel, X_test_sel, y_test_sel, min_frames=10, conf_matrix_path = "pipeline_outputs/conf_matrix_final_2_model_2.png")
+    evaluate_model(pipeline_selected, X_train_sel, y_train_sel, X_test_sel, y_test_sel, min_frames=10, conf_matrix_path = f"pipeline_outputs/conf_matrix_{DATASET_VERSION}_model_2.png")
