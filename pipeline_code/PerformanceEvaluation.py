@@ -102,24 +102,29 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
     ################################### CONFUSION MATRIX ###############################################################
 
     print("\n=== Normalised Confusion Matrix ===")
-    cm = confusion_matrix(y_test, y_pred)
-    cmn = cm.astype('float') / cm.sum(axis=0)[:, np.newaxis]
+    # Get labels in the order used by confusion_matrix
+    labels = np.unique(np.concatenate([y_test, y_pred]))
+    cm = confusion_matrix(y_test, y_pred, labels=labels)
+    cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    # Print with labels for debugging
+    print("Labels order:", labels)
     print(cmn)
 
     # Confusion Matrix Plot
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(8, 6))
     sns.heatmap(
         cmn,
         annot=True,           # Show numbers in cells
-        fmt='.2f',              # Format as integers
+        fmt='.2f',              # Format as percentages
         cmap='Blues',         # Color scheme
-        xticklabels=model.classes_,  # Label x-axis with class names
-        yticklabels=model.classes_,  # Label y-axis with class names
-        cbar_kws={'label': 'Count'}
+        xticklabels=labels,   # Label x-axis with class names in correct order
+        yticklabels=labels,   # Label y-axis with class names in correct order
+        cbar_kws={'label': 'Proportion'}
     )
-    plt.title('Confusion Matrix', fontsize=16, fontweight='bold')
-    plt.ylabel('True Label', fontsize=12)
-    plt.xlabel('Predicted Label', fontsize=12)
+    plt.title('Confusion Matrix ', fontsize=16, fontweight='bold')
+    plt.ylabel('True Label', fontsize=12, labelpad=15)
+    plt.xlabel('Predicted Label', fontsize=12, labelpad=15)
     plt.tight_layout()
     plt.savefig(conf_matrix_path, dpi=300, bbox_inches='tight')
     plt.close()
@@ -131,9 +136,58 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
 
     print(f"{'Behavior':<20} {'True Count':<15} {'Predicted Count':<15}")
     print("="*50)
+
+    # Collect counts for plotting
+    true_counts = {}
+    pred_counts = {}
     for behavior in behaviors:
         true_count = count_behavior_instances(y_test, behavior)
         pred_count = count_behavior_instances(y_pred, behavior)
+        true_counts[behavior] = true_count
+        pred_counts[behavior] = pred_count
         print(f"{behavior:<20} {true_count:<15} {pred_count:<15}")
+
+    # Plot behavior instance counts for specific behaviors
+    plot_behaviors = ['supportedrear', 'unsupportedrear', 'grooming']
+    available_behaviors = [b for b in plot_behaviors if b in behaviors]
+
+    if available_behaviors:
+        fig, axes = plt.subplots(1, len(available_behaviors), figsize=(5*len(available_behaviors), 5))
+        if len(available_behaviors) == 1:
+            axes = [axes]
+
+        colors_true = '#59a89c'
+        colors_pred = '#a559aa'
+
+        for idx, behavior in enumerate(available_behaviors):
+            true_val = true_counts[behavior]
+            pred_val = pred_counts[behavior]
+
+            x_pos = np.array([0, 1])
+            values = [true_val, pred_val]
+            bars = axes[idx].bar(x_pos, values, color=[colors_true, colors_pred], width=0.6)
+
+            # Add count values above bars
+            for bar in bars:
+                height = bar.get_height()
+                axes[idx].text(bar.get_x() + bar.get_width()/2., height,
+                             f'{int(height)}',
+                             ha='center', va='bottom', fontsize=13, fontweight='bold')
+
+            axes[idx].set_title(f'{behavior}', fontsize=15, fontweight='bold', pad=10)
+            axes[idx].set_ylabel('Instance Count', fontsize=14, labelpad=10)
+            axes[idx].set_xticks(x_pos)
+            axes[idx].set_xticklabels(['True', 'Predicted'], fontsize=14)
+            axes[idx].tick_params(axis='y', labelsize=14)
+            axes[idx].grid(True, axis='y', linestyle='--', alpha=0.7)
+            axes[idx].set_ylim([0, max(values) * 1.15])
+
+        fig.suptitle('Behaviour Instance Counts (True vs Predicted)', fontsize=16, fontweight='bold', y=1.02)
+        plt.tight_layout()
+        plt.savefig('pipeline_outputs/behaviour_instance_count.png', dpi=300, bbox_inches='tight')
+        plt.close()
+        print("\nBehaviour instance count plot saved!")
+
+
 
 
