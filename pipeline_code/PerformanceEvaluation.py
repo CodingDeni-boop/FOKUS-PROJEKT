@@ -188,6 +188,62 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
         plt.close()
         print("\nBehaviour instance count plot saved!")
 
+    ################################### SCATTERPLOT: ACTUAL vs PREDICTED INSTANCES PER VIDEO ###############################################################
+
+    # Create scatterplot comparing actual vs predicted instance counts per video
+    # Check if video_id exists in either columns or index
+    has_video_id = ('video_id' in X_test.columns) or ('video_id' in X_test.index.names)
+
+    if has_video_id:
+        # Get video_ids from index or columns
+        if 'video_id' in X_test.index.names:
+            video_ids = X_test.index.get_level_values('video_id').values
+        else:
+            video_ids = X_test['video_id'].values
+
+        unique_videos = np.unique(video_ids)
+
+        # Collect instance counts per video for each behavior
+        video_counts = {behavior: {'actual': [], 'predicted': []} for behavior in available_behaviors}
+
+        for video in unique_videos:
+            video_mask = (video_ids == video)
+            y_test_video = y_test[video_mask]
+            y_pred_video = y_pred[video_mask]
+
+            for behavior in available_behaviors:
+                actual_count = count_behavior_instances(y_test_video, behavior)
+                predicted_count = count_behavior_instances(y_pred_video, behavior)
+                video_counts[behavior]['actual'].append(actual_count)
+                video_counts[behavior]['predicted'].append(predicted_count)
+
+        # Create scatterplot with subplots for each behavior
+        fig, axes = plt.subplots(1, 3 , figsize=(15, 5))
+
+        for idx, behavior in enumerate(available_behaviors):
+            actual = np.array(video_counts[behavior]['actual'])
+            predicted = np.array(video_counts[behavior]['predicted'])
+
+            # Scatterplot
+            axes[idx].scatter(actual, predicted, alpha=0.6, s=100)
+
+            # Add diagonal line (perfect prediction)
+            max_val = max(actual.max(), predicted.max()) if len(actual) > 0 else 1
+            axes[idx].plot([0, max_val], [0, max_val], 'k--', alpha=0.3, label='Perfect Agreement')
+
+            axes[idx].set_xlabel('Actual Instance Count', fontsize=14)
+            axes[idx].set_ylabel('Predicted Instance Count', fontsize=14)
+            axes[idx].set_title(f'{behavior}', fontsize=17, fontweight='bold', pad=10)
+            axes[idx].legend(fontsize=10.5)
+            axes[idx].grid(True, alpha=0.3)
+            axes[idx].set_aspect('equal', adjustable='box')
+
+        fig.suptitle('Actual vs Predicted Instance Counts Per Video', fontsize=20, fontweight='bold', y=1)
+        plt.tight_layout()
+        plt.savefig('pipeline_outputs/instance_count_per_video_scatterplot.png', dpi=300, bbox_inches='tight')
+        plt.close()
+        print("\nInstance count per video scatterplot saved!")
+
 
 
 
