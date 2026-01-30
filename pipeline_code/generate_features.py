@@ -180,3 +180,90 @@ def features(features_collection : FeaturesCollection,
 
     return combined_features
 
+
+def features_2d(features_collection : FeaturesCollection,
+                      distance : dict[tuple : str] = [],
+                      angle : dict[tuple[str] : str] = [],
+                      speed : tuple[str] = [],
+                      distance_to_boundary : tuple[str] = [],
+                      is_point_recognized : tuple[str] = [],
+                      f_b_fill = True,
+                      embedding_length = list(range(0,1))
+                      ):
+    """
+    2D version of features function - only calculates features in x,y plane
+    (no z-coordinate, volume, or standard deviation features)
+    """
+
+    # Distance
+    print("calculating distance...")
+
+    for handle in distance:
+        for dim in distance[handle]:
+            features_collection.distance_on_axis(handle[0], handle[1], dim).store()
+
+    # Azimuth / Angles (only x,y plane for 2D)
+    print("calculating angles...")
+
+    for handle in angle:
+        radians_or_sincos : str = angle[handle]
+        if radians_or_sincos == "radians":
+            features_collection.angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
+
+        elif radians_or_sincos == "sincos":
+            features_collection.sin_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
+            features_collection.cos_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
+
+        else:
+            raise KeyError(f"only sincos or radians are accepted as argument of angles. You typed: {radians_or_sincos}")
+
+    # Speed (only x,y dims for 2D)
+    print("calculating speed...")
+
+    for point in speed:
+        features_collection.speed(point, dims=("x","y")).store()
+
+    # is it BALL?
+    print("calculating ball...")
+
+    for point in is_point_recognized:
+        features_collection.is_recognized(point).store()
+
+    #Distances to boundary
+    print("calculating distance to boundary...")
+
+    for point in distance_to_boundary:
+        features_collection.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
+
+    ############################################### Missing data handling
+
+    if f_b_fill:
+        print("Missing data filling (forward/backward)...")
+
+        # Forward fill then backward fill missing data
+        for file in features_collection.keys():
+            feature_obj = features_collection[file]
+            df = feature_obj.data
+
+            # Forward fill, then backward fill remaining NAs
+            df = df.ffill().bfill()
+
+            feature_obj.data = df
+
+    print("Embedding...")
+
+    embedding = {}
+    for column in features_collection[0].data.columns:
+        embedding[column] =  list(embedding_length)
+    features_collection = features_collection.embedding_df(embedding)
+
+    # Extract features
+    feature_dict = {}
+    for handle in natsorted(features_collection):
+        feature_obj = features_collection[handle]
+        feature_dict[handle] = feature_obj
+
+    combined_features = pd.concat(feature_dict.values(), keys=feature_dict.keys(), names=['video_id', 'frame'])
+
+    return combined_features
+
