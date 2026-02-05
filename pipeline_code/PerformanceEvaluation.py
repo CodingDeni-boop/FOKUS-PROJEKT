@@ -105,16 +105,15 @@ def evaluate_model(model : BaseEstimator, X_train : pd.DataFrame, y_train: pd.Da
     # Get labels in the order used by confusion_matrix
     labels = np.unique(np.concatenate([y_test, y_pred]))
     cm = confusion_matrix(y_test, y_pred, labels=labels)
-    cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
     # Print with labels for debugging
     print("Labels order:", labels)
-    print(cmn)
+    print(cm)
 
     # Confusion Matrix Plot
     plt.figure(figsize=(8, 6))
     sns.heatmap(
-        cmn,
+        cm,
         annot=True,           # Show numbers in cells
         fmt='.2f',              # Format as percentages
         cmap='Blues',         # Color scheme

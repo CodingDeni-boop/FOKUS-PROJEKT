@@ -16,6 +16,7 @@ import seaborn as sns
 import math
 from graphs import kernel_heatmap
 from graphs import loss_over_epochs_lineplot
+from graphs import plot_confusion_matrix
 
 if torch.backends.mps.is_available():
     mps_device = torch.device("mps")
@@ -79,29 +80,51 @@ test_set = VideoDataset(path = video_path,
 train_data_loader = DataLoader(train_set, batch_size=1, shuffle=True)
 test_data_loader = DataLoader(test_set, batch_size=1, shuffle=True)
 
+class Block(nn.Module):
+    def __init__(self, features_in : int, features_out : int, kernel_size : int, dropout: int):
+        super().__init__()
+
+        self.conv1d_1 = nn.Conv1d(features_in, features_out, kernel_size=kernel_size, padding = (kernel_size-1)//2)
+        self.batch1d_1 = nn.BatchNorm1d(features_out)
+        self.relu1 = nn.ReLU()
+        self.dropout1 = nn.Dropout1d(dropout)
+    
+    def forward(self, x):
+        x = self.conv1d_1(x)
+        x = self.batch1d_1(x)
+        x = self.relu1(x)
+        x = self.dropout1(x)
+        return x
+
 class NeuralNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv1d_1 = nn.Conv1d(42, 128, kernel_size=5, padding=2)
-        self.batch1d_1 = nn.BatchNorm1d(128)
-        self.relu1 = nn.ReLU()
+        self.block_1 = Block(42, 128, 3, 0.05)
+        self.block_2 = Block(128, 256, 5, 0.05)
+        self.block_3 = Block(256, 256, 3, 0.1)
+        self.block_4 = Block(256, 256, 3, 0.1)
 
-        self.conv1d_2 = nn.Conv1d(128, 128, kernel_size=5, padding=2)
-        self.batch1d_2 = nn.BatchNorm1d(128)
-        self.relu2 = nn.ReLU()
+        self.conv1d_1 = nn.Conv1d(256, 128, kernel_size = 1)
+        self.relu_1 = nn.ReLU()
 
-        self.conv1d_3 = nn.Conv1d(128, 4, kernel_size=5, padding=2)
+        self.conv1d_2 = nn.Conv1d(128, 64, kernel_size = 1)
+        self.relu_2 = nn.ReLU()
+
+        self.conv1d_3 = nn.Conv1d(64, 4, kernel_size = 1)
 
     def forward(self, x):
         x = x.transpose(1, 2)
+        x = self.block_1(x)
+        x = self.block_2(x)
+        x = self.block_3(x)
+        x = self.block_4(x)
+
         x = self.conv1d_1(x)
-        x = self.batch1d_1(x)
-        x = self.relu1(x)
+        x = self.relu_1(x)
 
         x = self.conv1d_2(x)
-        x = self.batch1d_2(x)
-        x = self.relu2(x)
+        x = self.relu_2(x)
 
         x = self.conv1d_3(x)
         
@@ -114,6 +137,9 @@ print(terminal_colors.GREEN + "Network initalized: " + terminal_colors.ENDC + f"
 def train_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossEntropyLoss, optimizer : torch.optim.RMSprop):
 
     total_loss = 0
+    y_true = []
+    y_pred = []
+
     network.train()
     with tqdm(desc = terminal_colors.CYAN +"    train" + terminal_colors.ENDC, total = len(dataloader), ascii = True) as pbar:
         for batch, (X, y) in enumerate(dataloader):
@@ -126,17 +152,26 @@ def train_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossE
             loss.backward()
             optimizer.step()
             total_loss += loss.detach().item()
+
+            y_true.append(y.detach().cpu())
+            pred = pred.transpose(1,2)
+            pred = pred.argmax(2)
+            y_pred.append(pred.detach().cpu())
+
             pbar.update(1)
 
     mean_loss = total_loss/len(dataloader)
     print(terminal_colors.WARNING + f"        loss value:" + terminal_colors.ENDC + f" {mean_loss}")
-    return mean_loss
+
+    y_true = torch.cat(y_true).numpy().flatten()
+    y_pred = torch.cat(y_pred).numpy().flatten()
+    return mean_loss, y_true, y_pred
 
 def test_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossEntropyLoss,):
     network.eval()
     loss = 0
-    y_true_all = []
-    y_pred_all = []
+    y_true = []
+    y_pred = []
 
 
     with torch.no_grad():
@@ -148,44 +183,57 @@ def test_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossEn
                 pred = network(X)
                 loss += loss_fn(pred, y)
 
-                y_true_all.append(y.detach().cpu())
+                y_true.append(y.detach().cpu())
                 pred = pred.transpose(1,2)
-                y_pred = pred.argmax(2)
-                y_pred_all.append(y_pred.detach().cpu())
+                pred = pred.argmax(2)
+                y_pred.append(pred.detach().cpu())
 
                 pbar.update(1)
         
     mean_loss = loss/len(dataloader)
-
-    y_true_all = torch.cat(y_true_all).numpy().flatten()
-    y_pred_all = torch.cat(y_pred_all).numpy().flatten()
-
     print(terminal_colors.WARNING + f"        loss value:" + terminal_colors.ENDC + f" {mean_loss}")
 
-    print(classification_report(
-        y_true_all,
-        y_pred_all,
-        target_names=behaviors.keys()
-    ))
-    return mean_loss.detach().cpu().item()
+    y_true = torch.cat(y_true).numpy().flatten()
+    y_pred = torch.cat(y_pred).numpy().flatten()
+    return mean_loss.detach().cpu().item(), y_true, y_pred
 
 
 
-class_weights = torch.tensor([1.0, 8.5, 34, 29]).to(mps_device)
+class_weights = torch.tensor([1.0, 2, 5, 5]).to(mps_device)
 loss_function = nn.CrossEntropyLoss(class_weights)
-optimizer = torch.optim.RMSprop(network.parameters(), lr = 1e-5)
+optimizer = torch.optim.RMSprop(network.parameters(), lr = 1e-3)
 test_total_loss = []
 train_total_loss = []
 
-for epoch in range(1,101):
+for epoch in range(1,51):
 
     print(terminal_colors.GREEN + f"\nEpoch:" + terminal_colors.ENDC + f" {epoch}")
-    train_mean_loss = train_loop(train_data_loader, network, loss_function, optimizer)
-    test_mean_loss = test_loop(test_data_loader, network, loss_function)
+    train_mean_loss, y_true_train, y_pred_train  = train_loop(train_data_loader, network, loss_function, optimizer)
+    test_mean_loss, y_true_test, y_pred_test = test_loop(test_data_loader, network, loss_function)
     test_total_loss.append(test_mean_loss)
     train_total_loss.append(train_mean_loss)
-    if epoch % 20 == 0:
-        kernel_heatmap(network.conv1d_1, f"./output/conv1d_1_kernels_epoch_{epoch}.png", n_kernels = 18)           
+    
+    if epoch % 10 == 0:
+        print(terminal_colors.WARNING + f"\nclassification report epoch: " + terminal_colors.ENDC + f" {epoch}")
+
+        print(terminal_colors.CYAN + f"    train: " + terminal_colors.ENDC)
+        print(classification_report(
+            y_true_train,
+            y_pred_train,
+            target_names=behaviors.keys()
+        ))
+        plot_confusion_matrix(y_true_train, y_pred_train, behaviors, f"./output/train_confusion_matrix_at_{epoch}.png")
+
+        print(terminal_colors.CYAN + f"\n    test: " + terminal_colors.ENDC)
+        print(classification_report(
+            y_true_test,
+            y_pred_test,
+            target_names=behaviors.keys()
+        ))
+        plot_confusion_matrix(y_true_test, y_pred_test, behaviors, f"./output/test_confusion_matrix_at_{epoch}.png")
+
+        kernel_heatmap(network.block_1.conv1d_1, f"./output/conv1d_1_kernels_epoch_{epoch}.png", n_kernels = 18)           
 
 loss_over_epochs_lineplot(train_total_loss, f"./output/train_loss_vs_{len(train_total_loss)}_epochs.png")
 loss_over_epochs_lineplot(test_total_loss, f"./output/test_loss_vs_{len(test_total_loss)}_epochs.png")
+
