@@ -31,7 +31,7 @@ for i in range(1,22):
         video_names.append(f"OFT_left_{i}.csv")
 
 video_path = "data"
-video_names_training, video_names_test = train_test_split(video_names, test_size = 5, random_state = 42, shuffle = True)
+video_names_training, video_names_test = train_test_split(video_names, test_size = 4, random_state = 43, shuffle = True)
 behaviors = {"background" : 0, "supportedrear" : 1, "unsupportedrear" : 2, "grooming" : 3}
 points =   ['mouse_top.mouse_top_0.nose.x', 'mouse_top.mouse_top_0.nose.y',
             'mouse_top.mouse_top_0.headcentre.x','mouse_top.mouse_top_0.headcentre.y',
@@ -78,7 +78,7 @@ test_set = VideoDataset(path = video_path,
                           identity = "test dataset")
 
 train_data_loader = DataLoader(train_set, batch_size=1, shuffle=True)
-test_data_loader = DataLoader(test_set, batch_size=1, shuffle=True)
+test_data_loader = DataLoader(test_set, batch_size=1, shuffle=False)
 
 class Block(nn.Module):
     def __init__(self, features_in : int, features_out : int, kernel_size : int, dropout: int):
@@ -100,18 +100,19 @@ class NeuralNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.block_1 = Block(42, 128, 3, 0.05)
-        self.block_2 = Block(128, 256, 5, 0.05)
-        self.block_3 = Block(256, 256, 3, 0.1)
-        self.block_4 = Block(256, 256, 3, 0.1)
+        self.block_1 = Block(42, 256, 3, 0.05)
+        self.block_2 = Block(256, 256, 5, 0.05)
+        self.block_3 = Block(256, 512, 3, 0.1)
+        self.block_4 = Block(512, 1024, 3, 0.1)
 
-        self.conv1d_1 = nn.Conv1d(256, 128, kernel_size = 1)
-        self.relu_1 = nn.ReLU()
-
-        self.conv1d_2 = nn.Conv1d(128, 64, kernel_size = 1)
-        self.relu_2 = nn.ReLU()
-
-        self.conv1d_3 = nn.Conv1d(64, 4, kernel_size = 1)
+        self.head = nn.Sequential(
+            nn.Conv1d(1024, 512, kernel_size=1),
+            nn.Dropout1d(0.2),
+            nn.ReLU(),
+            nn.Conv1d(512, 128, kernel_size=1),
+            nn.GELU(),
+            nn.Conv1d(128, 4, kernel_size=1)
+        )
 
     def forward(self, x):
         x = x.transpose(1, 2)
@@ -120,13 +121,7 @@ class NeuralNet(nn.Module):
         x = self.block_3(x)
         x = self.block_4(x)
 
-        x = self.conv1d_1(x)
-        x = self.relu_1(x)
-
-        x = self.conv1d_2(x)
-        x = self.relu_2(x)
-
-        x = self.conv1d_3(x)
+        x = self.head(x)
         
         return x
 
@@ -153,9 +148,10 @@ def train_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossE
             optimizer.step()
             total_loss += loss.detach().item()
 
-            y_true.append(y.detach().cpu())
             pred = pred.transpose(1,2)
             pred = pred.argmax(2)
+
+            y_true.append(y.detach().cpu())
             y_pred.append(pred.detach().cpu())
 
             pbar.update(1)
@@ -169,7 +165,7 @@ def train_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossE
 
 def test_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossEntropyLoss,):
     network.eval()
-    loss = 0
+    total_loss = 0
     y_true = []
     y_pred = []
 
@@ -181,31 +177,32 @@ def test_loop(dataloader : DataLoader, network : NeuralNet, loss_fn : nn.CrossEn
                 y = y.long()
 
                 pred = network(X)
-                loss += loss_fn(pred, y)
+                loss = loss_fn(pred, y)
 
-                y_true.append(y.detach().cpu())
+                total_loss += loss.detach().cpu().item()
+
                 pred = pred.transpose(1,2)
                 pred = pred.argmax(2)
+
+                y_true.append(y.detach().cpu())
                 y_pred.append(pred.detach().cpu())
 
                 pbar.update(1)
         
-    mean_loss = loss/len(dataloader)
+    mean_loss = total_loss/len(dataloader)
     print(terminal_colors.WARNING + f"        loss value:" + terminal_colors.ENDC + f" {mean_loss}")
 
     y_true = torch.cat(y_true).numpy().flatten()
     y_pred = torch.cat(y_pred).numpy().flatten()
-    return mean_loss.detach().cpu().item(), y_true, y_pred
+    return mean_loss, y_true, y_pred
 
-
-
-class_weights = torch.tensor([1.0, 2, 5, 5]).to(mps_device)
+class_weights = torch.tensor([1.0, 4, 10, 10]).to(mps_device)
 loss_function = nn.CrossEntropyLoss(class_weights)
-optimizer = torch.optim.RMSprop(network.parameters(), lr = 1e-3)
+optimizer = torch.optim.RMSprop(network.parameters(), lr = 1e-4)
 test_total_loss = []
 train_total_loss = []
 
-for epoch in range(1,51):
+for epoch in range(1,101):
 
     print(terminal_colors.GREEN + f"\nEpoch:" + terminal_colors.ENDC + f" {epoch}")
     train_mean_loss, y_true_train, y_pred_train  = train_loop(train_data_loader, network, loss_function, optimizer)
@@ -213,7 +210,7 @@ for epoch in range(1,51):
     test_total_loss.append(test_mean_loss)
     train_total_loss.append(train_mean_loss)
     
-    if epoch % 10 == 0:
+    if epoch % 20 == 0:
         print(terminal_colors.WARNING + f"\nclassification report epoch: " + terminal_colors.ENDC + f" {epoch}")
 
         print(terminal_colors.CYAN + f"    train: " + terminal_colors.ENDC)
@@ -232,7 +229,11 @@ for epoch in range(1,51):
         ))
         plot_confusion_matrix(y_true_test, y_pred_test, behaviors, f"./output/test_confusion_matrix_at_{epoch}.png")
 
+        pd.DataFrame(y_pred_test).to_csv(f"./output/y_pred_{epoch}.csv")
+        pd.DataFrame(y_true_test).to_csv(f"./output/y_true_{epoch}.csv")
+
         kernel_heatmap(network.block_1.conv1d_1, f"./output/conv1d_1_kernels_epoch_{epoch}.png", n_kernels = 18)           
+
 
 loss_over_epochs_lineplot(train_total_loss, f"./output/train_loss_vs_{len(train_total_loss)}_epochs.png")
 loss_over_epochs_lineplot(test_total_loss, f"./output/test_loss_vs_{len(test_total_loss)}_epochs.png")
