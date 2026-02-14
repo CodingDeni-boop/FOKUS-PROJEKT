@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 from utilities import terminal_colors
-from videodataset import VideoDataset
+from NN.OLD_videodataset import VideoDataset
 from sklearn.preprocessing import StandardScaler
 import random as rd
 from sklearn.model_selection import train_test_split
@@ -31,7 +31,7 @@ for i in range(1,22):
         video_names.append(f"OFT_left_{i}.csv")
 
 video_path = "data"
-video_names_training, video_names_test = train_test_split(video_names, test_size = 4, random_state = 43, shuffle = True)
+video_names_training, video_names_test = train_test_split(video_names, test_size = 4, shuffle = True)
 behaviors = {"background" : 0, "supportedrear" : 1, "unsupportedrear" : 2, "grooming" : 3}
 points =   ['mouse_top.mouse_top_0.nose.x', 'mouse_top.mouse_top_0.nose.y',
             'mouse_top.mouse_top_0.headcentre.x','mouse_top.mouse_top_0.headcentre.y',
@@ -102,8 +102,8 @@ class NeuralNet(nn.Module):
 
         self.block_1 = Block(42, 256, 3, 0.05)
         self.block_2 = Block(256, 256, 5, 0.05)
-        self.block_3 = Block(256, 512, 3, 0.1)
-        self.block_4 = Block(512, 1024, 3, 0.1)
+        self.block_3 = Block(256, 512, 3, 0.15)
+        self.block_4 = Block(512, 1024, 3, 0.2)
 
         self.head = nn.Sequential(
             nn.Conv1d(1024, 512, kernel_size=1),

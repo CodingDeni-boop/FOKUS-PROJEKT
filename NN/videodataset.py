@@ -2,82 +2,119 @@ import pandas as pd
 from torch.utils.data.dataset import Dataset
 from sklearn.preprocessing import StandardScaler
 import torch
-from utilities import terminal_colors
+from utilities import terminal_colors as colors
 import numpy as np
-from sklearn.impute import SimpleImputer
+import cv2
+import random as rd
+from torch import Tensor
 
-class VideoDataset(Dataset):
-
-    def __init__(self, path : str, video_names : list, scaler : StandardScaler, frames : int = 18000, 
-                 behaviors : dict = {"background" : 0, "supportedrear" : 1, "unsupportedrear" : 2, "grooming" : 3}, 
-                 transform = None, target_transform = None, 
-                 points : list = ['mouse_top.mouse_top_0.nose.x', 'mouse_top.mouse_top_0.nose.y',
-                                  'mouse_top.mouse_top_0.headcentre.x','mouse_top.mouse_top_0.headcentre.y',
-                                  'mouse_top.mouse_top_0.neck.x','mouse_top.mouse_top_0.neck.y', 
-                                  'mouse_top.mouse_top_0.earl.x', 'mouse_top.mouse_top_0.earl.y',
-                                  'mouse_top.mouse_top_0.earr.x','mouse_top.mouse_top_0.earr.y', 
-                                  'mouse_top.mouse_top_0.bodycentre.x','mouse_top.mouse_top_0.bodycentre.y',
-                                  'mouse_top.mouse_top_0.bcl.x','mouse_top.mouse_top_0.bcl.y',
-                                  'mouse_top.mouse_top_0.bcr.x', 'mouse_top.mouse_top_0.bcr.y',
-                                  'mouse_top.mouse_top_0.hipl.x','mouse_top.mouse_top_0.hipl.y', 
-                                  'mouse_top.mouse_top_0.hipr.x', 'mouse_top.mouse_top_0.hipr.y',
-                                  'mouse_top.mouse_top_0.tailbase.x','mouse_top.mouse_top_0.tailbase.y',
-                                  'mouse_top.mouse_top_0.tailcentre.x','mouse_top.mouse_top_0.tailcentre.y',
-                                  'mouse_top.mouse_top_0.tailtip.x', 'mouse_top.mouse_top_0.tailtip.y',
-                                  'oft_3d.oft_3d_0.tl.x', 'oft_3d.oft_3d_0.tl.y',
-                                  'oft_3d.oft_3d_0.tr.x','oft_3d.oft_3d_0.tr.y', 
-                                  'oft_3d.oft_3d_0.bl.x', 'oft_3d.oft_3d_0.bl.y',
-                                  'oft_3d.oft_3d_0.br.x','oft_3d.oft_3d_0.br.y',
-                                  'oft_3d.oft_3d_0.top_tl.x', 'oft_3d.oft_3d_0.top_tl.y',
-                                  'oft_3d.oft_3d_0.top_tr.x','oft_3d.oft_3d_0.top_tr.y',
-                                  'oft_3d.oft_3d_0.top_bl.x', 'oft_3d.oft_3d_0.top_bl.y',
-                                  'oft_3d.oft_3d_0.top_br.x','oft_3d.oft_3d_0.top_br.y', ],
-                 identity : str = "dataset"):
+class RandomizedDataset(Dataset):
+    def __init__(self, 
+                 features_folder : str, 
+                 labels_folder : str,
+                 file_names : list[str], 
+                 behaviors : dict[str,int],
+                 s : int,
+                 r : int,
+                 n : int,
+                 random_state = None,
+                 identity : str = "randomized dataset"
+                 ):
+        """
+        Docstring for __init__
         
-        self.transform = transform
-        self.target_transform = target_transform
-        self.path = path
-        self.video_names = video_names
-        self.scaler = scaler
-        self.frames = frames
-        self.behaviors = behaviors
-        self.points = points
-        self.identity = identity
+        :param self: Description
+        :param features_folder: Description
+        :type features_folder: str
+        :param labels_folder: Description
+        :type labels_folder: str
+        :param file_names: Description
+        :type file_names: list[str]
+        :param behaviors: Description
+        :type behaviors: dict[str, int]
+        :param s: Snippet size
+        :type s: int
+        :param r: Receptive field
+        :type r: int
+        :param n: How many samples per video
+        :type n: int
+        :param random_state: your random state
+        :type random_state: Any
+        """
 
-        print(terminal_colors.GREEN + f"{identity} initialized:\n" +
-              terminal_colors.CYAN +"   videos = " + terminal_colors.ENDC + f"{self.video_names}\n"+
-              terminal_colors.CYAN +"   scaler = " + terminal_colors.ENDC + f"{self.scaler}\n" +
-              terminal_colors.CYAN +"   behaviors = " + terminal_colors.ENDC + f"{self.behaviors}\n"+
-              terminal_colors.CYAN +"   frames = " + terminal_colors.ENDC + f"{self.frames}\n"+
-              terminal_colors.CYAN +"   points = " + terminal_colors.ENDC + f"{self.points}\n")
+        self.features_folder = features_folder
+        self.labels_folder = labels_folder
+        self.file_names = file_names
+        self.behaviors = behaviors
+        self.s = s
+        self.r = r
+        self.n = n
+        rd.seed(random_state)
+
+        print(colors.GREEN + f"{identity} initialized:\n" +
+              colors.CYAN +"   videos = " + colors.ENDC + f"{self.file_names}\n"+
+              colors.CYAN +"   behaviors = " + colors.ENDC + f"{self.behaviors}\n"+
+              colors.CYAN +"   X shape = " + colors.ENDC + f"{self.s + self.r -1}\n"+
+              colors.CYAN +"   y shape = " + colors.ENDC + f"{self.s}\n"+
+              colors.CYAN +"   N = " + colors.ENDC + f"{self.n}\n"+
+              colors.CYAN +"   random state = " + colors.ENDC + f"{random_state}\n")
+
+    def __len__(self):
+        return len(self.file_names)*self.n
+
+    def __getitem__(self, index):
+        file_name = self.file_names[index//self.n]
+        video_path = self.features_folder + "/" + file_name + ".mp4"
+
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            raise KeyError(f"{video_path} is not a valid video path")
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        first_n = rd.randint(0, total_frames - (self.s + self.r - 1))
+
+        X = np.ndarray([height, width, self.s + self.r - 1])
+        cap.set(cv2.CAP_PROP_POS_FRAMES, first_n)
+        for i in range(0, self.s + self.r - 1):
+            ret, frame = cap.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            X[:,:,i] = frame
+        X_tensor = torch.from_numpy((X/255).astype(np.float32))
+
+        y_raw = pd.read_csv(self.labels_folder + "/" + file_name + ".csv").iloc[first_n : first_n + self.s + self.r - 1, :].reset_index(drop = True)
+        y = pd.Series(np.zeros(self.s + self.r - 1, dtype = int)-1)
+        for behavior in self.behaviors:
+            y[y_raw[behavior] == 1] = self.behaviors[behavior]
+        if (y == -1).any():
+            raise KeyError(f"{file_name} presents a behavior not specified in the behavior list: {self.behaviors}")
+        y_tensor = torch.from_numpy(y.to_numpy())
+
+        
+        cap.release()
+        cv2.destroyAllWindows()
+        return X_tensor, y_tensor
+        
+class SingleVideoDataset(Dataset):
+    def __init__(self, labels_folder : str, file_names : list[str], behaviors : dict[str,int]):
+        """
+        Docstring for __init__s
+        :param labels_folder: Description
+        :type labels_folder: str
+        :param file_names: Description
+        :type file_names: list[str]
+        :param behaviors: Description
+        :type behaviors: dict[str: int]
+        """
+
+        self.labels_folder = labels_folder
+        self.file_names = file_names
+        self.behaviors = behaviors
 
 
     def __len__(self):
-        return len(self.video_names)
-    
-    def __getitem__(self, idx):
+        return super().__len__()
 
-        video_name = self.video_names[idx]
-        X = pd.read_csv(self.path + f"/features/{video_name}")
-        imputer = SimpleImputer(strategy = "mean").set_output(transform = "pandas")
-        X = imputer.fit_transform(X)
-        X = self.scaler.transform(X)
-        X = X.loc[0:self.frames-1, self.points]
-        X_tensor = torch.from_numpy(X.to_numpy(dtype = "float32"))
-        
-        y_raw = pd.read_csv(self.path + f"/labels/{video_name}")[0:self.frames]
-        y = pd.Series(np.zeros(self.frames, dtype = int)-1)
-        for behavior in self.behaviors:
-            y[y_raw[behavior] == 1] = self.behaviors[behavior]
-
-        if (y == -1).any():
-            raise KeyError(terminal_colors.FAIL + f"{video_name} presents a behavior not specified in the behavior list: {self.behaviors}"+ terminal_colors.ENDC)
-
-        y_tensor = torch.from_numpy(y.to_numpy())
-
-        if self.transform:
-            X_tensor = self.transform(X_tensor)
-        if self.target_transform:
-            y_tensor = self.target_transform(y_tensor)
-        return X_tensor, y_tensor
-
+    def __getitem__(self, index):
+        return super().__getitem__(index)
