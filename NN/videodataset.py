@@ -82,39 +82,97 @@ class RandomizedDataset(Dataset):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             X[:,:,i] = frame
         X_tensor = torch.from_numpy((X/255).astype(np.float32))
+        X_tensor.transpose_(0,2).transpose_(1,2)
 
-        y_raw = pd.read_csv(self.labels_folder + "/" + file_name + ".csv").iloc[first_n : first_n + self.s + self.r - 1, :].reset_index(drop = True)
-        y = pd.Series(np.zeros(self.s + self.r - 1, dtype = int)-1)
+        y_raw = pd.read_csv(self.labels_folder + "/" + file_name + ".csv").iloc[int(first_n + (self.r - 1)/2 ): int(first_n + self.s + (self.r - 1)/2 ), :].reset_index(drop = True)
+        y = pd.Series(np.zeros(self.s, dtype = int)-1)
         for behavior in self.behaviors:
             y[y_raw[behavior] == 1] = self.behaviors[behavior]
         if (y == -1).any():
             raise KeyError(f"{file_name} presents a behavior not specified in the behavior list: {self.behaviors}")
         y_tensor = torch.from_numpy(y.to_numpy())
 
-        
         cap.release()
         cv2.destroyAllWindows()
         return X_tensor, y_tensor
         
 class SingleVideoDataset(Dataset):
-    def __init__(self, labels_folder : str, file_names : list[str], behaviors : dict[str,int]):
+    def __init__(self, 
+                 features_folder : str, 
+                 labels_folder : str,
+                 file_name : str, 
+                 behaviors : dict[str,int],
+                 s : int,
+                 r : int,
+                 identity : str = "single video dataset"
+                 ):
         """
-        Docstring for __init__s
+        Docstring for __init__
+        
+        :param self: Description
+        :param features_folder: Description
+        :type features_folder: str
         :param labels_folder: Description
         :type labels_folder: str
         :param file_names: Description
         :type file_names: list[str]
         :param behaviors: Description
-        :type behaviors: dict[str: int]
+        :type behaviors: dict[str, int]
+        :param s: Snippet size
+        :type s: int
+        :param r: Receptive field
+        :type r: int
+        :param n: How many samples per video
+        :type n: int
+        :param random_state: your random state
+        :type random_state: Any
         """
 
+        self.features_folder = features_folder
         self.labels_folder = labels_folder
-        self.file_names = file_names
+        self.file_name = file_name
         self.behaviors = behaviors
+        self.s = s
+        self.r = r
 
+        print(colors.GREEN + f"{identity} initialized:\n" +
+              colors.CYAN +"   video = " + colors.ENDC + f"{self.file_name}\n"+
+              colors.CYAN +"   behaviors = " + colors.ENDC + f"{self.behaviors}\n"+
+              colors.CYAN +"   X shape = " + colors.ENDC + f"{self.s + self.r -1}\n"+
+              colors.CYAN +"   y shape = " + colors.ENDC + f"{self.s}\n")
+
+        video_path = self.features_folder + "/" + file_name + ".mp4"
+
+        self.cap = cv2.VideoCapture(video_path)
+        if not self.cap.isOpened():
+            raise KeyError(f"{video_path} is not a valid video path")
+        self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
 
     def __len__(self):
-        return super().__len__()
+        return (self.total_frames - (self.r - 1)) // self.s
 
     def __getitem__(self, index):
-        return super().__getitem__(index)
+
+        X = np.ndarray([self.height, self.width, self.s + self.r - 1])
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, index * self.s)
+        for i in range(0, self.s + self.r - 1):
+            ret, frame = self.cap.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            X[:,:,i] = frame
+        X_tensor = torch.from_numpy((X/255).astype(np.float32))
+        X_tensor.transpose_(0,2).transpose_(1,2)
+
+        y_raw = pd.read_csv(self.labels_folder + "/" + self.file_name + ".csv").iloc[int(index * self.s + (self.r - 1)/2) : int((index + 1) * (self.s) + (self.r - 1)/2)].reset_index(drop = True)
+        y = pd.Series(np.zeros(self.s, dtype = int)-1)
+        print(y_raw.shape)
+        for behavior in self.behaviors:
+            y[y_raw[behavior] == 1] = self.behaviors[behavior]
+        if (y == -1).any():
+            raise KeyError(f"{self.file_name} presents a behavior not specified in the behavior list: {self.behaviors}")
+        y_tensor = torch.from_numpy(y.to_numpy())
+
+        return X_tensor, y_tensor
+        
