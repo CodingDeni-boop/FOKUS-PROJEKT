@@ -62,7 +62,7 @@ class RandomizedDataset(Dataset):
     def __len__(self):
         return len(self.file_names)*self.n
 
-    def __getitem__(self, index):
+    def __getitem__(self, index, debug = False):
         file_name = self.file_names[index//self.n]
         video_path = self.features_folder + "/" + file_name + ".mp4"
 
@@ -81,6 +81,13 @@ class RandomizedDataset(Dataset):
             ret, frame = cap.read()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             X[:,:,i] = frame
+
+            if debug:
+                cv2.imshow("Debug Video Frame", frame)
+                key = cv2.waitKey(30)
+                if key == 27:
+                    break
+
         X_tensor = torch.from_numpy((X/255).astype(np.float32))
         X_tensor.transpose_(0,2).transpose_(1,2)
 
@@ -91,6 +98,9 @@ class RandomizedDataset(Dataset):
         if (y == -1).any():
             raise KeyError(f"{file_name} presents a behavior not specified in the behavior list: {self.behaviors}")
         y_tensor = torch.from_numpy(y.to_numpy())
+
+        if debug: 
+            print(X_tensor, y_tensor)
 
         cap.release()
         cv2.destroyAllWindows()
@@ -154,7 +164,7 @@ class SingleVideoDataset(Dataset):
     def __len__(self):
         return (self.total_frames - (self.r - 1)) // self.s
 
-    def __getitem__(self, index):
+    def __getitem__(self, index, debug = False):
 
         X = np.ndarray([self.height, self.width, self.s + self.r - 1])
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, index * self.s)
@@ -162,6 +172,13 @@ class SingleVideoDataset(Dataset):
             ret, frame = self.cap.read()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             X[:,:,i] = frame
+
+            if debug:
+                cv2.imshow("Debug Video Frame", frame)
+                key = cv2.waitKey(30)
+                if key == 27:
+                    break
+
         X_tensor = torch.from_numpy((X/255).astype(np.float32))
         X_tensor.transpose_(0,2).transpose_(1,2)
 
@@ -174,5 +191,9 @@ class SingleVideoDataset(Dataset):
             raise KeyError(f"{self.file_name} presents a behavior not specified in the behavior list: {self.behaviors}")
         y_tensor = torch.from_numpy(y.to_numpy())
 
+        if debug: 
+            print(X_tensor, y_tensor)
+
+        cv2.destroyAllWindows()
         return X_tensor, y_tensor
         

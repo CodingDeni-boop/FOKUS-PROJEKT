@@ -31,15 +31,44 @@ test_set_collection = []
 for i in range(0, len(video_names_test)):
     test_set_collection.append(SingleVideoDataset(features_folder, labels_folder, video_names_test[i], behaviors, 98, 31, f"TEST single video {i} dataset"))
 
+
 train_data_loader = DataLoader(train_set)
+
+"""
+train_set.__getitem__(0, debug = True)
+test_set_collection[0].__getitem__(0, debug = True)
+test_set_collection[0].__getitem__(1, debug = True)
+"""
 
 class TCNN(nn.Module):
     def __init__(self):
         super().__init__()
+        self.conv3d_1 = nn.Conv3d(1, 16, (5, 5, 5), 1, padding = 0)
+        self.relu_1 = nn.ReLU()
+        self.batchnorm_1 = nn.BatchNorm3d(16, 0.001)
+
+        self.conv3d_2 = nn.Conv3d(16, 64, (7, 7, 7), 1, padding = 0)
+        self.relu_2 = nn.ReLU()
+        self.batchnorm_2 = nn.BatchNorm3d(64, 0.001)
+
+        self.conv3d_3 = nn.Conv3d(64, 128, (5, 5, 5), 1, padding = 0)
+        self.relu_3 = nn.ReLU()
+        self.batchnorm_3 = nn.BatchNorm3d(64, 0.001)
+
 
     def forward(self, x):
         x = x.unsqueeze(0)
-        
+
+        x = self.conv3d_1(x)
+        x = self.relu_1(x)
+        x = self.batchnorm_1(x)
+
+        x = self.conv3d_2(x)
+        x = self.relu_2(x)
+        x = self.batchnorm_2(x)
+
+        print(x.shape)
+
         return x
 
 network = TCNN().to(mps_device)
@@ -53,7 +82,7 @@ def train_loop(dataloader : DataLoader, network : TCNN, loss_fn : nn.CrossEntrop
 
     network.train()
     with tqdm(desc = colors.CYAN +"    train" + colors.ENDC, total = len(dataloader), ascii = True) as pbar:
-        for (X, y) in enumerate(dataloader):
+        for batch, (X, y) in enumerate(dataloader):
             X, y = X.to(mps_device), y.to(mps_device)
             y = y.long()
             optimizer.zero_grad()
