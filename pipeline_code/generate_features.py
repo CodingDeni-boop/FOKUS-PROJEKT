@@ -1,8 +1,10 @@
 import pandas as pd
+import py3r
 from py3r.behaviour.tracking.tracking import LoadOptions as opt
 from py3r.behaviour.features.features_collection import FeaturesCollection
 from py3r.behaviour.tracking.tracking_collection import TrackingCollection
 from py3r.behaviour.tracking.tracking_mv import TrackingMV
+#from py3r.behaviour.util.docdata import data_path
 from natsort import natsorted
 
 
@@ -35,7 +37,7 @@ def triangulate(collection_path : str,
 
     smoothing_dict = {
         # mouse
-        "nose": {"window": smoothing_mouse, "type": "mean"},
+            "nose": {"window": smoothing_mouse, "type": "mean"},
         "headcentre": {"window": smoothing_mouse, "type": "mean"},
         "neck": {"window": smoothing_mouse, "type": "mean"},
         "earl": {"window": smoothing_mouse, "type": "mean"},
@@ -59,6 +61,7 @@ def triangulate(collection_path : str,
         "top_br": {"window": smoothing_oft, "type": "median"},
         "top_bl": {"window": smoothing_oft, "type": "median"},
     }
+
     if not construction_points==None:
         for handle in construction_points:
             construction_infos = construction_points[handle]
@@ -80,73 +83,35 @@ def triangulate(collection_path : str,
 
     # Distance
 
-def features(features_collection : FeaturesCollection, 
-                      distance : dict[tuple : str] = [],
-                      angle : dict[tuple[str] : str] = [],
-                      speed : tuple[str] = [],
-                      distance_to_boundary : tuple[str] = [],
-                      is_point_recognized : tuple[str] = [],
-                      volume : dict[tuple : tuple[tuple]] = [],
-                      standard_deviation : tuple[str] = [],
-                      f_b_fill = True,
-                      embedding_length = list(range(0,1))
-                      ):
+def features(features_collection : FeaturesCollection,
+             azimuth : tuple[str] = [],
+             distance : tuple[str] = [],
+             #distance_to_boundary : dict[str] = [],
+             speed : dict[str] = [],
+             distance_change : dict[str] = [],
+             f_b_fill = True,
+             embedding_length = list(range(0,1))
+    ):
 
-    # Distance
-    print("calculating distance...")
+    #Azimuth/Azimuth_dev
+    for handle in azimuth:
+        features_collection.azimuth(handle[0], handle[1]).store()
 
+    #Distances between points
     for handle in distance:
-        for dim in distance[handle]:
-            features_collection.distance_on_axis(handle[0], handle[1], dim).store()
+        features_collection.distance_between(handle[0], handle[1], dims=("x", "y", "z")).store()
 
-    # Azimuth / Angles
-    print("calculating angles...")
+    #Distance(s) to OFT boundary
+    #for point in distance_to_boundary:
+      #  features_collection.distance_to_boundary(point, ["tl", "tr", "bl", "br"]).store()
 
-    for handle in angle:
-        radians_or_sincos : str = angle[handle]
-        if radians_or_sincos == "radians":
-            features_collection.angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
-            features_collection.angle(handle[0],handle[1],handle[2],handle[3],plane=("y","z")).store()
-
-        elif radians_or_sincos == "sincos":
-            features_collection.sin_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
-            features_collection.cos_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("x","y")).store()
-            features_collection.sin_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("y","z")).store()
-            features_collection.cos_of_angle(handle[0],handle[1],handle[2],handle[3],plane=("y","z")).store()
-
-        else:
-            raise KeyError(f"only sincos or radians are accepted as argument of angles. You typed: {radians_or_sincos}")
-
-    # Speed
-    print("calculating speed...")
-
+    #Speeds of points
     for point in speed:
-        features_collection.speed(point, dims=("x","y","z")).store()
-    
-    # is it BALL?
-    print("calculating ball...")
+        features_collection.speed(point, dims=("x", "y", "z")).store()
 
-    for point in is_point_recognized:
-        features_collection.is_recognized(point).store()
-
-    #Distances to boundary
-    print("calculating distance to boundary...")
-
-    for point in distance_to_boundary:
-        features_collection.distance_to_boundary_dynamic(point, ["tl", "tr", "bl", "br"], "oft").store()
-
-    #Volume
-    print("calculating volume...")
-
-    for handle in volume:
-        faces : tuple[tuple] = volume[handle]
-        features_collection.volume(points = handle, faces = faces).store()
-
-    #Standard deviation
-    print("calculating standard deviation...")
-
-    for thing in standard_deviation:
-        features_collection.standard_dev(thing).store()
+    #Absolute movement(s) of points
+    for point in distance_change:
+        features_collection.distance_change(point, dims=("x", "y", "z")).store()
 
     ############################################### Missing data handling
 

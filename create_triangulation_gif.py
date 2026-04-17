@@ -48,12 +48,13 @@ triangulated_tracking_collection.interpolate()
 
 
 # Skeleton Tracking Animation
-triangulated_tracking_collection.save_3d_tracking_video_multi_view(out_path = "./pipeline_outputs/tracking_gifs/video_9.gif", 
+triangulated_tracking_collection.save_3d_tracking_video_multi_view(out_path = "./pipeline_outputs/tracking_gifs/video_9_2.gif",
                                                                    startframe = 4161, endframe = 4250, 
                                                                    lines = [("tl","tr")
                                                                             ,("tr","br"),("br","bl"),("bl","tl"),("nose", "neck"),("tailbase","tailcentre"),("tailcentre","tailtip"),
                                                                                                                                                                           ("top_tr", "top_tl"), ("top_tl", "top_bl"), ("top_bl", "top_br"), ("top_br", "top_tr"), 
-                                                                                                                                                                          ("neck", "bodycentre"), ("bodycentre", "tailbase")],
+                                                                                                                                                                          ("neck", "bodycentre"), ("bodycentre", "tailbase"),
+                                                                                                                                                                          ("top_tr", "tr"), ("top_br", "br"), ("top_bl", "bl"), ("top_tl", "tl")],
                                                                     
                                                                     dpi = 150, 
                                                                     line_color = (0, 0, 0, 0.6 ), 
