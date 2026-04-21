@@ -263,9 +263,9 @@ for frame in range(framecount):
         unsupprear_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["unsupportedrear"][(vid, frame)]
         grooming_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["grooming"][(vid, frame)]
 
-supprear_values.to_csv('raduman/supp_13.csv', index=False)
-unsupprear_values.to_csv('raduman/unsupp_13.csv', index=False)
-grooming_values.to_csv('raduman/groom_13.csv', index=False)
+supprear_values.to_csv('raduman/supp_6.csv', index=False)
+unsupprear_values.to_csv('raduman/unsupp_6.csv', index=False)
+grooming_values.to_csv('raduman/groom_6.csv', index=False)
 
 
 
