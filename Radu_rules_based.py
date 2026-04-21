@@ -5,6 +5,11 @@ from py3r.behaviour.tracking.tracking_mv import TrackingMV
 #from py3r.behaviour.util.docdata import data_path
 #lucreaza intai cu videorile 6 si 13
 import pandas as pd
+import glob
+import os
+from torch.nn.functional import threshold
+
+
 #from natsort import natsorted
 
 #from HGB_Pipe_2D import tracking_collection
@@ -61,35 +66,6 @@ def triangulate(collection_path: str,
         (['top_br'], 'median', smoothing_oft)
     ]
 
-    '''
-    smoothing_dict = {
-        # mouse
-        "nose": {"window": smoothing_mouse, "method": "mean"},
-        "headcentre": {"window": smoothing_mouse, "method": "mean"},
-        "neck": {"window": smoothing_mouse, "method": "mean"},
-        "earl": {"window": smoothing_mouse, "method": "mean"},
-        "earr": {"window": smoothing_mouse, "method": "mean"},
-        "bodycentre": {"window": smoothing_mouse, "method": "mean"},
-        "bcl": {"window": smoothing_mouse, "method": "mean"},
-        "bcr": {"window": smoothing_mouse, "method": "mean"},
-        "hipl": {"window": smoothing_mouse, "method": "mean"},
-        "hipr": {"window": smoothing_mouse, "method": "mean"},
-        "tailbase": {"window": smoothing_mouse, "method": "mean"},
-        "tailcentre": {"window": smoothing_mouse, "method": "mean"},
-        "tailtip": {"window": smoothing_mouse, "method": "mean"},
-
-        # oft
-        "tr": {"window": smoothing_oft, "method": "median"},
-        "tl": {"window": smoothing_oft, "method": "median"},
-        "br": {"window": smoothing_oft, "method": "median"},
-        "bl": {"window": smoothing_oft, "method": "median"},
-        "top_tr": {"window": smoothing_oft, "method": "median"},
-        "top_tl": {"window": smoothing_oft, "method": "median"},
-        "top_br": {"window": smoothing_oft, "method": "median"},
-        "top_bl": {"window": smoothing_oft, "method": "median"},
-    }
-    '''
-
     if smoothing:
         triangulated_tracking_collection.each.smooth_all(overrides = smoothing_overrides1)
 
@@ -130,9 +106,9 @@ def features(features_collection: FeaturesCollection,
     for point in distance_change:
         features_collection.each.distance_change(point, dims=("x", "y", "z")).store()
 
-    print(dir(features_collection))
+    #print(dir(features_collection))
 
-    print(type(features_collection))
+    #print(type(features_collection))
     ############################################### Missing data handling
 
     if f_b_fill:
@@ -158,10 +134,6 @@ def features(features_collection: FeaturesCollection,
     keys = list(features_collection.features_dict.keys())
     values = [v.data for v in features_collection.features_dict.values()]
 
-    print("Keys:", list(features_collection.keys()))
-    print("Values:", list(features_collection.values()))
-    print("Length:", len(list(features_collection.values())))
-
     combined_features = pd.concat(values, keys=keys, names=['video_id', 'frame'])
     return combined_features
     # Extract features
@@ -173,11 +145,11 @@ def features(features_collection: FeaturesCollection,
 ############################################################ MAIN #################################################################
 
 tracking_collection = TrackingCollection.from_yolo3r_folder(folder_path = "./pipeline_inputs/collection", fps = 30, tracking_cls = TrackingMV)
-#tracking_collection.filter_likelihood(0.9)
+#tracking_collection.filter_likelihood(threshold=0.9)
 tri_tracking_collection = tracking_collection.stereo_triangulate()
 
-print("Tracking collection keys:", list(tracking_collection.keys()))
-print("Triangulated keys:", list(tri_tracking_collection.keys()))
+#print("Tracking collection keys:", list(tracking_collection.keys()))
+#print("Triangulated keys:", list(tri_tracking_collection.keys()))
 
 tri_tracking_collection.each.strip_column_names()
 tri_tracking_collection.each.rescale_by_known_distance("tr", "tl", 0.64, dims=("x", "y", "z"))
@@ -210,48 +182,19 @@ smoothing_overrides = [
     (['top_br'], 'median', 3)
 ]
 
-'''
-smoothing_dict = {
-    # mouse
-    "nose": {"window": 3, "method": "mean"},
-    "headcentre": {"window": 3, "method": "mean"},
-    "neck": {"window": 3, "method": "mean"},
-    "earl": {"window": 3, "method": "mean"},
-    "earr": {"window": 3, "method": "mean"},
-    "bodycentre": {"window": 3, "method": "mean"},
-    "bcl": {"window": 3, "method": "mean"},
-    "bcr": {"window": 3, "method": "mean"},
-    "hipl": {"window": 3, "method": "mean"},
-    "hipr": {"window": 3, "method": "mean"},
-    "tailbase": {"window": 3, "method": "mean"},
-    "tailcentre": {"window": 3, "method": "mean"},
-    "tailtip": {"window": 3, "method": "mean"},
-
-    # oft
-    "tr": {"window": 20, "method": "median"},
-    "tl": {"window": 20, "method": "median"},
-    "br": {"window": 20, "method": "median"},
-    "bl": {"window": 20, "method": "median"},
-    "top_tr": {"window": 20, "method": "median"},
-    "top_tl": {"window": 20, "method": "median"},
-    "top_br": {"window": 20, "method": "median"},
-    "top_bl": {"window": 20, "method": "median"},
-}
-'''
-
 if smoothing:
     tri_tracking_collection.each.smooth_all(overrides = smoothing_overrides)
 
 features_collection = FeaturesCollection.from_tracking_collection(tri_tracking_collection)
 
-print("Collection keys at creation:", list(features_collection.keys()))
-print("Collection length at creation:", len(features_collection))
-print("Internal dict:", features_collection._obj_dict)
+#print("Collection keys at creation:", list(features_collection.keys()))
+#print("Collection length at creation:", len(features_collection))
+#print("Internal dict:", features_collection._obj_dict)
 
 #features_collection.distance_between("nose", "bodycentre", dims=("x", "y", "z")).store(name="dist_nose_bodycentre")
 #features_collection.azimuth_deviation("neck", "nose", "bodycentre", dims=("x", "y", "z")).store()
 
-thing_i_work_on = features(features_collection,
+main_features = features(features_collection,
         azimuth={
             ("tailbase", "bodycentre"),
             ("bodycentre", "neck"),
@@ -277,14 +220,76 @@ thing_i_work_on = features(features_collection,
         distance_change=("bodycentre",),
 
         f_b_fill=False, #For now, because i want to be able to use nose NAs
-        )
-thing_i_work_on.to_csv('raduman/shakira.csv', index=False)
+)
+
+#main_features.to_csv('raduman/shakira.csv', index=False)
+
+#print("Keys:", list(main_features.keys()))
+#print("Values:", list(main_features.values))
+
+#print(main_features["speed_of_earl_in_xyz"][('13', 137)])
+
+labels_6 = pd.read_csv("./pipeline_inputs/labels/6.csv")
+labels_13 = pd.read_csv("./pipeline_inputs/labels/13.csv")
+
+labels_6["video_id"] = "6"
+labels_13["video_id"] = "13"
+
+labels_6["frame"] = labels_6.index
+labels_13["frame"] = labels_13.index
+
+labels = pd.concat([labels_6, labels_13], axis=0)
+labels = labels.set_index(["video_id", "frame"])
+
+print (main_features.columns)
+
+#WE DO DIAGNOSTICS AND EXPERIMENTATION NOW YEAH MFER WE CRAZY
+
+all_features=main_features.columns
+
+supprear_values = pd.DataFrame(columns = all_features)
+unsupprear_values = pd.DataFrame(columns = all_features)
+grooming_values = pd.DataFrame(columns = all_features)
+
+vid = '6'
+#for video 13
+#framecount = 18063
+#for video 6
+framecount = 18095
+
+for frame in range(framecount):
+    for feature in all_features:
+        supprear_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["supportedrear"][(vid, frame)]
+        unsupprear_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["unsupportedrear"][(vid, frame)]
+        grooming_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["grooming"][(vid, frame)]
+
+supprear_values.to_csv('raduman/supp_13.csv', index=False)
+unsupprear_values.to_csv('raduman/unsupp_13.csv', index=False)
+grooming_values.to_csv('raduman/groom_13.csv', index=False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 '''
-
-
-        
-
         #embedding_length=list(range(-15, 16, 3))
     )
 
