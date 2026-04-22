@@ -21,7 +21,6 @@ def triangulate(collection_path: str,
                 rescale_points: tuple[str, str],
                 rescale_distance: float,
                 filter_threshold: float = 0.9,
-                construction_points: dict[str: dict["between_points": tuple[str], "mouse_or_oft": str]] = None,
                 smoothing=True,
                 smoothing_mouse=3,
                 smoothing_oft=20):
@@ -76,35 +75,36 @@ def triangulate(collection_path: str,
 ###################################################################################################################################
 
 def features(features_collection: FeaturesCollection,
-             azimuth: set[tuple[str, str]] = [],
+             heights: tuple = [],
              distance: set[tuple[str, str]] = [],
              distance_to_boundary : tuple[str] = [],
              speed: tuple = [],
-             distance_change: tuple[str] = [],
              f_b_fill=True,
              #embedding_length=list(range(0, 1))
              ):
+
+    '''
     # Azimuth/Azimuth_dev
     for handle in azimuth:
         features_collection.each.azimuth(handle[0], handle[1]).store()
+    '''
 
+    # Heights, calculated as vertical distance to a point we know is always visible and on the floor
+    for point in heights:
+        features_collection.each.distance_between("tailcentre", point, dims=("y", "z")).store()
 
     # Distances between points
     for handle in distance:
         features_collection.each.distance_between(handle[0], handle[1], dims=("x", "y", "z")).store()
 
     # Distance(s) to OFT boundary
-    b=features_collection.each.define_static_boundary(['tl', 'tr', 'bl', 'br'], name='the_floor')
+    b=features_collection.each.define_static_boundary(['tl', 'tr', 'bl', 'br'], name='edge')
     for point in distance_to_boundary:
         features_collection.each.distance_to_boundary(point, boundary=b).store()
 
     # Speeds of points
     for point in speed:
         features_collection.each.speed(point, dims=("x", "y", "z")).store()
-
-    # Absolute movement(s) of points
-    for point in distance_change:
-        features_collection.each.distance_change(point, dims=("x", "y", "z")).store()
 
     #print(dir(features_collection))
 
@@ -195,16 +195,13 @@ features_collection = FeaturesCollection.from_tracking_collection(tri_tracking_c
 #features_collection.azimuth_deviation("neck", "nose", "bodycentre", dims=("x", "y", "z")).store()
 
 main_features = features(features_collection,
-        azimuth={
-            ("tailbase", "bodycentre"),
-            ("bodycentre", "neck"),
-            ("hipr", "bcr"),
-            ("hipl", "bcl")
-        },
+        heights=(
+            "nose",
+            "bodycentre",
+        ),
 
         distance={
             ("hipl", "hipr"),
-            ("earl", "earr"),
             ("nose", "earl"),
             ("nose", "earr")
         },
@@ -217,17 +214,11 @@ main_features = features(features_collection,
             "earr"
         ),
 
-        distance_change=("bodycentre",),
-
-        f_b_fill=False, #For now, because i want to be able to use nose NAs
+        f_b_fill=True,
 )
 
-#main_features.to_csv('raduman/shakira.csv', index=False)
-
-#print("Keys:", list(main_features.keys()))
-#print("Values:", list(main_features.values))
-
-#print(main_features["speed_of_earl_in_xyz"][('13', 137)])
+'''
+CODE FOR DOING INTERPRETATIVE DATA ANALYSIS
 
 labels_6 = pd.read_csv("./pipeline_inputs/labels/6.csv")
 labels_13 = pd.read_csv("./pipeline_inputs/labels/13.csv")
@@ -240,10 +231,6 @@ labels_13["frame"] = labels_13.index
 
 labels = pd.concat([labels_6, labels_13], axis=0)
 labels = labels.set_index(["video_id", "frame"])
-
-print (main_features.columns)
-
-#WE DO DIAGNOSTICS AND EXPERIMENTATION NOW YEAH MFER WE CRAZY
 
 all_features=main_features.columns
 
@@ -266,53 +253,48 @@ for frame in range(framecount):
 supprear_values.to_csv('raduman/supp_6.csv', index=False)
 unsupprear_values.to_csv('raduman/unsupp_6.csv', index=False)
 grooming_values.to_csv('raduman/groom_6.csv', index=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-        #embedding_length=list(range(-15, 16, 3))
-    )
-
-    y = labels(labels_path="./pipeline_inputs/labels", )
-
-    X, y = drop_non_analyzed_videos(X=X, y=y)
-    X, y = drop_last_frame(X=X, y=y)
-    X = reduce_bits(X)
-    X.to_csv(X_path)
-    y.to_csv(y_path)
-
-else:
-    X = pd.read_csv(X_path, index_col=["video_id", "frame"])
-    y = pd.read_csv(y_path, index_col=["video_id", "frame"])
-
-if os.path.isfile(X_filtered_path):
-    X = pd.read_csv(X_filtered_path, index_col=["video_id", "frame"])
-
-else:
-    X = collinearity_filter(X, threshold=0.95)
-    X.to_csv(X_filtered_path)
 '''
 
+#NOW WE ACTUALLY START TO CLASSIFY OH YEAH BUSINESS BABY
+#collection["feature"][('video', frame)]
+
+videos = ['6', '13']
+
+for video in videos:
+    framecount = main_features["speed_of_nose_in_xyz"][video].shape[0]
+    framecount = int(framecount)
+    #print(framecount)
+    frame=0
+
+    labels = pd.DataFrame(columns=["background", "supportedrear", "unsupportedrear", "grooming"])
+    labels = labels.astype(int)  # labels starts filled with 0s
+
+    for frame in range(framecount):
+        label = "background"  # could become "supportedrear" or "unsupportedrear" or "grooming"
+
+        #CHECK FOR A REAR
+        if (main_features["distance_between_tailcentre_and_bodycentre_in_yz"][(video, frame)] >= 0.045): # body high enough?
+            if (main_features["distance_between_tailcentre_and_nose_in_yz"][(video, frame)] >= 0.06): # head high enough?
+                if (main_features["distance_to_boundary_static_nose_in_edge"][(video, frame)] < 0.1): # are we sniffing the wall?
+                    label = "supportedrear"
+                #elif (frame != 0 and labels["supportedrear"][frame-1] == 1):
+                    #label = "supportedrear"
+                else: # alright unsupported it is
+                    label = "unsupportedrear"
+            elif (frame != 0 and labels["supportedrear"][frame-1] == 1 and main_features["speed_of_nose_in_xyz"][(video, frame)] >= 0.07):
+                label = "supportedrear" # if head low but moving fast, and body still high, we might be in the end frames of the rear
+            elif (frame != 0 and labels["unsupportedrear"][frame-1] == 1 and main_features["speed_of_nose_in_xyz"][(video, frame)] >= 0.07):
+                label = "unsupportedrear" # same edgecase check but for unsupported rear
+
+        #CHECK FOR GROOMING, SKIP IF REAR FOUND
+        '''if (label == "background"):
+            #GROOMCHECK'''
+        labels.loc[frame, "background"] = int(label == "background")
+        labels.loc[frame, "supportedrear"] = int(label == "supportedrear")
+        labels.loc[frame, "unsupportedrear"] = int(label == "unsupportedrear")
+        labels.loc[frame, "grooming"] = int(label == "grooming")
+    file_path = "raduman/" + video + ".csv"
+    labels.to_csv(file_path, index=False)
 
 
 
