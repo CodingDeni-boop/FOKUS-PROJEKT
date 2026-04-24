@@ -12,6 +12,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 import glob
 import os
+
+from sympy.physics.units import acceleration
 from torch.nn.functional import threshold
 
 
@@ -84,6 +86,7 @@ def features(features_collection: FeaturesCollection,
              distance: set[tuple[str, str]] = [],
              distance_to_boundary : tuple[str] = [],
              speed: tuple = [],
+             acceleration: tuple = [],
              f_b_fill=True,
              #embedding_length=list(range(0, 1))
              ):
@@ -94,22 +97,26 @@ def features(features_collection: FeaturesCollection,
         features_collection.each.azimuth(handle[0], handle[1]).store()
     '''
 
-    # Heights, calculated as vertical distance to a point we know is always visible and on the floor
+    # Heights, calculated as vertical distance to a point we know is always visible and on the floor (eg. tailcentre)
     for point in heights:
-        features_collection.each.distance_between("tailcentre", point, dims=("y", "z")).store()
+        features_collection.each.distance_between("tailcentre", point, dims = ("y", "z")).store()
 
     # Distances between points
     for handle in distance:
-        features_collection.each.distance_between(handle[0], handle[1], dims=("x", "y", "z")).store()
+        features_collection.each.distance_between(handle[0], handle[1], dims = ("x", "y", "z")).store()
 
     # Distance(s) to OFT boundary
-    b=features_collection.each.define_static_boundary(['tl', 'tr', 'bl', 'br'], name='edge')
+    b = features_collection.each.define_static_boundary(['tl', 'tr', 'bl', 'br'], name = 'edge')
     for point in distance_to_boundary:
-        features_collection.each.distance_to_boundary(point, boundary=b).store()
+        features_collection.each.distance_to_boundary(point, boundary = b).store()
 
     # Speeds of points
     for point in speed:
-        features_collection.each.speed(point, dims=("x", "y", "z")).store()
+        features_collection.each.speed(point, dims = ("x", "y", "z")).store()
+
+    # Acceleration of points
+    for point in acceleration:
+        features_collection.each.acceleration(point, dims = ("x", "y", "z")).store()
 
     #print(dir(features_collection))
 
@@ -199,23 +206,35 @@ features_collection = FeaturesCollection.from_tracking_collection(tri_tracking_c
 #print("Internal dict:", features_collection._obj_dict)
 
 main_features = features(features_collection,
-        heights=(
+        heights = (
             "nose",
+            "headcentre",
             "bodycentre",
         ),
 
-        distance={
+        distance = {
             ("hipl", "hipr"),
             ("nose", "earl"),
-            ("nose", "earr")
+            ("nose", "earr"),
+            ("headcentre", "neck")
         },
 
-        distance_to_boundary=("nose",),
+        distance_to_boundary = ("nose",),
 
-        speed=(
+        speed = (
             "nose",
             "earl",
-            "earr"
+            "earr",
+            "neck",
+            "bodycentre"
+        ),
+
+        acceleration = (
+            "nose",
+            "earl",
+            "earr",
+            "neck",
+            "bodycentre"
         ),
 
         f_b_fill=True,
@@ -287,18 +306,25 @@ corr_groom_13 = feats_13.apply(lambda col: col.corr(groom_13))
 print("Correlates for video 6########################################################################")
 print("SUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print(corr_suppr_6.sort_values(ascending=False))
+print()
 print("UNSUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print(corr_unsup_6.sort_values(ascending=False))
-print("GROOMING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print()
+print("GROOMING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print(corr_groom_6.sort_values(ascending=False))
+print()
+print()
 
 print("Correlates for video 13########################################################################")
 print("SUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print(corr_suppr_13.sort_values(ascending=False))
+print()
 print("UNSUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print(corr_unsup_13.sort_values(ascending=False))
-print("GROOMING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print()
+print("GROOMING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print(corr_groom_13.sort_values(ascending=False))
+print()
 
 #CODE FOR ACTUALLY CLASSIFYING BEHAVIOR
 #collection["feature"][('video', frame)]
