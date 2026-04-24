@@ -149,6 +149,7 @@ def features(features_collection: FeaturesCollection,
 
 ############################################################ MAIN #################################################################
 
+#BOILERPLATE CODE
 tracking_collection = TrackingCollection.from_yolo3r_folder(folder_path = "./pipeline_inputs/collection", fps = 30, tracking_cls = TrackingMV)
 #tracking_collection.filter_likelihood(threshold=0.9)
 tri_tracking_collection = tracking_collection.stereo_triangulate()
@@ -192,12 +193,10 @@ if smoothing:
 
 features_collection = FeaturesCollection.from_tracking_collection(tri_tracking_collection)
 
+#DIAGNOSTIC/DEBUGGING PRINTS
 #print("Collection keys at creation:", list(features_collection.keys()))
 #print("Collection length at creation:", len(features_collection))
 #print("Internal dict:", features_collection._obj_dict)
-
-#features_collection.distance_between("nose", "bodycentre", dims=("x", "y", "z")).store(name="dist_nose_bodycentre")
-#features_collection.azimuth_deviation("neck", "nose", "bodycentre", dims=("x", "y", "z")).store()
 
 main_features = features(features_collection,
         heights=(
@@ -222,9 +221,9 @@ main_features = features(features_collection,
         f_b_fill=True,
 )
 
-'''
-CODE FOR DOING INTERPRETATIVE DATA ANALYSIS
 
+#CODE FOR DOING INTERPRETATIVE DATA ANALYSIS
+'''
 labels_6 = pd.read_csv("./pipeline_inputs/labels/6.csv")
 labels_13 = pd.read_csv("./pipeline_inputs/labels/13.csv")
 
@@ -260,7 +259,48 @@ unsupprear_values.to_csv('raduman/unsupp_6.csv', index=False)
 grooming_values.to_csv('raduman/groom_6.csv', index=False)
 '''
 
-#NOW WE ACTUALLY START TO CLASSIFY OH YEAH BUSINESS BABY
+main_features.loc['6'].to_csv('raduman/features_6.csv', index=False)
+main_features.loc['13'].to_csv('raduman/features_13.csv', index=False)
+
+labels_6 = pd.read_csv('pipeline_inputs/labels/6.csv')
+feats_6 = main_features.loc['6']
+
+labels_13 = pd.read_csv('pipeline_inputs/labels/13.csv')
+feats_13 = main_features.loc['13']
+
+suppr_6 = labels_6["supportedrear"]
+unsup_6 = labels_6["unsupportedrear"]
+groom_6 = labels_6["grooming"]
+
+suppr_13 = labels_13["supportedrear"]
+unsup_13 = labels_13["unsupportedrear"]
+groom_13 = labels_13["grooming"]
+
+corr_suppr_6 = feats_6.apply(lambda col: col.corr_suppr_6(suppr_6))
+corr_unsup_6 = feats_6.apply(lambda col: col.corr_unsup_6(unsup_6))
+corr_groom_6 = feats_6.apply(lambda col: col.corr_groom_6(groom_6))
+
+corr_suppr_13 = feats_13.apply(lambda col: col.corr_suppr_13(suppr_13))
+corr_unsup_13 = feats_13.apply(lambda col: col.corr_unsup_13(unsup_13))
+corr_groom_13 = feats_13.apply(lambda col: col.corr_groom_13(groom_13))
+
+print("Correlates for video 6########################################################################")
+print("SUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print(corr_suppr_6.sort_values(ascending=False))
+print("UNSUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print(corr_unsup_6.sort_values(ascending=False))
+print("GROOMING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print(corr_groom_6.sort_values(ascending=False))
+
+print("Correlates for video 13########################################################################")
+print("SUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print(corr_suppr_13.sort_values(ascending=False))
+print("UNSUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print(corr_unsup_13.sort_values(ascending=False))
+print("GROOMING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print(corr_groom_13.sort_values(ascending=False))
+
+#CODE FOR ACTUALLY CLASSIFYING BEHAVIOR
 #collection["feature"][('video', frame)]
 '''
 videos = ['6', '13']
@@ -306,8 +346,11 @@ for video in videos:
     labels.loc[frame, "unsupportedrear"] = 0
     labels.loc[frame, "grooming"] = 0
     file_path = "raduman/" + video + ".csv"
-    labels.to_csv(file_path, index=False)'''
+    labels.to_csv(file_path, index=False)
+'''
 
+'''
+#CODE FOR MAKING A COOL CONFUSION MATRIX 
 pred = pd.read_csv('raduman/6.csv')
 true = pd.read_csv('pipeline_inputs/labels/6.csv')
 
@@ -326,3 +369,4 @@ plt.ylabel("True")
 plt.title("Confusion Matrix Man")
 plt.tight_layout()
 plt.show()
+'''
