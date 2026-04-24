@@ -86,7 +86,6 @@ def features(features_collection: FeaturesCollection,
              distance: set[tuple[str, str]] = [],
              distance_to_boundary : tuple[str] = [],
              speed: tuple = [],
-             acceleration: tuple = [],
              f_b_fill=True,
              #embedding_length=list(range(0, 1))
              ):
@@ -113,10 +112,6 @@ def features(features_collection: FeaturesCollection,
     # Speeds of points
     for point in speed:
         features_collection.each.speed(point, dims = ("x", "y", "z")).store()
-
-    # Acceleration of points
-    for point in acceleration:
-        features_collection.each.acceleration(point, dims = ("x", "y", "z")).store()
 
     #print(dir(features_collection))
 
@@ -208,15 +203,16 @@ features_collection = FeaturesCollection.from_tracking_collection(tri_tracking_c
 main_features = features(features_collection,
         heights = (
             "nose",
-            "headcentre",
+            #"headcentre",
             "bodycentre",
         ),
 
         distance = {
-            ("hipl", "hipr"),
-            ("nose", "earl"),
-            ("nose", "earr"),
-            ("headcentre", "neck")
+            #("nose", "earl"),
+            #("nose", "earr"),
+            ("earl", "earr"),
+            ("headcentre", "earl"),
+            ("headcentre", "earr"),
         },
 
         distance_to_boundary = ("nose",),
@@ -225,16 +221,6 @@ main_features = features(features_collection,
             "nose",
             "earl",
             "earr",
-            "neck",
-            "bodycentre"
-        ),
-
-        acceleration = (
-            "nose",
-            "earl",
-            "earr",
-            "neck",
-            "bodycentre"
         ),
 
         f_b_fill=True,
@@ -257,8 +243,8 @@ labels = labels.set_index(["video_id", "frame"])
 
 all_features=main_features.columns
 
-supprear_values = pd.DataFrame(columns = all_features)
-unsupprear_values = pd.DataFrame(columns = all_features)
+#supprear_values = pd.DataFrame(columns = all_features)
+#unsupprear_values = pd.DataFrame(columns = all_features)
 grooming_values = pd.DataFrame(columns = all_features)
 
 vid = '6'
@@ -269,14 +255,13 @@ framecount = 18095
 
 for frame in range(framecount):
     for feature in all_features:
-        supprear_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["supportedrear"][(vid, frame)]
-        unsupprear_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["unsupportedrear"][(vid, frame)]
+        #supprear_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["supportedrear"][(vid, frame)]
+        #unsupprear_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["unsupportedrear"][(vid, frame)]
         grooming_values.loc[frame, feature] = main_features[feature][(vid, frame)] * labels["grooming"][(vid, frame)]
 
-supprear_values.to_csv('raduman/supp_6.csv', index=False)
-unsupprear_values.to_csv('raduman/unsupp_6.csv', index=False)
+#supprear_values.to_csv('raduman/supp_6.csv', index=False)
+#unsupprear_values.to_csv('raduman/unsupp_6.csv', index=False)
 grooming_values.to_csv('raduman/groom_6.csv', index=False)
-'''
 
 main_features.loc['6'].to_csv('raduman/features_6.csv', index=False)
 main_features.loc['13'].to_csv('raduman/features_13.csv', index=False)
@@ -325,6 +310,7 @@ print()
 print("GROOMING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print(corr_groom_13.sort_values(ascending=False))
 print()
+'''
 
 #CODE FOR ACTUALLY CLASSIFYING BEHAVIOR
 #collection["feature"][('video', frame)]
@@ -333,8 +319,8 @@ videos = ['6', '13']
 
 for video in videos:
     framecount = main_features["speed_of_nose_in_xyz"][video].shape[0]
-    framecount = int(framecount)
-    print(framecount)
+    framecount = int(framecount) # saves as float value otherwise
+    # print(framecount)
     frame=0
 
     labels = pd.DataFrame(columns=["", "background", "supportedrear", "unsupportedrear", "grooming"])
@@ -345,38 +331,71 @@ for video in videos:
 
         #CHECK FOR A REAR
         if (main_features["distance_between_tailcentre_and_bodycentre_in_yz"][(video, frame)] >= 0.065): # body high enough?
-            if (main_features["distance_between_tailcentre_and_nose_in_yz"][(video, frame)] >= 0.1): # head high enough?
-                if (main_features["distance_to_boundary_static_nose_in_edge"][(video, frame)] < 0.1): # are we sniffing the wall?
+            if (main_features["distance_between_tailcentre_and_nose_in_yz"][(video, frame)] >= 0.09): # head high enough?
+                if (main_features["distance_to_boundary_static_nose_in_edge"][(video, frame)] < 0.09): # are we sniffing the wall?
                     label = "supportedrear"
-                #elif (frame != 0 and labels["supportedrear"][frame-1] == 1):
-                    #label = "supportedrear"
-                else: # alright unsupported it is
+                else:
                     label = "unsupportedrear"
-            elif (frame != 0 and labels["supportedrear"][frame-1] == 1 and main_features["speed_of_nose_in_xyz"][(video, frame)] >= 0.07):
-                label = "supportedrear" # if head low but moving fast, and body still high, we might be in the end frames of the rear
-            elif (frame != 0 and labels["unsupportedrear"][frame-1] == 1 and main_features["speed_of_nose_in_xyz"][(video, frame)] >= 0.07):
-                label = "unsupportedrear" # same edgecase check but for unsupported rear
+
+            # if head low but moving fast, and body still high, we might be in the end frames of the rear
+            # to prevent overlabeling from this, check that the previous frame was a rear
+            elif (frame != 0 and (labels["supportedrear"][frame-1] == 1 or labels["unsupportedrear"][frame-1] == 1) and main_features["speed_of_nose_in_xyz"][(video, frame)] >= 0.07):
+                # same check as before, filters out edge cases where a rear moves away from the wall
+                if (main_features["distance_to_boundary_static_nose_in_edge"][(video, frame)] < 0.1):
+                    label = "supportedrear"
+                else:
+                    label = "unsupportedrear"
 
         #CHECK FOR GROOMING, SKIP IF REAR FOUND
-        #if (label == "background"):
-            #GROOMCHECK
-        labels.loc[frame, ""] = frame
-        labels.loc[frame, "background"] = int(label == "background")
-        labels.loc[frame, "supportedrear"] = int(label == "supportedrear")
-        labels.loc[frame, "unsupportedrear"] = int(label == "unsupportedrear")
-        labels.loc[frame, "grooming"] = int(label == "grooming")
+        if (label == "background"):
+            #GROOMCHECK - headcentre almost in line with ears
+            #nose_earl = main_features["distance_between_nose_and_earl_in_xyz"][(video, frame)]
+            #nose_earr = main_features["distance_between_nose_and_earr_in_xyz"][(video, frame)]
+            earl_earr = main_features["distance_between_earl_and_earr_in_xyz"][(video, frame)]
+            head_earl = main_features["distance_between_headcentre_and_earl_in_xyz"][(video, frame)]
+            head_earr = main_features["distance_between_headcentre_and_earr_in_xyz"][(video, frame)]
+
+            # in an almost-flat triangle, the length of the longest side is almost as much as the other 2 sides summed
+            # find the longest side length, and compute what percent of the other two sides' lengths it represents
+            inline_head_ears = 0.01 # making sure the variable is never undefined
+
+            if (max(head_earl, head_earr, earl_earr) == earl_earr):
+                inline_head_ears = earl_earr / (head_earl + head_earr)
+
+            elif (max(head_earl, head_earr, earl_earr) == head_earl):
+                inline_head_ears = head_earl / (head_earr + earl_earr)
+
+            elif (max(head_earl, head_earr, earl_earr) == head_earr):
+                inline_head_ears = head_earr / (head_earl + earl_earr)
+
+            # if the headcentre-ears triangle is at least 80% "flat", we are either scratching sideways, grooming, or sniffing
+            if (inline_head_ears >= 0.8):
+                label = "grooming"
+
+        # assign label within the dataframe
+        # because of the binary int format, every row must have one 1 and three 0's
+        # we accomplish this by converting boolean values
+        labels.loc[frame, ""] = frame # assign current frame
+        labels.loc[frame, "background"] = int(label == "background") # 1 if yes, 0 if no
+        labels.loc[frame, "supportedrear"] = int(label == "supportedrear") # 1 if yes, 0 if no
+        labels.loc[frame, "unsupportedrear"] = int(label == "unsupportedrear") # 1 if yes, 0 if no
+        labels.loc[frame, "grooming"] = int(label == "grooming") # 1 if yes, 0 if no
+
+    # add a buffer frame at the end for safety
     frame = frame + 1
     labels.loc[frame, ""] = frame
     labels.loc[frame, "background"] = 0
     labels.loc[frame, "supportedrear"] = 0
     labels.loc[frame, "unsupportedrear"] = 0
     labels.loc[frame, "grooming"] = 0
+
+    # export current video labels
     file_path = "raduman/" + video + ".csv"
     labels.to_csv(file_path, index=False)
 '''
 
 #CODE FOR MAKING A COOL CONFUSION MATRIX
-'''
+
 pred = pd.read_csv('raduman/6.csv')
 true = pd.read_csv('pipeline_inputs/labels/6.csv')
 
@@ -390,9 +409,8 @@ cm = confusion_matrix(y_true, y_pred, labels=cols, normalize="true")
 plt.figure(figsize=(8,6))
 sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues", xticklabels=cols, yticklabels=cols)
 
-plt.xlabel("Predicted")
-plt.ylabel("True")
-plt.title("Confusion Matrix Man")
+plt.xlabel("Predicted", fontsize=12, labelpad=15)
+plt.ylabel("True", fontsize=12, labelpad=15)
+plt.title("Confusion Matrix Rules-Based", fontsize=16, fontweight='bold')
 plt.tight_layout()
 plt.show()
-'''
