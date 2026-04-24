@@ -276,13 +276,13 @@ suppr_13 = labels_13["supportedrear"]
 unsup_13 = labels_13["unsupportedrear"]
 groom_13 = labels_13["grooming"]
 
-corr_suppr_6 = feats_6.apply(lambda col: col.corr_suppr_6(suppr_6))
-corr_unsup_6 = feats_6.apply(lambda col: col.corr_unsup_6(unsup_6))
-corr_groom_6 = feats_6.apply(lambda col: col.corr_groom_6(groom_6))
+corr_suppr_6 = feats_6.apply(lambda col: col.corr(suppr_6))
+corr_unsup_6 = feats_6.apply(lambda col: col.corr(unsup_6))
+corr_groom_6 = feats_6.apply(lambda col: col.corr(groom_6))
 
-corr_suppr_13 = feats_13.apply(lambda col: col.corr_suppr_13(suppr_13))
-corr_unsup_13 = feats_13.apply(lambda col: col.corr_unsup_13(unsup_13))
-corr_groom_13 = feats_13.apply(lambda col: col.corr_groom_13(groom_13))
+corr_suppr_13 = feats_13.apply(lambda col: col.corr(suppr_13))
+corr_unsup_13 = feats_13.apply(lambda col: col.corr(unsup_13))
+corr_groom_13 = feats_13.apply(lambda col: col.corr(groom_13))
 
 print("Correlates for video 6########################################################################")
 print("SUPPORTED~REARING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -349,8 +349,8 @@ for video in videos:
     labels.to_csv(file_path, index=False)
 '''
 
+#CODE FOR MAKING A COOL CONFUSION MATRIX
 '''
-#CODE FOR MAKING A COOL CONFUSION MATRIX 
 pred = pd.read_csv('raduman/6.csv')
 true = pd.read_csv('pipeline_inputs/labels/6.csv')
 
