@@ -5,6 +5,11 @@ from py3r.behaviour.tracking.tracking_mv import TrackingMV
 #from py3r.behaviour.util.docdata import data_path
 #lucreaza intai cu videorile 6 si 13
 import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
 import glob
 import os
 from torch.nn.functional import threshold
@@ -257,24 +262,24 @@ grooming_values.to_csv('raduman/groom_6.csv', index=False)
 
 #NOW WE ACTUALLY START TO CLASSIFY OH YEAH BUSINESS BABY
 #collection["feature"][('video', frame)]
-
+'''
 videos = ['6', '13']
 
 for video in videos:
     framecount = main_features["speed_of_nose_in_xyz"][video].shape[0]
     framecount = int(framecount)
-    #print(framecount)
+    print(framecount)
     frame=0
 
-    labels = pd.DataFrame(columns=["background", "supportedrear", "unsupportedrear", "grooming"])
+    labels = pd.DataFrame(columns=["", "background", "supportedrear", "unsupportedrear", "grooming"])
     labels = labels.astype(int)  # labels starts filled with 0s
 
     for frame in range(framecount):
         label = "background"  # could become "supportedrear" or "unsupportedrear" or "grooming"
 
         #CHECK FOR A REAR
-        if (main_features["distance_between_tailcentre_and_bodycentre_in_yz"][(video, frame)] >= 0.045): # body high enough?
-            if (main_features["distance_between_tailcentre_and_nose_in_yz"][(video, frame)] >= 0.06): # head high enough?
+        if (main_features["distance_between_tailcentre_and_bodycentre_in_yz"][(video, frame)] >= 0.065): # body high enough?
+            if (main_features["distance_between_tailcentre_and_nose_in_yz"][(video, frame)] >= 0.1): # head high enough?
                 if (main_features["distance_to_boundary_static_nose_in_edge"][(video, frame)] < 0.1): # are we sniffing the wall?
                     label = "supportedrear"
                 #elif (frame != 0 and labels["supportedrear"][frame-1] == 1):
@@ -287,14 +292,37 @@ for video in videos:
                 label = "unsupportedrear" # same edgecase check but for unsupported rear
 
         #CHECK FOR GROOMING, SKIP IF REAR FOUND
-        '''if (label == "background"):
-            #GROOMCHECK'''
+        #if (label == "background"):
+            #GROOMCHECK
+        labels.loc[frame, ""] = frame
         labels.loc[frame, "background"] = int(label == "background")
         labels.loc[frame, "supportedrear"] = int(label == "supportedrear")
         labels.loc[frame, "unsupportedrear"] = int(label == "unsupportedrear")
         labels.loc[frame, "grooming"] = int(label == "grooming")
+    frame = frame + 1
+    labels.loc[frame, ""] = frame
+    labels.loc[frame, "background"] = 0
+    labels.loc[frame, "supportedrear"] = 0
+    labels.loc[frame, "unsupportedrear"] = 0
+    labels.loc[frame, "grooming"] = 0
     file_path = "raduman/" + video + ".csv"
-    labels.to_csv(file_path, index=False)
+    labels.to_csv(file_path, index=False)'''
 
+pred = pd.read_csv('raduman/6.csv')
+true = pd.read_csv('pipeline_inputs/labels/6.csv')
 
+cols = ["background", "supportedrear", "unsupportedrear", "grooming"]
 
+y_true = true[cols].idxmax(axis=1)
+y_pred = pred[cols].idxmax(axis=1)
+
+cm = confusion_matrix(y_true, y_pred, labels=cols, normalize="true")
+
+plt.figure(figsize=(8,6))
+sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues", xticklabels=cols, yticklabels=cols)
+
+plt.xlabel("Predicted")
+plt.ylabel("True")
+plt.title("Confusion Matrix Man")
+plt.tight_layout()
+plt.show()
